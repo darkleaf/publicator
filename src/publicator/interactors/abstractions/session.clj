@@ -1,4 +1,5 @@
-(ns publicator.interactors.abstractions.session)
+(ns publicator.interactors.abstractions.session
+  (:refer-clojure :exclude [read]))
 
 (defprotocol PSession
   (read [this k])

@@ -2,7 +2,7 @@
   (:require
    [publicator.interactors.user.register :as sut]
    [publicator.interactors.abstractions.transaction :as tx]
-   [publicator.interactors.abstractions.session :as session]
+   [publicator.interactors.helpers.user-session :as user-session]
    [publicator.interactors.abstractions.user-queries :as user-q]
    [publicator.fakes.storage :as fakes.storage]
    [publicator.fakes.session :as fakes.session]
@@ -38,20 +38,20 @@
       (t/is (nil? err)))
     (t/testing "sign in"
       (t/is (= user-id
-               (session/read *session* :user-id))))
+               (user-session/user-id *session*))))
     (t/testing "persisted"
       (tx/with-tx [tx (tx/build *tx-factory*)]
         (let [user (tx/get-aggregate tx User user-id)]
           (t/is (= (:login params) (:login @user))))))))
 
 (t/deftest already-registered
-  (let [params     (sgen/generate (s/gen ::user/build-params))
-        user-attrs (-> (sgen/generate (s/gen ::user/attrs))
-                       (assoc :login (:login params)))
-        ctx        {:tx-factory         *tx-factory*
-                    :session            *session*
-                    :get-by-login-query (get-by-login-stub user-attrs)}
-        [_ err]    (sut/call ctx params)]
+  (let [params  (sgen/generate (s/gen ::user/build-params))
+        user    (-> (sgen/generate (s/gen ::user/attrs))
+                    (assoc :login (:login params)))
+        ctx     {:tx-factory         *tx-factory*
+                 :session            *session*
+                 :get-by-login-query (get-by-login-stub user)}
+        [_ err] (sut/call ctx params)]
     (t/testing "error"
       (t/is (= :already-registered (:type err))))
     (t/testing "not sign in"
@@ -73,7 +73,7 @@
         ctx     {:tx-factory         *tx-factory*
                  :session            *session*
                  :get-by-login-query (get-by-login-stub nil)}
-        _       (session/write! *session* :user-id user-id)
+        _       (user-session/log-in *session* user-id)
         [_ err] (sut/call ctx params)]
     (t/testing "error"
       (t/is (= :already-logged-in (:type err))))))

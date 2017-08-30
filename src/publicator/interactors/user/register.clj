@@ -3,12 +3,13 @@
    [publicator.interactors.abstractions.transaction :as tx]
    [publicator.interactors.abstractions.session :as session]
    [publicator.interactors.abstractions.user-queries :as user-q]
+   [publicator.interactors.helpers.user-session :as user-session]
    [publicator.domain.user :as user]
    [better-cond.core :as b]
    [clojure.spec.alpha :as s]))
 
 (defn- check-logged-out [{:keys [session]}]
-  (when (session/read session :user-id)
+  (when (user-session/logged-in? session)
     {:type :already-logged-in}))
 
 (defn- check-params [params]
@@ -26,9 +27,6 @@
           user       (tx/create-aggregate tx user-state)]
       (:id @user))))
 
-(defn- sign-in [{:keys [session]} user-id]
-  (session/write! session :user-id user-id))
-
 (b/defnc call [ctx params]
   :let [err (or
              (check-logged-out ctx)
@@ -36,6 +34,6 @@
              (check-registered ctx params))]
   (some? err) [nil err]
   :let [user-id (create-user ctx params)
-        _ (sign-in ctx user-id)
+        _ (user-session/log-in (:session ctx) user-id)
         res {:user-id user-id}]
   [res nil])
