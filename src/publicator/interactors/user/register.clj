@@ -38,4 +38,4 @@
   (some? err) [nil err]
   :let [user (create-user ctx params)]
   :do  (log-in ctx user)
-  [{:user user} nil])
+  [user nil])

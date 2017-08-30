@@ -30,4 +30,4 @@
   (not (and user
             (authenticated? user params))) [nil error]
   :do (log-in ctx user)
-  [{:user user} nil])
+  [user nil])

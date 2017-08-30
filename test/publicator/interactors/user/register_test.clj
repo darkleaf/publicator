@@ -33,8 +33,8 @@
         ctx        {:tx-factory         *tx-factory*
                     :session            *session*
                     :get-by-login-query (get-by-login-stub nil)}
-        [data err] (sut/call ctx params)
-        user-id    (-> data :user :id)]
+        [user err] (sut/call ctx params)
+        user-id    (:id user)]
     (t/testing "no error"
       (t/is (nil? err)))
     (t/testing "sign in"
