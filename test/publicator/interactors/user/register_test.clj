@@ -7,6 +7,7 @@
    [publicator.fakes.storage :as fakes.storage]
    [publicator.fakes.session :as fakes.session]
    [publicator.domain.user :as user]
+   [publicator.fixtures :as fixtures]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]
    [clojure.spec.gen.alpha :as sgen])
@@ -20,7 +21,7 @@
             *tx-factory* (fakes.storage/build-tx-factory)]
     (f)))
 
-(t/use-fixtures :each setup)
+(t/use-fixtures :each setup fixtures/all)
 
 (defn get-by-login-stub [attrs]
   (reify
@@ -33,7 +34,7 @@
                     :session            *session*
                     :get-by-login-query (get-by-login-stub nil)}
         [data err] (sut/call ctx params)
-        user-id    (:user-id data)]
+        user-id    (-> data :user :id)]
     (t/testing "no error"
       (t/is (nil? err)))
     (t/testing "sign in"
@@ -55,7 +56,7 @@
     (t/testing "error"
       (t/is (= :already-registered (:type err))))
     (t/testing "not sign in"
-      (t/is (nil? (session/read *session* :user-id))))))
+      (t/is (user-session/logged-out? *session*)))))
 
 (t/deftest wrong-params
   (let [params  {}

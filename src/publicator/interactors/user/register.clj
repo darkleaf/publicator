@@ -25,7 +25,10 @@
   (tx/with-tx [tx (tx/build tx-factory)]
     (let [user-state (user/build params)
           user       (tx/create-aggregate tx user-state)]
-      (:id @user))))
+      @user)))
+
+(defn- log-in [{:keys [session]} user]
+  (user-session/log-in session (:id user)))
 
 (b/defnc call [ctx params]
   :let [err (or
@@ -33,7 +36,6 @@
              (check-params params)
              (check-registered ctx params))]
   (some? err) [nil err]
-  :let [user-id (create-user ctx params)
-        _ (user-session/log-in (:session ctx) user-id)
-        res {:user-id user-id}]
-  [res nil])
+  :let [user (create-user ctx params)]
+  :do  (log-in ctx user)
+  [{:user user} nil])

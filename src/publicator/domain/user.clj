@@ -1,6 +1,6 @@
 (ns publicator.domain.user
   (:require
-   [buddy.hashers :as hashers]
+   [publicator.domain.utils.password :as password]
    [clojure.spec.alpha :as s]))
 
 (s/def ::id uuid?)
@@ -14,10 +14,14 @@
 
 (defrecord User [id login full-name password-digest])
 
+
 (defn build [{:keys [login full-name password]}]
   (let [id              (java.util.UUID/randomUUID)
-        password-digest (hashers/derive password)]
+        password-digest (password/encrypt password)]
     (map->User {:id              id
                 :login           login
                 :full-name       full-name
                 :password-digest password-digest})))
+
+(defn authenticated? [{:keys [password-digest]} password]
+  (password/check password-digest password))
