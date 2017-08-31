@@ -1,4 +1,4 @@
-(ns publicator.fixtures
+(ns publicator.interactors.fixtures
   (:require
    [publicator.domain.utils.password :as password]
    [clojure.test :as t]))

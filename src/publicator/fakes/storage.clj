@@ -5,21 +5,21 @@
    [publicator.interactors.utils.aggregate :as aggregate]))
 
 (deftype FakeTransaction [db]
-  tx/PTransaction
+  tx/Transaction
   (get-aggregates [_ klass ids]
     (map #(get @db %) ids))
 
   (create-aggregate [_ state]
     (let [agg (aggregate/build state)
-          id  (:id @agg)
-          _   (vswap! db assoc id agg)]
+          id  (:id @agg)]
+      (vswap! db assoc id agg)
       agg))
 
   (wrap [this body]
     (body this)))
 
 (deftype FakeTxFactory [db]
-  tx/PTxFactory
+  tx/TxFactory
   (build [_]
     (->FakeTransaction db)))
 

@@ -2,12 +2,13 @@
   (:require
    [publicator.interactors.user.register :as sut]
    [publicator.interactors.abstractions.transaction :as tx]
-   [publicator.interactors.helpers.user-session :as user-session]
-   [publicator.interactors.abstractions.user-queries :as user-q]
    [publicator.fakes.storage :as fakes.storage]
+   [publicator.interactors.abstractions.session :as session]
    [publicator.fakes.session :as fakes.session]
+   [publicator.interactors.abstractions.user-queries :as user-q]
+   [publicator.stubs.user-queries :as stubs.user-q]
    [publicator.domain.user :as user]
-   [publicator.fixtures :as fixtures]
+   [publicator.interactors.fixtures :as fixtures]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]
    [clojure.spec.gen.alpha :as sgen])
@@ -23,23 +24,18 @@
 
 (t/use-fixtures :each setup fixtures/all)
 
-(defn get-by-login-stub [attrs]
-  (reify
-    user-q/PGetByLogin
-    (-get-by-login [_ _login] attrs)))
-
 (t/deftest main
   (let [params     (sgen/generate (s/gen ::user/build-params))
-        ctx        {:tx-factory         *tx-factory*
-                    :session            *session*
-                    :get-by-login-query (get-by-login-stub nil)}
+        ctx        {::tx/tx-factory       *tx-factory*
+                    ::session/session     *session*
+                    ::user-q/get-by-login (stubs.user-q/get-by-login nil)}
         [user err] (sut/call ctx params)
         user-id    (:id user)]
     (t/testing "no error"
       (t/is (nil? err)))
     (t/testing "sign in"
       (t/is (= user-id
-               (user-session/user-id *session*))))
+               (session/user-id *session*))))
     (t/testing "persisted"
       (tx/with-tx [tx (tx/build *tx-factory*)]
         (let [user (tx/get-aggregate tx User user-id)]
@@ -49,20 +45,20 @@
   (let [params  (sgen/generate (s/gen ::user/build-params))
         user    (-> (sgen/generate (s/gen ::user/attrs))
                     (assoc :login (:login params)))
-        ctx     {:tx-factory         *tx-factory*
-                 :session            *session*
-                 :get-by-login-query (get-by-login-stub user)}
+        ctx     {::tx/tx-factory       *tx-factory*
+                 ::session/session     *session*
+                 ::user-q/get-by-login (stubs.user-q/get-by-login user)}
         [_ err] (sut/call ctx params)]
     (t/testing "error"
       (t/is (= :already-registered (:type err))))
     (t/testing "not sign in"
-      (t/is (user-session/logged-out? *session*)))))
+      (t/is (session/logged-out? *session*)))))
 
 (t/deftest wrong-params
   (let [params  {}
-        ctx     {:tx-factory         *tx-factory*
-                 :session            *session*
-                 :get-by-login-query (get-by-login-stub nil)}
+        ctx     {::tx/tx-factory       *tx-factory*
+                 ::session/session     *session*
+                 ::user-q/get-by-login (stubs.user-q/get-by-login nil)}
         [_ err] (sut/call ctx params)]
     (t/testing "error"
       (t/is (= :invalid-params (:type err)))
@@ -71,10 +67,10 @@
 (t/deftest already-logged-in
   (let [params  (sgen/generate (s/gen ::user/build-params))
         user-id (sgen/generate (s/gen ::user/id))
-        ctx     {:tx-factory         *tx-factory*
-                 :session            *session*
-                 :get-by-login-query (get-by-login-stub nil)}
-        _       (user-session/log-in *session* user-id)
+        ctx     {::tx/tx-factory       *tx-factory*
+                 ::session/session     *session*
+                 ::user-q/get-by-login (stubs.user-q/get-by-login nil)}
+        _       (session/log-in! *session* user-id)
         [_ err] (sut/call ctx params)]
     (t/testing "error"
       (t/is (= :already-logged-in (:type err))))))

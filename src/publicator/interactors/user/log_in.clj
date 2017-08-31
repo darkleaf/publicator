@@ -1,28 +1,34 @@
 (ns publicator.interactors.user.log-in
   (:require
    [publicator.interactors.abstractions.user-queries :as user-q]
-   [publicator.interactors.helpers.user-session :as user-session]
+   [publicator.interactors.abstractions.session :as session]
    [publicator.domain.user :as user]
-   [better-cond.core :as b]))
+   [better-cond.core :as b]
+   [clojure.spec.alpha :as s]))
 
 (defn- check-logged-out [ctx])
 
 (defn- check-params [ctx])
 
-;; get-by-login-query непонятно, что тут юзер
-
-(defn- find-user [{:keys [get-by-login-query]} params]
-  (user-q/get-by-login get-by-login-query (:login params)))
+(defn- find-user [ctx params]
+  (let [it    (::user-q/get-by-login ctx)
+        login (:login params)]
+    (user-q/get-by-login it login)))
 
 (defn- authenticated? [user params]
   (user/authenticated? user (:password params)))
 
-(defn- log-in [{:keys [session]} user]
-  (user-session/log-in session (:id user)))
+(defn- log-in [ctx user]
+  (let [it (::session/session ctx)]
+    (session/log-in! it (:id user))))
 
 (def error {:type :wrong-loggin-or-password})
 
+(s/def ::ctx (s/keys :req [::session/session
+                           ::user-q/get-by-login]))
+
 (b/defnc call [ctx params]
+  :do  (s/assert ::ctx ctx)
   :let [err (or (check-logged-out ctx)
                 (check-params params))]
   (some? err) [nil err]
