@@ -54,7 +54,7 @@
     (t/testing "not sign in"
       (t/is (session/logged-out? *session*)))))
 
-(t/deftest wrong-params
+(t/deftest invalid-params
   (let [params  {}
         ctx     {::tx/tx-factory       *tx-factory*
                  ::session/session     *session*

@@ -6,9 +6,17 @@
    [better-cond.core :as b]
    [clojure.spec.alpha :as s]))
 
-(defn- check-logged-out [ctx])
+(s/def ::params (s/keys :req-un [::user/login ::user/password]))
 
-(defn- check-params [ctx])
+(defn- check-logged-out [ctx]
+  (let [it (::session/session ctx)]
+    (when (session/logged-in? it)
+      {:type :already-logged-in})))
+
+(defn- check-params [params]
+  (when-let [exp (s/explain-data ::params params)]
+    {:type         :invalid-params
+     :explain-data exp}))
 
 (defn- find-user [ctx params]
   (let [it    (::user-q/get-by-login ctx)
@@ -22,7 +30,7 @@
   (let [it (::session/session ctx)]
     (session/log-in! it (:id user))))
 
-(def error {:type :wrong-loggin-or-password})
+(def ^:private error {:type :wrong-login-or-password})
 
 (s/def ::ctx (s/keys :req [::session/session
                            ::user-q/get-by-login]))
