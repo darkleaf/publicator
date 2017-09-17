@@ -6,8 +6,8 @@ services:
     working_dir: /usr/src/app
     command: lein repl :headless :host "0.0.0.0" :port 4100
     ports:
-      - "4100:4100"
-      - "4101:4101"
+      - "4100:4100" # repl
+      - "4101:4101" # http
     volumes:
       - repository:/root/.m2
       - .:/usr/src/app
