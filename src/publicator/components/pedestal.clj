@@ -15,7 +15,8 @@
    {::http/routes (routes)
     ::http/join?  false
     ::http/type   :jetty
-    ::http/port   4101}))
+    ::http/port   4101
+    ::http/secure-headers {:content-security-policy-settings {:object-src "none"}}}))
 
 (defrecord Pedestal [server]
   component/Lifecycle

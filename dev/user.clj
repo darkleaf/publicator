@@ -6,14 +6,17 @@
 
 (s/check-asserts true)
 
-(def system (system/build))
+(def system nil)
 
 (defn start []
-  (alter-var-root #'system component/start))
+  (alter-var-root #'system
+                  (constantly
+                   (-> (system/build)
+                       (component/start)))))
 
 (defn stop []
   (alter-var-root #'system component/stop))
 
-(start)
+#_(start)
 
 #_(stop)
