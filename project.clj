@@ -17,4 +17,5 @@
                  ;; overrides
                  [org.clojure/core.async "0.3.443"]]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]]
-                   :source-paths ["dev"]}})
+                   :source-paths ["dev"]}}
+  :local-repo "local-m2")
