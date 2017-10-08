@@ -14,6 +14,8 @@
 
                  [hiccup "1.0.5"]
 
+                 [com.cognitect/transit-clj "0.8.300"]
+
                  ;; overrides
                  [org.clojure/core.async "0.3.443"]]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]]

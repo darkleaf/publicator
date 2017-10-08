@@ -7,13 +7,17 @@
    [better-cond.core :as b]
    [clojure.spec.alpha :as s]))
 
+(s/def ::params ::user/build-params)
+
+(defn initial-params [] {})
+
 (defn- check-logged-out [ctx]
   (let [it (::session/session ctx)]
     (when (session/logged-in? it)
       {:type :already-logged-in})))
 
 (defn- check-params [params]
-  (when-let [exp (s/explain-data ::user/build-params params)]
+  (when-let [exp (s/explain-data ::params params)]
     {:type         :invalid-params
      :explain-data exp}))
 
