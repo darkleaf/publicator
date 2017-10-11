@@ -10,28 +10,31 @@
    (-> #{}
        (into (registration/routes)))))
 
-(defn- build-server []
-  (http/create-server
-   {::http/routes (routes)
-    ::http/join?  false
-    ::http/type   :jetty
-    ::http/port   4101
-    ::http/secure-headers {:content-security-policy-settings {:object-src "none"}}}))
+(defn interceptor []
+  {:name ::tmp-interceptor
+   :enter   (fn [context]
+              (prn context)
+              context)})
 
 (defrecord Pedestal [server]
   component/Lifecycle
   (start [this]
-    (if server
-      this
-      (let [server (build-server)]
-        (http/start server)
-        (assoc this :server server))))
+    (http/start server)
+    this)
   (stop [this]
-    (if server
-      (do
-        (http/stop server)
-        (assoc this :server nil))
-      this)))
+    (http/stop server)
+    this))
 
+(defn build []
+  (let [server
+        (-> {::http/routes (routes)
+             ::http/join?  false
+             ::http/type   :jetty
+             ::http/port   4101
 
-(defn build [] (->Pedestal nil))
+             ::http/secure-headers {:content-security-policy-settings
+                                    {:object-src "none"}}}
+            (http/default-interceptors)
+            (update ::http/interceptors conj (interceptor))
+            (http/create-server))]
+    (->Pedestal server)))

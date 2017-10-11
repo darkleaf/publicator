@@ -1,6 +1,6 @@
 (ns publicator.interactors.user.register
   (:require
-   [publicator.interactors.abstractions.transaction :as tx]
+   [publicator.interactors.abstractions.storage :as storage]
    [publicator.interactors.abstractions.session :as session]
    [publicator.interactors.abstractions.user-queries :as user-q]
    [publicator.domain.user :as user]
@@ -28,23 +28,15 @@
       {:type :already-registered})))
 
 (defn- create-user [ctx params]
-  (let [it (::tx/tx-factory ctx)]
-    (tx/with-tx [tx (tx/build it)]
-      (let [user-state (user/build params)
-            user       (tx/create-aggregate tx user-state)]
-        @user))))
+  (let [it (::storage/storage ctx)]
+    (storage/create-agg-in it (user/build params))))
 
 (defn- log-in [ctx user]
   (let [it      (::session/session ctx)
         user-id (:id user)]
     (session/log-in! it user-id)))
 
-(s/def ::ctx (s/keys :req [::session/session
-                           ::tx/tx-factory
-                           ::user-q/get-by-login]))
-
 (b/defnc call [ctx params]
-  :do  (s/assert ::ctx ctx)
   :let [err (or
              (check-logged-out ctx)
              (check-params params)

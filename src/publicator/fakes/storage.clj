@@ -1,27 +1,42 @@
 (ns publicator.fakes.storage
   "Thread unsafe fake storage"
   (:require
-   [publicator.interactors.abstractions.transaction :as tx]
-   [publicator.interactors.utils.aggregate :as aggregate]))
+   [publicator.interactors.abstractions.storage :as storage]))
 
-(deftype FakeTransaction [db]
-  tx/Transaction
-  (get-aggregates [_ klass ids]
+(deftype Aggregate [volatile]
+  clojure.lang.IDeref
+  (deref [_]  @volatile)
+
+  storage/Aggregate
+  (-update-agg! [this f args]
+    (let [new (apply f @volatile args)]
+      (vreset! volatile new)
+      new)))
+
+(defn aggregate [state]
+  (Aggregate. (volatile! state)))
+
+(deftype Transaction [db]
+  storage/Transaction
+
+  (-get-aggs [_ ids]
     (map #(get @db %) ids))
 
-  (create-aggregate [_ state]
-    (let [agg (aggregate/build state)
-          id  (:id @agg)]
+  (-create-agg [_ state]
+    (let [id  (:id state)
+          agg (aggregate state)]
       (vswap! db assoc id agg)
-      agg))
+      agg)))
 
-  (wrap [this body]
-    (body this)))
+(deftype Storage [db]
+  storage/Storage
 
-(deftype FakeTxFactory [db]
-  tx/TxFactory
-  (build [_]
-    (->FakeTransaction db)))
+  (-tx [_ body]
+    (binding [storage/*tx* (Transaction. db)]
+      (body))))
 
-(defn build-tx-factory []
-  (->FakeTxFactory (volatile! {})))
+(defn build-db []
+  (volatile! {}))
+
+(defn build-storage [db]
+  (Storage. db))
