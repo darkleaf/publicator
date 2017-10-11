@@ -8,6 +8,6 @@
 
 (defn build []
   (component/system-map
-   :pedestal (pedestal/build)
    :db (db/build)
-   :impl (component/using (impl/build) [:db])))
+   :impl (component/using (impl/build) [:db])
+   :pedestal (component/using (pedestal/build) [:impl])))

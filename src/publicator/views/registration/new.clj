@@ -59,7 +59,7 @@
   (let [desc (form/spec->widget ::register/params)]
     {:id :register
      :widget :submit
-     :url "/foo"
+     :url "/registration"
      :method :post
      :body desc}))
 
