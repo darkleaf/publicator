@@ -9,8 +9,6 @@
 
 (s/def ::params ::user/build-params)
 
-(defn initial-params [] {})
-
 (defn- check-logged-out [ctx]
   (let [it (::session/session ctx)]
     (when (session/logged-in? it)
@@ -31,20 +29,23 @@
         user-id (:id user)]
     (session/log-in! it user-id)))
 
-(defn check-params [params]
+(defn- check-params [params]
   (when-let [exp (s/explain-data ::params params)]
     {:type         ::invalid-params
      :explain-data exp}))
 
-(defn check-ctx [ctx]
-  (check-logged-out ctx))
+(b/defnc initial-params [ctx]
+  :let [err (check-logged-out ctx)]
+  (some? err) err
+  {:type ::initial-params
+   :initial-params {}})
 
-(b/defnc call [ctx params]
+(b/defnc process [ctx params]
   :let [err (or
-             (check-ctx ctx)
+             (check-logged-out ctx)
              (check-params params)
              (check-registered ctx params))]
   (some? err) err
   :let [user (create-user ctx params)]
   :do  (log-in ctx user)
-  {:type ::register :user user})
+  {:type ::processed :user user})

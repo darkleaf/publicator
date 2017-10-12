@@ -65,7 +65,7 @@
 
 (defn page [ctx]
   (form (description)
-        (register/initial-params)
+        {} ;; initial params
         nil))
 
 (defn render [ctx]

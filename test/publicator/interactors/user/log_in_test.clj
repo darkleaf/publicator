@@ -42,10 +42,10 @@
   (let [build-params (sgen/generate (s/gen ::user/build-params))
         user         (storage/create-agg-in *storage* (user/build build-params))
         params       (select-keys build-params [:login :password])
-        resp         (sut/call (ctx) params)]
+        resp         (sut/process (ctx) params)]
     (t/testing "success"
       (t/is (= (:type resp)
-               ::sut/log-in)))
+               ::sut/processed)))
     (t/testing "sign in"
       (t/is (= (:id user)
                (session/user-id *session*))))))
@@ -53,7 +53,7 @@
 (t/deftest wrong-login
   (let [params {:login    "john_doe"
                 :password "secret password"}
-        resp   (sut/call (ctx) params)]
+        resp   (sut/process (ctx) params)]
     (t/testing "has error"
       (t/is (= (:type resp)
                ::sut/authentication-failed)))))
@@ -63,7 +63,7 @@
         user         (storage/create-agg-in *storage* (user/build build-params))
         params       {:login    (:login build-params)
                       :password "wrong password"}
-        resp         (sut/call (ctx) params)]
+        resp         (sut/process (ctx) params)]
     (t/testing "has error"
       (t/is (= (:type resp)
                ::sut/authentication-failed)))))
@@ -73,14 +73,14 @@
         user         (storage/create-agg-in *storage* (user/build build-params))
         _            (session/log-in! *session* (:id user))
         params       (select-keys build-params [:login :password])
-        resp         (sut/call (ctx) params)]
+        resp         (sut/process (ctx) params)]
     (t/testing "has error"
       (t/is (= (:type resp)
                ::sut/already-logged-in)))))
 
 (t/deftest invalid-params
   (let [params {}
-        resp   (sut/call (ctx) params)]
+        resp   (sut/process (ctx) params)]
     (t/testing "error"
       (t/is (= (:type resp) ::sut/invalid-params))
       (t/is (contains? resp :explain-data)))))

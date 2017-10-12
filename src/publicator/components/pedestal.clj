@@ -1,6 +1,6 @@
 (ns publicator.components.pedestal
   (:require
-   [publicator.controllers.registration :as registration]
+   [publicator.controllers.user.register :as user.registration]
    [publicator.interactors.abstractions.session :as abstractions.session]
    [com.stuartsierra.component :as component]
    [io.pedestal.http :as http]
@@ -11,7 +11,7 @@
 (defn routes []
   (route/expand-routes
    (-> #{}
-       (into (registration/routes)))))
+       (into (user.registration/routes)))))
 
 (defn service-map []
   (-> {::http/routes (routes)

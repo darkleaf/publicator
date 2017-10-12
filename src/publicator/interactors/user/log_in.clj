@@ -26,20 +26,23 @@
   (let [it (::session/session ctx)]
     (session/log-in! it (:id user))))
 
-(defn check-params [params]
+(defn- check-params [params]
   (when-let [exp (s/explain-data ::params params)]
     {:type         ::invalid-params
      :explain-data exp}))
 
-(defn check-ctx [ctx]
-  (check-logged-out ctx))
+(b/defnc initial-params [ctx]
+  :let [err (check-logged-out ctx)]
+  (some? err) err
+   :initial-params {}
+  {:type ::intial-params})
 
-(b/defnc call [ctx params]
-  :let [err (or (check-ctx ctx)
+(b/defnc process [ctx params]
+  :let [err (or (check-logged-out ctx)
                 (check-params params))]
   (some? err) err
   :let [user (find-user ctx params)
         err  (check-authentication user params)]
   (some? err) err
   :do (log-in ctx user)
-  {:type ::log-in :user user})
+  {:type ::processed :user user})

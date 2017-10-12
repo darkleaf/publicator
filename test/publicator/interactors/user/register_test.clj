@@ -38,13 +38,13 @@
    ::session/session     *session*
    ::user-q/get-by-login *get-by-login*})
 
-(t/deftest main
+(t/deftest process
   (let [params  (sgen/generate (s/gen ::user/build-params))
-        resp    (sut/call (ctx) params)
+        resp    (sut/process (ctx) params)
         user-id (-> resp :user :id)]
     (t/testing "success"
       (t/is (= (:type resp)
-               ::sut/register)))
+               ::sut/processed)))
     (t/testing "sign in"
       (t/is (= user-id
                (session/user-id *session*))))
@@ -55,7 +55,7 @@
 (t/deftest already-registered
   (let [params (sgen/generate (s/gen ::user/build-params))
         _      (storage/create-agg-in *storage* (user/build params))
-        resp   (sut/call (ctx) params)]
+        resp   (sut/process (ctx) params)]
     (t/testing "has error"
       (t/is (= (:type resp)
                ::sut/already-registered)))
@@ -67,14 +67,14 @@
         user    (storage/create-agg-in *storage* (user/build params))
         user-id (:id user)
         _       (session/log-in! *session* user-id)
-        resp    (sut/call (ctx) params)]
+        resp    (sut/process (ctx) params)]
     (t/testing "has error"
       (t/is (=  (:type resp)
                 ::sut/already-logged-in)))))
 
 (t/deftest invalid-params
   (let [params {}
-        resp   (sut/call (ctx) params)]
+        resp   (sut/process (ctx) params)]
     (t/testing "error"
       (t/is (= (:type resp) ::sut/invalid-params))
       (t/is (contains? resp  :explain-data)))))
