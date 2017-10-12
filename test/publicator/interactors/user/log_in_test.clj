@@ -42,43 +42,45 @@
   (let [build-params (sgen/generate (s/gen ::user/build-params))
         user         (storage/create-agg-in *storage* (user/build build-params))
         params       (select-keys build-params [:login :password])
-        [_ err]      (sut/call (ctx) params)]
-    (t/testing "no error"
-      (t/is (nil? err)))
+        resp         (sut/call (ctx) params)]
+    (t/testing "success"
+      (t/is (= (:type resp)
+               ::sut/log-in)))
     (t/testing "sign in"
       (t/is (= (:id user)
                (session/user-id *session*))))))
 
 (t/deftest wrong-login
-  (let [params  {:login    "john_doe"
-                 :password "secret password"}
-        [_ err] (sut/call (ctx) params)]
-    (t/testing "no error"
-      (t/is (= :wrong-login-or-password
-               (:type err))))))
+  (let [params {:login    "john_doe"
+                :password "secret password"}
+        resp   (sut/call (ctx) params)]
+    (t/testing "has error"
+      (t/is (= (:type resp)
+               ::sut/authentication-failed)))))
 
 (t/deftest wrong-password
   (let [build-params (sgen/generate (s/gen ::user/build-params))
         user         (storage/create-agg-in *storage* (user/build build-params))
         params       {:login    (:login build-params)
                       :password "wrong password"}
-        [_ err]      (sut/call (ctx) params)]
-    (t/testing "no error"
-      (t/is (= :wrong-login-or-password
-               (:type err))))))
+        resp         (sut/call (ctx) params)]
+    (t/testing "has error"
+      (t/is (= (:type resp)
+               ::sut/authentication-failed)))))
 
 (t/deftest already-logged-in
   (let [build-params (sgen/generate (s/gen ::user/build-params))
         user         (storage/create-agg-in *storage* (user/build build-params))
         _            (session/log-in! *session* (:id user))
         params       (select-keys build-params [:login :password])
-        [_ err]      (sut/call (ctx) params)]
-    (t/testing "error"
-      (t/is (= :already-logged-in (:type err))))))
+        resp         (sut/call (ctx) params)]
+    (t/testing "has error"
+      (t/is (= (:type resp)
+               ::sut/already-logged-in)))))
 
 (t/deftest invalid-params
-  (let [params  {}
-        [_ err] (sut/call (ctx) params)]
+  (let [params {}
+        resp   (sut/call (ctx) params)]
     (t/testing "error"
-      (t/is (= :invalid-params (:type err)))
-      (t/is (contains? err :explain-data)))))
+      (t/is (= (:type resp) ::sut/invalid-params))
+      (t/is (contains? resp :explain-data)))))

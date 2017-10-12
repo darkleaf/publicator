@@ -11,37 +11,35 @@
 (defn- check-logged-out [ctx]
   (let [it (::session/session ctx)]
     (when (session/logged-in? it)
-      {:type :already-logged-in})))
-
-(defn- check-params [params]
-  (when-let [exp (s/explain-data ::params params)]
-    {:type         :invalid-params
-     :explain-data exp}))
+      {:type ::already-logged-in})))
 
 (defn- find-user [ctx params]
   (let [it    (::user-q/get-by-login ctx)
         login (:login params)]
     (user-q/get-by-login it login)))
 
-(defn- authenticated? [user params]
-  (user/authenticated? user (:password params)))
+(defn- check-authentication [user params]
+  (when-not (user/authenticated? user (:password params))
+    {:type ::authentication-failed}))
 
 (defn- log-in [ctx user]
   (let [it (::session/session ctx)]
     (session/log-in! it (:id user))))
 
-(def ^:private error {:type :wrong-login-or-password})
+(defn check-params [params]
+  (when-let [exp (s/explain-data ::params params)]
+    {:type         ::invalid-params
+     :explain-data exp}))
 
-(s/def ::ctx (s/keys :req [::session/session
-                           ::user-q/get-by-login]))
+(defn check-ctx [ctx]
+  (check-logged-out ctx))
 
 (b/defnc call [ctx params]
-  :do  (s/assert ::ctx ctx)
-  :let [err (or (check-logged-out ctx)
+  :let [err (or (check-ctx ctx)
                 (check-params params))]
-  (some? err) [nil err]
-  :let [user (find-user ctx params)]
-  (not (and user
-            (authenticated? user params))) [nil error]
+  (some? err) err
+  :let [user (find-user ctx params)
+        err  (check-authentication user params)]
+  (some? err) err
   :do (log-in ctx user)
-  [user nil])
+  {:type ::log-in :user user})

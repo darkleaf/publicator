@@ -1,12 +1,8 @@
-(ns publicator.interactors.abstractions.session
-  (:require
-   [clojure.spec.alpha :as s]))
+(ns publicator.interactors.abstractions.session)
 
 (defprotocol Session
   (-get [this k])
   (-set! [this k v]))
-
-(s/def ::session #(satisfies? Session %))
 
 (defn log-in! [session user-id]
   (-set! session ::user-id user-id))

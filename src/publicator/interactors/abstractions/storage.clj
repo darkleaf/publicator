@@ -1,6 +1,4 @@
-(ns publicator.interactors.abstractions.storage
-  (:require
-   [clojure.spec.alpha :as s]))
+(ns publicator.interactors.abstractions.storage)
 
 (defprotocol Storage
   (-tx [this body]))

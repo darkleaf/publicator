@@ -14,18 +14,13 @@
 (defn- check-logged-out [ctx]
   (let [it (::session/session ctx)]
     (when (session/logged-in? it)
-      {:type :already-logged-in})))
-
-(defn- check-params [params]
-  (when-let [exp (s/explain-data ::params params)]
-    {:type         :invalid-params
-     :explain-data exp}))
+      {:type ::already-logged-in})))
 
 (defn- check-registered [ctx params]
   (let [it    (::user-q/get-by-login ctx)
         login (:login params)]
     (when (user-q/get-by-login it login)
-      {:type :already-registered})))
+      {:type ::already-registered})))
 
 (defn- create-user [ctx params]
   (let [it (::storage/storage ctx)]
@@ -36,12 +31,20 @@
         user-id (:id user)]
     (session/log-in! it user-id)))
 
+(defn check-params [params]
+  (when-let [exp (s/explain-data ::params params)]
+    {:type         ::invalid-params
+     :explain-data exp}))
+
+(defn check-ctx [ctx]
+  (check-logged-out ctx))
+
 (b/defnc call [ctx params]
   :let [err (or
-             (check-logged-out ctx)
+             (check-ctx ctx)
              (check-params params)
              (check-registered ctx params))]
-  (some? err) [nil err]
+  (some? err) err
   :let [user (create-user ctx params)]
   :do  (log-in ctx user)
-  [user nil])
+  {:type ::register :user user})

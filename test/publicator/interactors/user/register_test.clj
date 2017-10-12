@@ -39,11 +39,12 @@
    ::user-q/get-by-login *get-by-login*})
 
 (t/deftest main
-  (let [params     (sgen/generate (s/gen ::user/build-params))
-        [user err] (sut/call (ctx) params)
-        user-id    (:id user)]
-    (t/testing "no error"
-      (t/is (nil? err)))
+  (let [params  (sgen/generate (s/gen ::user/build-params))
+        resp    (sut/call (ctx) params)
+        user-id (-> resp :user :id)]
+    (t/testing "success"
+      (t/is (= (:type resp)
+               ::sut/register)))
     (t/testing "sign in"
       (t/is (= user-id
                (session/user-id *session*))))
@@ -52,11 +53,12 @@
         (t/is (= (:login params) (:login @user)))))))
 
 (t/deftest already-registered
-  (let [params  (sgen/generate (s/gen ::user/build-params))
-        _       (storage/create-agg-in *storage* (user/build params))
-        [_ err] (sut/call (ctx) params)]
-    (t/testing "error"
-      (t/is (= :already-registered (:type err))))
+  (let [params (sgen/generate (s/gen ::user/build-params))
+        _      (storage/create-agg-in *storage* (user/build params))
+        resp   (sut/call (ctx) params)]
+    (t/testing "has error"
+      (t/is (= (:type resp)
+               ::sut/already-registered)))
     (t/testing "not sign in"
       (t/is (session/logged-out? *session*)))))
 
@@ -65,13 +67,14 @@
         user    (storage/create-agg-in *storage* (user/build params))
         user-id (:id user)
         _       (session/log-in! *session* user-id)
-        [_ err] (sut/call (ctx) params)]
-    (t/testing "error"
-      (t/is (= :already-logged-in (:type err))))))
+        resp    (sut/call (ctx) params)]
+    (t/testing "has error"
+      (t/is (=  (:type resp)
+                ::sut/already-logged-in)))))
 
 (t/deftest invalid-params
-  (let [params  {}
-        [_ err] (sut/call (ctx) params)]
+  (let [params {}
+        resp   (sut/call (ctx) params)]
     (t/testing "error"
-      (t/is (= :invalid-params (:type err)))
-      (t/is (contains? err :explain-data)))))
+      (t/is (= (:type resp) ::sut/invalid-params))
+      (t/is (contains? resp  :explain-data)))))
