@@ -1,4 +1,4 @@
-(ns publicator.components.impl
+(ns publicator.components.interactor-ctx
   (:require
    [com.stuartsierra.component :as component]
 
@@ -8,16 +8,14 @@
    [publicator.interactors.abstractions.user-queries :as user-q]
    [publicator.fakes.user-queries :as fake.user-q]))
 
-(defrecord Impl [db impl]
+(defrecord Ctx [db ctx]
   component/Lifecycle
   (start [this]
-    (-> this
-        (assoc-in [:impl ::storage/storage]
-                  (fakes.storage/build-storage (:conn db)))
-        (assoc-in [:impl ::user-q/get-by-login]
-                  (fake.user-q/build-get-by-login (:conn db)))))
+    (assoc this :ctx
+           {::storage/storage     (fakes.storage/build-storage (:conn db))
+            ::user-q/get-by-login (fake.user-q/build-get-by-login (:conn db))}))
   (stop [this]
-    (assoc this :impl {})))
+    (assoc this :impl nil)))
 
 (defn build []
-  (->Impl nil {}))
+  (Ctx. nil nil))

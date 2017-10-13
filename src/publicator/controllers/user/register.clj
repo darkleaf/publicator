@@ -5,14 +5,14 @@
    [publicator.views.registration.new :as views.new]))
 
 (defn form [req]
-  (let [impl (:impl req)
-        resp (interactor/initial-params impl)]
+  (let [ctx  (:interactor-ctx req)
+        resp (interactor/initial-params ctx)]
     (interactor-resp/handle resp)))
 
 (defn form-handler [req]
-  (let [impl   (:impl req)
+  (let [ctx    (:interactor-ctx req)
         params (:transit-params req)
-        resp   (interactor/process impl params)]
+        resp   (interactor/process ctx params)]
     (interactor-resp/handle resp)))
 
 (defmethod interactor-resp/handle ::interactor/initial-params [resp]
