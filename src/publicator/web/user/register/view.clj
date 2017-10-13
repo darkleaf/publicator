@@ -1,4 +1,4 @@
-(ns publicator.views.registration.new
+(ns publicator.web.user.register.view
   (:require
    [hiccup.core :refer [html]]
    [hiccup.page :refer [html5 include-js]]

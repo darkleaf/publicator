@@ -1,4 +1,4 @@
-(ns publicator.controllers.interactor-response)
+(ns publicator.web.interactor-response)
 
 (defmulti handle :type)
 

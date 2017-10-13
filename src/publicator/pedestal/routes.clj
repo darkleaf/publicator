@@ -1,9 +1,9 @@
 (ns publicator.pedestal.routes
   (:require
    [io.pedestal.http.route :as route]
-   [publicator.controllers.user.register :as user.registration]))
+   [publicator.web.user.register.controller :as user.register]))
 
 (defn build []
   (route/expand-routes
    (-> #{}
-       (into (user.registration/routes)))))
+       (into (user.register/routes)))))

@@ -1,8 +1,8 @@
-(ns publicator.controllers.user.register
+(ns publicator.web.user.register.controller
   (:require
-   [publicator.controllers.interactor-response :as interactor-resp]
    [publicator.interactors.user.register :as interactor]
-   [publicator.views.registration.new :as views.new]))
+   [publicator.web.interactor-response :as interactor-resp]
+   [publicator.web.user.register [view :as view]]))
 
 (defn form [req]
   (let [ctx  (:interactor-ctx req)
@@ -18,7 +18,7 @@
 (defmethod interactor-resp/handle ::interactor/initial-params [resp]
   {:status  200
    :headers {"Content-Type" "text/html"}
-   :body    (views.new/render nil)})
+   :body    (view/render nil)})
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  200
