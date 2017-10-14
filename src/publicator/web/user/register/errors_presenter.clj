@@ -7,7 +7,7 @@
 
 (def no-errors {})
 
-(def already-registered {})
+(def already-registered {:form-ujs/errors ["Уже зарегистрирован"]})
 
 (defn- contains?-match [pred]
     (m/match pred

@@ -33,9 +33,9 @@
    :body    "ok"})
 
 (defmethod interactor-resp/handle ::interactor/already-registered [resp]
-  {:status  403
-   :headers {"Content-Type" "text/html"}
-   :body    "already registered"})
+  {:status  422
+   :headers {"Content-Type" "application/transit+json"}
+   :body    (t/write errors-presenter/already-registered)})
 
 (defmethod interactor-resp/handle ::interactor/invalid-params [resp]
   {:status  422
