@@ -23,7 +23,7 @@
            {:via [::interactor/params ::user/login], :in in}
            [in "Минимум 3 символа"]
 
-           {:via [::interactor/params ::user/full-name, :in in]}
+           {:via [::interactor/params ::user/full-name], :in in}
            [in "Минимум 2 символа"]
 
            {:via [::interactor/params ::user/password], :in in}
@@ -31,12 +31,8 @@
 
 (defn- add-error [errors problem]
   (let [[path message] (handle-problem problem)
-        path           (conj path :form-ujs/error)]
-
-    ;; может ли быть несколько проблем у одного поля?
-    ;; (update-in errors path conj message)
-    (assoc-in errors path message)))
-
+        path           (conj path :form-ujs/errors)]
+    (update-in errors path #(conj (vec %) message))))
 
 (defn explain-data [explain-data]
   (reduce add-error {} (::s/problems explain-data)))
