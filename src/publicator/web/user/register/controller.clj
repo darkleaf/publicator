@@ -2,7 +2,10 @@
   (:require
    [publicator.interactors.user.register :as interactor]
    [publicator.web.interactor-response :as interactor-resp]
-   [publicator.web.user.register [view :as view]]))
+   [publicator.web.transit :as t]
+   [publicator.web.user.register
+    [view :as view]
+    [errors-presenter :as errors-presenter]]))
 
 (defn form [req]
   (let [ctx  (:interactor-ctx req)
@@ -16,6 +19,10 @@
     (interactor-resp/handle resp)))
 
 (defmethod interactor-resp/handle ::interactor/initial-params [resp]
+  (comment
+    (let [body (view/render ::interactor/params
+                            (:initial-params resp)
+                            errors-presenter/no-errors)]))
   {:status  200
    :headers {"Content-Type" "text/html"}
    :body    (view/render nil)})
@@ -32,8 +39,11 @@
 
 (defmethod interactor-resp/handle ::interactor/invalid-params [resp]
   {:status  422
-   :headers {"Content-Type" "text/html"}
-   :body    "invalid params"})
+   :headers {"Content-Type" "application/transit+json"}
+   :body    (-> resp
+                :explain-data
+                errors-presenter/explain-data
+                t/write)})
 
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
 
