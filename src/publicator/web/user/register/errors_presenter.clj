@@ -1,9 +1,13 @@
 (ns publicator.web.user.register.errors-presenter
   (:require
    [clojure.spec.alpha :as s]
-   [clojure.core.match :as m]
+
    [publicator.interactors.user.register :as interactor]
-   [publicator.domain.user :as user]))
+   [publicator.domain.user :as user]
+
+   [clojure.core.match :as m]
+   [akar.syntax :as ak]
+   [akar.patterns :as ak.p]))
 
 (def no-errors {})
 
@@ -14,20 +18,40 @@
              ([fn ['%] ([contains? '% k] :seq)] :seq) [:ok k]
              :else :no-match))
 
+
 (defn- handle-problem [problem]
-  (m/match problem
-           {:via [::interactor/params], :in in
-            :pred ([:ok k] :<< contains?-match)}
-           [(conj in k) "Поле должно быть заполнено"]
+  (akar/match problem
+              {:via (:view last ::interactor/params), :in in}
+              :ok))
 
-           {:via [::interactor/params ::user/login], :in in}
-           [in "Минимум 3 символа"]
 
-           {:via [::interactor/params ::user/full-name], :in in}
-           [in "Минимум 2 символа"]
+(let [data     (s/explain-data ::interactor/params {})
+      problems (::s/problems data)
+      problem  (first problems)]
+  (ak/match problem
+            {:via (:view (comp first s/form peek) [(ak.p/!constant `s/keys)])}
+            :ok))
 
-           {:via [::interactor/params ::user/password], :in in}
-           [in "Минимум 8 символов"]))
+
+(akar/match {:key `x}
+            {:key ~x}
+            x)
+
+
+(comment
+  {:via [::interactor/params ::user/login], :in in}
+  [in "Минимум 3 символа"]
+
+  {:via [::interactor/params ::user/full-name], :in in}
+  [in "Минимум 2 символа"]
+
+  {:via [::interactor/params ::user/password], :in in}
+  [in "Минимум 8 символов"])
+
+
+
+
+
 
 (defn- add-error [errors problem]
   (let [[path message] (handle-problem problem)
