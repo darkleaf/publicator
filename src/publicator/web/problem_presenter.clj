@@ -1,11 +1,10 @@
-(ns publicator.web.spec-explain-formatter
+(ns publicator.web.problem-presenter
   (:require
    [clojure.spec.alpha :as s]
    [akar.syntax :refer [match]]
-   [akar.patterns :refer :all]
+   [akar.patterns :refer :all]))
 
-   [publicator.interactors.user.register :as interactor]))
-
+;;todo wait akar 0.2.0
 (defn- !required-key [problem]
   (comment
     {:path [], :val {}, :in []
@@ -32,7 +31,7 @@
                    (:view (comp str second last)
                           [(!regex (re-pattern
                                     (str "\\A"
-                                         "\\" char-pattern
+                                         char-pattern
                                          "\\{(\\d+),(\\d+)\\}\\z")))
                            (:view bigint r-min)
                            (:view bigint r-max)]))
@@ -40,21 +39,16 @@
            [in r-min r-max]
            :_ nil)))
 
-(format (s/explain-data ::interactor/params {:full-name ""
-                                             :login ""}))
-
-(defn- format-problem [problem]
+(defn present [problem]
   (match problem
          [!required-key in]
          [in "Обязательное"]
 
-         [(!min-max-regex ".") in r-min r-max]
+         [(!min-max-regex #"\.") in r-min r-max]
          [in (str "Кол-во символов от " r-min " до " r-max)]
 
-         [(!min-max-regex "\\w") in r-min r-max]
-         [in (str "Кол-во латинских букв и цифр от " r-min " до " r-max "]")]))
+         [(!min-max-regex #"\\w") in r-min r-max]
+         [in (str "Кол-во латинских букв и цифр от " r-min " до " r-max)]
 
-
-(defn format [explain-data]
-  (let [problems (::s/problems explain-data)]
-    (map format-problem problems)))
+         {:in in}
+         [in "Неопознанная ошибка, обратитесь к администратору"]))

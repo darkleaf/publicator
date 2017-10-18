@@ -12,11 +12,6 @@
                  [org.slf4j/slf4j-simple "1.7.25"]
                  [hiccup "1.0.5"]
                  [com.cognitect/transit-clj "0.8.300"]
-
-                 [org.clojure/core.match "0.3.0-alpha5"]
-
-                 [phrase "0.1-alpha1"]
-
                  [akar "0.1.0"]
 
                  ;; overrides
