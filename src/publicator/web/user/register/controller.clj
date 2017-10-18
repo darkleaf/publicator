@@ -8,7 +8,8 @@
     [problem-presenter :as problem-presenter]]
    [publicator.web.user.register
     [view :as view]
-    [messages :as messages]]))
+    [messages :as messages]]
+   [io.pedestal.http.route :as route]))
 
 (defn form [req]
   (let [ctx  (:interactor-ctx req)
@@ -32,8 +33,7 @@
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  200
-   :headers {"Content-Type" "text/html"}
-   :body    "ok"})
+   :headers {"Location" (route/url-for :root)}})
 
 (defmethod interactor-resp/handle ::interactor/already-registered [resp]
   {:status  422
