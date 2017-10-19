@@ -7,7 +7,8 @@
    [publicator.pedestal
     [routes :as routes]
     [interactor-ctx :as interactor-ctx]
-    [session :as session]]))
+    [session :as session]]
+   [publicator.web.layout.interceptor :as layout]))
 
 (defn build [interactor-ctx]
   (-> {::http/routes (routes/build)
@@ -21,4 +22,5 @@
               [(ring-middlewares/session) ;;in memory sessions
                (session/build)
                (interactor-ctx/build interactor-ctx)
-               (body-params/body-params)])))
+               (body-params/body-params)
+               layout/layout])))
