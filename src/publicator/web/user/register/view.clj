@@ -3,15 +3,10 @@
    [hiccup.core :refer [html]]
    [form-ujs.core :as form]
    [publicator.interactors.user.register :as register]
-   [cognitect.transit :as t])
-  (:import [java.io ByteArrayInputStream ByteArrayOutputStream]))
+   [publicator.web
+    [transit :as t]]))
 
-(defn serialize [d]
-  (let [out (ByteArrayOutputStream. 4096)
-        writer (t/writer out :json)
-        _ (t/write writer d)]
-    (.toString out)))
-
+;; move to form-ujs
 (defn form [description data errors]
   (html
    [:div
@@ -19,24 +14,21 @@
     [:script
      {:id "register-description"
       :type "application/transit+json"}
-     (serialize description)]
+     (t/write description)]
     [:script
      {:id "register-data"
       :type "application/transit+json"}
-     (serialize data)]]))
+     (t/write data)]]))
 
-(defn description []
-  (let [desc (form/spec->widget ::register/params)]
+(defn description [spec]
+  (let [desc (form/spec->widget spec)]
     {:id :register
      :widget :submit
      :url "/registration"
      :method :post
      :body desc}))
 
-(defn page [ctx]
-  (form (description)
-        {} ;; initial params
-        nil))
-
-(defn render [ctx]
-  (page ctx))
+(defn render [spec params errors]
+  (form (description spec)
+        params
+        errors))

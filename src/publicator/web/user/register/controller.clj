@@ -23,13 +23,11 @@
     (interactor-resp/handle resp)))
 
 (defmethod interactor-resp/handle ::interactor/initial-params [resp]
-  (comment
-    (let [body (view/render ::interactor/params
-                            (:initial-params resp)
-                            messages/no-errors)]))
   {:status  200
    :headers {"Content-Type" "text/html"}
-   :body    (view/render nil)})
+   :body    (view/render ::interactor/params
+                         (:initial-params resp)
+                         messages/no-errors)})
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  200
