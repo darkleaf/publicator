@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-beta2"]
-                 [buddy/buddy-hashers "1.2.0"]
+                 [buddy/buddy-hashers "1.3.0"]
                  [better-cond "2.0.1-SNAPSHOT"]
                  [com.stuartsierra/component "0.3.2"]
                  [io.pedestal/pedestal.service "0.5.2"]

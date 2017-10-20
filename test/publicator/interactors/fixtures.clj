@@ -4,8 +4,8 @@
    [clojure.test :as t]))
 
 (defn fake-password [f]
-  (binding [password/*encrypt-fn* identity
-            password/*check-fn* =]
-    (f)))
+  (with-redefs-fn {#'password/encrypt identity
+                   #'password/check =}
+    f))
 
 (def all (t/join-fixtures [fake-password]))
