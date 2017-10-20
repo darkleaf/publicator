@@ -9,15 +9,19 @@
    [publicator.fakes.user-queries :as fakes.user-q]
 
    [publicator.domain.abstractions.hasher :as hasher]
-   [publicator.fakes.hasher :as fakes.hasher]))
+   [publicator.fakes.hasher :as fakes.hasher]
+
+   [publicator.domain.abstractions.id-generator :as id-generator]
+   [publicator.fakes.id-generator :as fakes.id-generator]))
 
 (defrecord Impl [db binding-map]
   component/Lifecycle
   (start [this]
     (assoc this :binding-map
-           {#'storage/*storage*     (fakes.storage/build-storage (:conn db))
-            #'user-q/*get-by-login* (fakes.user-q/build-get-by-login (:conn db))
-            #'hasher/*hasher*       (fakes.hasher/build)}))
+           {#'storage/*storage*           (fakes.storage/build-storage (:conn db))
+            #'user-q/*get-by-login*       (fakes.user-q/build-get-by-login (:conn db))
+            #'hasher/*hasher*             (fakes.hasher/build)
+            #'id-generator/*id-generator* (fakes.id-generator/build)}))
   (stop [this]
     (assoc this :binding-map nil)))
 
