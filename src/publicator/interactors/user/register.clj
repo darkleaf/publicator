@@ -20,7 +20,7 @@
 (defn- create-user [params]
   (storage/tx-create (user/build params)))
 
-(defn- log-in [user]
+(defn- log-in! [user]
   (session/log-in! (:id user)))
 
 (defn- check-params [params]
@@ -41,5 +41,5 @@
              (check-registered params))]
   (some? err) err
   :let [user (create-user params)]
-  :do  (log-in user)
+  :do  (log-in! user)
   {:type ::processed :user user})
