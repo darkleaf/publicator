@@ -4,17 +4,19 @@
   (-get [this k])
   (-set! [this k v]))
 
-(defn log-in! [session user-id]
-  (-set! session ::user-id user-id))
+(declare ^:dynamic *session*)
 
-(defn user-id [session]
-  (-get session ::user-id))
+(defn log-in! [user-id]
+  (-set! *session* ::user-id user-id))
 
-(defn logged-in? [session]
-  (boolean (user-id session)))
+(defn user-id []
+  (-get *session* ::user-id))
 
-(defn logged-out? [session]
-  (not (user-id session)))
+(defn logged-in? []
+  (boolean (user-id)))
 
-(defn log-out! [session]
-  (-set! session ::user-id nil))
+(defn logged-out? []
+  (not (user-id)))
+
+(defn log-out! []
+  (-set! *session* ::user-id nil))

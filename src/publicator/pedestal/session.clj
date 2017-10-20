@@ -14,8 +14,7 @@
                   session (Session. storage)]
               (-> context
                   (assoc ::storage storage)
-                  (assoc-in [:request :interactor-ctx ::abstractions.session/session]
-                            session))))
+                  (assoc-in [:bindings #'abstractions.session/*session*] session))))
    :leave (fn [context]
             (let [storage (::storage context)]
               (-> context

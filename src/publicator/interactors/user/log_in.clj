@@ -8,41 +8,37 @@
 
 (s/def ::params (s/keys :req-un [::user/login ::user/password]))
 
-(defn- check-logged-out [ctx]
-  (let [it (::session/session ctx)]
-    (when (session/logged-in? it)
-      {:type ::already-logged-in})))
+(defn- check-logged-out []
+  (when (session/logged-in?)
+    {:type ::already-logged-in}))
 
-(defn- find-user [ctx params]
-  (let [it    (::user-q/get-by-login ctx)
-        login (:login params)]
-    (user-q/get-by-login it login)))
+(defn- find-user [params]
+  (user-q/get-by-login (:login params)))
 
 (defn- check-authentication [user params]
   (when-not (user/authenticated? user (:password params))
     {:type ::authentication-failed}))
 
-(defn- log-in [ctx user]
-  (let [it (::session/session ctx)]
-    (session/log-in! it (:id user))))
+(defn- log-in! [user]
+  (session/log-in! (:id user)))
 
 (defn- check-params [params]
   (when-let [exp (s/explain-data ::params params)]
     {:type         ::invalid-params
      :explain-data exp}))
 
-(b/defnc initial-params [ctx]
-  :let [err (check-logged-out ctx)]
+(b/defnc initial-params []
+  :let [err (check-logged-out)]
   (some? err) err
    :initial-params {}
   {:type ::intial-params})
 
-(b/defnc process [ctx params]
-  :let [err (or (check-logged-out ctx)
+(b/defnc process [params]
+  :let [err (or (check-logged-out)
                 (check-params params))]
   (some? err) err
-  :let [user (find-user ctx params)
+  :let [user (find-user params)
         err  (check-authentication user params)]
   (some? err) err
-  :do (log-in ctx user)
+  :do (log-in! user)
   {:type ::processed :user user})

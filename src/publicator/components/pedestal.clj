@@ -4,13 +4,13 @@
    [io.pedestal.http :as http]
    [publicator.pedestal.service :as service]))
 
-(defrecord Pedestal [interactor-ctx server]
+(defrecord Pedestal [implementations server]
   component/Lifecycle
   (start [this]
     (if server
       this
       (assoc this :server
-             (-> (service/build (:ctx interactor-ctx))
+             (-> (service/build (:binding-map implementations))
                  (http/create-server)
                  (http/start)))))
   (stop [this]

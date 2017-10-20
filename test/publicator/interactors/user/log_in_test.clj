@@ -11,51 +11,46 @@
    [clojure.spec.gen.alpha :as sgen])
   (:import [publicator.domain.user User]))
 
-(t/use-fixtures :each setup fixtures/all)
+(t/use-fixtures :each fixtures/all)
 
 (t/deftest main
   (let [build-params (sgen/generate (s/gen ::user/build-params))
-        user         (storage/create-agg-in fixtures/*storage* (user/build build-params))
+        user         (storage/tx-create (user/build build-params))
         params       (select-keys build-params [:login :password])
-        resp         (sut/process (fixtures/ctx) params)]
+        resp         (sut/process params)]
     (t/testing "success"
-      (t/is (= (:type resp)
-               ::sut/processed)))
+      (t/is (= (:type resp)  ::sut/processed)))
     (t/testing "sign in"
-      (t/is (= (:id user)
-               (session/user-id fixtures/*session*))))))
+      (t/is (= (:id user) (session/user-id))))))
 
 (t/deftest wrong-login
   (let [params {:login    "john_doe"
                 :password "secret password"}
-        resp   (sut/process (fixtures/ctx) params)]
+        resp   (sut/process params)]
     (t/testing "has error"
-      (t/is (= (:type resp)
-               ::sut/authentication-failed)))))
+      (t/is (= (:type resp) ::sut/authentication-failed)))))
 
 (t/deftest wrong-password
   (let [build-params (sgen/generate (s/gen ::user/build-params))
-        user         (storage/create-agg-in fixtures/*storage* (user/build build-params))
+        user         (storage/tx-create (user/build build-params))
         params       {:login    (:login build-params)
                       :password "wrong password"}
-        resp         (sut/process (fixtures/ctx) params)]
+        resp         (sut/process params)]
     (t/testing "has error"
-      (t/is (= (:type resp)
-               ::sut/authentication-failed)))))
+      (t/is (= (:type resp) ::sut/authentication-failed)))))
 
 (t/deftest already-logged-in
   (let [build-params (sgen/generate (s/gen ::user/build-params))
-        user         (storage/create-agg-in fixtures/*storage* (user/build build-params))
-        _            (session/log-in! fixtures/*session* (:id user))
+        user         (storage/tx-create (user/build build-params))
+        _            (session/log-in! (:id user))
         params       (select-keys build-params [:login :password])
-        resp         (sut/process (fixtures/ctx) params)]
+        resp         (sut/process params)]
     (t/testing "has error"
-      (t/is (= (:type resp)
-               ::sut/already-logged-in)))))
+      (t/is (= (:type resp) ::sut/already-logged-in)))))
 
 (t/deftest invalid-params
   (let [params {}
-        resp   (sut/process (fixtures/ctx) params)]
+        resp   (sut/process params)]
     (t/testing "error"
       (t/is (= (:type resp) ::sut/invalid-params))
       (t/is (contains? resp :explain-data)))))

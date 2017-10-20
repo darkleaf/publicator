@@ -4,7 +4,7 @@
 
 (deftype GetByLogin [db]
   user-q/GetByLogin
-  (get-by-login [_ login]
+  (-get-by-login [_ login]
     (->> db
          (deref)
          (vals)

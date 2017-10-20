@@ -6,11 +6,14 @@
     [body-params :as body-params]]
    [publicator.pedestal
     [routes :as routes]
-    [interactor-ctx :as interactor-ctx]
     [session :as session]]
    [publicator.web.layout.interceptor :as layout]))
 
-(defn build [interactor-ctx]
+(defn- binding-interceptor [binding-map]
+  {:name  ::binding
+   :enter #(update % :bindings merge binding-map)})
+
+(defn build [binding-map]
   (-> {::http/routes (routes/build)
        ::http/join?  false
        ::http/type   :jetty
@@ -21,6 +24,6 @@
       (update ::http/interceptors into
               [(ring-middlewares/session) ;;in memory sessions
                (session/build)
-               (interactor-ctx/build interactor-ctx)
+               (binding-interceptor binding-map)
                (body-params/body-params)
                layout/layout])))

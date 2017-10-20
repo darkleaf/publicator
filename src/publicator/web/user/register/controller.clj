@@ -12,14 +12,12 @@
    [io.pedestal.http.route :as route]))
 
 (defn form [req]
-  (let [ctx  (:interactor-ctx req)
-        resp (interactor/initial-params ctx)]
+  (let [resp (interactor/initial-params)]
     (interactor-resp/handle resp)))
 
 (defn form-handler [req]
-  (let [ctx    (:interactor-ctx req)
-        params (:transit-params req)
-        resp   (interactor/process ctx params)]
+  (let [params (:transit-params req)
+        resp   (interactor/process params)]
     (interactor-resp/handle resp)))
 
 (defmethod interactor-resp/handle ::interactor/initial-params [resp]

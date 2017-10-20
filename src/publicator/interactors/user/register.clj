@@ -9,43 +9,37 @@
 
 (s/def ::params ::user/build-params)
 
-(defn- check-logged-out [ctx]
-  (let [it (::session/session ctx)]
-    (when (session/logged-in? it)
-      {:type ::already-logged-in})))
+(defn- check-logged-out []
+  (when (session/logged-in?)
+    {:type ::already-logged-in}))
 
-(defn- check-registered [ctx params]
-  (let [it    (::user-q/get-by-login ctx)
-        login (:login params)]
-    (when (user-q/get-by-login it login)
-      {:type ::already-registered})))
+(defn- check-registered [params]
+  (when (user-q/get-by-login (:login params))
+    {:type ::already-registered}))
 
-(defn- create-user [ctx params]
-  (let [it (::storage/storage ctx)]
-    (storage/create-agg-in it (user/build params))))
+(defn- create-user [params]
+  (storage/tx-create (user/build params)))
 
-(defn- log-in [ctx user]
-  (let [it      (::session/session ctx)
-        user-id (:id user)]
-    (session/log-in! it user-id)))
+(defn- log-in [user]
+  (session/log-in! (:id user)))
 
 (defn- check-params [params]
   (when-let [exp (s/explain-data ::params params)]
     {:type         ::invalid-params
      :explain-data exp}))
 
-(b/defnc initial-params [ctx]
-  :let [err (check-logged-out ctx)]
+(b/defnc initial-params []
+  :let [err (check-logged-out)]
   (some? err) err
   {:type ::initial-params
    :initial-params {}})
 
-(b/defnc process [ctx params]
+(b/defnc process [params]
   :let [err (or
-             (check-logged-out ctx)
+             (check-logged-out)
              (check-params params)
-             (check-registered ctx params))]
+             (check-registered params))]
   (some? err) err
-  :let [user (create-user ctx params)]
-  :do  (log-in ctx user)
+  :let [user (create-user params)]
+  :do  (log-in user)
   {:type ::processed :user user})

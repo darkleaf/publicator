@@ -18,20 +18,11 @@
                    #'password/check =}
     f))
 
-(declare ^:dynamic *session*)
-(declare ^:dynamic *storage*)
-(declare ^:dynamic *get-by-login*)
-
-(defn ctx []
-  {::storage/storage     *storage*
-   ::session/session     *session*
-   ::user-q/get-by-login *get-by-login*})
-
 (defn implementations [f]
   (let [db (fakes.storage/build-db)]
-    (binding [*session*      (fakes.session/build)
-              *storage*      (fakes.storage/build-storage db)
-              *get-by-login* (fakes.user-q/build-get-by-login db)]
+    (binding [session/*session*     (fakes.session/build)
+              storage/*storage*     (fakes.storage/build-storage db)
+              user-q/*get-by-login* (fakes.user-q/build-get-by-login db)]
       (f))))
 
 (def all (t/join-fixtures [fake-password implementations]))
