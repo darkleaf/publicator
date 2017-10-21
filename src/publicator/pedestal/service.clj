@@ -3,7 +3,8 @@
    [io.pedestal.http :as http]
    [io.pedestal.http
     [ring-middlewares :as ring-middlewares]
-    [body-params :as body-params]]
+    [body-params :as body-params]
+    [route :as route]]
    [publicator.pedestal
     [routes :as routes]
     [session :as session]]
@@ -26,4 +27,5 @@
                (session/build)
                (binding-interceptor binding-map)
                (body-params/body-params)
+               (route/method-param)
                layout/layout])))

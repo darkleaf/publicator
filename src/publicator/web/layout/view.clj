@@ -20,7 +20,7 @@
         :rel "stylesheet"}]]
      [:body
       [:nav.navbar.navbar-expand-lg.navbar-light.bg-light
-       [:div..container
+       [:div.container
         [:a.navbar-brand {:href "#"} "Publicator"]
 
         [:div.navbar-nav.mr-auto
@@ -29,7 +29,9 @@
 
         (into [:div.navbar-nav]
               (if (session/logged-in?)
-                [[:a.nav-item.nav-link {:href "#"} "Log out"]]
+                [[:form {:action (route/url-for :user-log-out)
+                         :method :post}
+                  [:button.btn.btn-link.nav-link {:type :submit} "Log out"]]]
                 [[:a.nav-item.nav-link
                   {:href (route/url-for :user-register-form)}
                   "Register"]
