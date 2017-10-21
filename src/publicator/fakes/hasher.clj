@@ -13,3 +13,6 @@
 
 (defn build []
   (Hasher.))
+
+(defn binding-map []
+  {#'hasher/*hasher* (build)})

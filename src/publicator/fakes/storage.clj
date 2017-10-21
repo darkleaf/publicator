@@ -28,3 +28,6 @@
 
 (defn build-storage [db]
   (Storage. db))
+
+(defn binding-map [db]
+  {#'storage/*storage* (build-storage db)})

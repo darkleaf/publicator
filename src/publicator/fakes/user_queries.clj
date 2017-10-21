@@ -13,4 +13,7 @@
          (first))))
 
 (defn build-get-by-login [db]
-  (->GetByLogin db))
+  (GetByLogin. db))
+
+(defn binging-map [db]
+  {#'user-q/*get-by-login* (build-get-by-login db)})

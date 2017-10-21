@@ -10,3 +10,6 @@
 
 (defn build []
   (IdGenerator. (atom 0)))
+
+(defn binging-map []
+  {#'id-generator/*id-generator* (build)})

@@ -7,4 +7,8 @@
   (-get [_ k] (get @storage k))
   (-set! [_ k v] (swap! storage assoc k v)))
 
-(defn build [] (->FakeSession (atom {})))
+(defn build []
+  (FakeSession. (atom {})))
+
+(defn binding-map []
+  {#'session/*session* (build)})
