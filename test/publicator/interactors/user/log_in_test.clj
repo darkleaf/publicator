@@ -4,12 +4,10 @@
    [publicator.domain.user :as user]
    [publicator.interactors.abstractions.storage :as storage]
    [publicator.interactors.abstractions.session :as session]
-   [publicator.interactors.abstractions.user-queries :as user-q]
    [publicator.interactors.fixtures :as fixtures]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]
-   [clojure.spec.gen.alpha :as sgen])
-  (:import [publicator.domain.user User]))
+   [clojure.spec.gen.alpha :as sgen]))
 
 (t/use-fixtures :each fixtures/all)
 
