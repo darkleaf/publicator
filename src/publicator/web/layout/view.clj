@@ -1,9 +1,11 @@
 (ns publicator.web.layout.view
   (:require
    [hiccup.core :refer [html]]
-   [hiccup.page :refer [html5 include-js]]))
+   [hiccup.page :refer [html5 include-js]]
+   [io.pedestal.http.route :as route]
+   [publicator.interactors.abstractions.session :as session]))
 
-(defn render [request body]
+(defn render [body]
   (str
    (html5
     [:html
@@ -25,8 +27,13 @@
          [:a.nav-item.nav-link {:href "#"} "Posts"]
          [:a.nav-item.nav-link {:href "#"} "Users"]]
 
-        [:div.navbar-nav
-         [:a.nav-item.nav-link {:href "#"} "Register"]
-         [:a.nav-item.nav-link {:href "#"} "Log in"]]]]
+        (into [:div.navbar-nav]
+              (if (session/logged-in?)
+                [[:a.nav-item.nav-link {:href "#"} "Log out"]]
+                [[:a.nav-item.nav-link
+                  {:href (route/url-for :user-register-form)}
+                  "Register"]
+                 [:a.nav-item.nav-link {:href "#"} "Log in"]]))]]
+
       [:div.container body]
       (include-js "http://localhost:4200/main.js")]])))
