@@ -1,4 +1,4 @@
-(ns publicator.web.user.register.view
+(ns publicator.web.user.log-in.view
   (:require
    [hiccup.core :refer [html]]
    [io.pedestal.http.route :as route]
@@ -25,7 +25,7 @@
   (let [desc (form/spec->widget spec)]
     {:id :register
      :widget :submit
-     :url (route/url-for :user-register)
+     :url (route/url-for :user-log-in)
      :method :post
      :body desc}))
 

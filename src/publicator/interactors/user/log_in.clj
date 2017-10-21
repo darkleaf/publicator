@@ -30,8 +30,8 @@
 (b/defnc initial-params []
   :let [err (check-logged-out)]
   (some? err) err
-   :initial-params {}
-  {:type ::intial-params})
+  {:type ::initial-params
+   :initial-params {}})
 
 (b/defnc process [params]
   :let [err (or (check-logged-out)

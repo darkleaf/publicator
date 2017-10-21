@@ -33,7 +33,9 @@
                 [[:a.nav-item.nav-link
                   {:href (route/url-for :user-register-form)}
                   "Register"]
-                 [:a.nav-item.nav-link {:href "#"} "Log in"]]))]]
+                 [:a.nav-item.nav-link
+                  {:href (route/url-for :user-log-in-form)}
+                  "Log in"]]))]]
 
       [:div.container body]
       (include-js "http://localhost:4200/main.js")]])))
