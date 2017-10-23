@@ -13,7 +13,7 @@
 (t/use-fixtures :each fixtures/all)
 
 (t/deftest process
-  (let [params  (sgen/generate (s/gen ::user/build-params))
+  (let [params  (sgen/generate (s/gen ::sut/params))
         resp    (sut/process params)
         user-id (-> resp :user :id)]
     (t/testing "success"

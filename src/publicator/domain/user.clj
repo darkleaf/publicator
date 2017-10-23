@@ -5,12 +5,13 @@
    [publicator.domain.abstractions.aggregate :as aggregate]
    [clojure.spec.alpha :as s]))
 
+(s/def ::id ::id-generator/id)
 (s/def ::login (s/and string? #(re-matches #"\w{3,255}" %)))
 (s/def ::full-name (s/and string? #(re-matches #".{2,255}" %)))
 (s/def ::password (s/and string? #(re-matches #".{8,255}" %)))
 (s/def ::password-digest ::hasher/encrypted)
 
-(s/def ::attrs (s/keys :req-un [::id-generator/id ::login ::full-name ::password-digest]))
+(s/def ::attrs (s/keys :req-un [::id ::login ::full-name ::password-digest]))
 
 (defrecord User [id login full-name password-digest]
   aggregate/Aggregate
