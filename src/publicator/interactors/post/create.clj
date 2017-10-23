@@ -21,6 +21,12 @@
   (let [params (assoc params :author-id (session/user-id))]
     (storage/tx-create (post/build params))))
 
+(b/defnc initial-params []
+  :let [err (check-logged-in)]
+  (some? err) err
+  {:type ::initial-params
+   :initial-params {}})
+
 (b/defnc process [params]
   :let [err (or
              (check-logged-in)

@@ -3,7 +3,6 @@
    [hiccup.core :refer [html]]
    [io.pedestal.http.route :as route]
    [form-ujs.core :as form]
-   [publicator.interactors.user.register :as register]
    [publicator.web
     [transit :as t]]))
 
