@@ -16,7 +16,7 @@
   (user-q/get-by-login (:login params)))
 
 (defn- check-authentication [user params]
-  (when-not (user/authenticated? user (:password params))
+  (when-not (and user (user/authenticated? user (:password params)))
     {:type ::authentication-failed}))
 
 (defn- log-in! [user]

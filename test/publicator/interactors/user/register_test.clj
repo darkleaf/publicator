@@ -21,7 +21,7 @@
     (t/testing "sign in"
       (t/is (= user-id (session/user-id))))
     (t/testing "persisted"
-      (let [user (storage/tx-get user-id)]
+      (let [user (storage/tx-get-one user-id)]
         (t/is (= (:login params) (:login user)))))))
 
 (t/deftest already-registered

@@ -6,11 +6,9 @@
 
 (deftype Transaction [db]
   storage/Transaction
-
-  (get-aggs [_ ids]
+  (-get-many [_ ids]
     (map #(get @db %) ids))
-
-  (create-agg [_ state]
+  (-create [_ state]
     (let [id  (:id state)
           agg (atom state)]
       (swap! db assoc id agg)
@@ -18,8 +16,7 @@
 
 (deftype Storage [db]
   storage/Storage
-
-  (wrap-tx [_ body]
+  (-wrap-tx [_ body]
     (let [t (Transaction. db)]
       (body t))))
 
