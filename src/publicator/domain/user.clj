@@ -15,7 +15,6 @@
 
 (defrecord User [id login full-name password-digest]
   aggregate/Aggregate
-  (id [_] id)
   (spec [_] ::attrs))
 
 (s/def ::build-params (s/keys :req-un [::login ::full-name ::password]))

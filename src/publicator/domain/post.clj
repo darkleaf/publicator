@@ -12,7 +12,6 @@
 
 (defrecord Post [id author-id title]
   aggregate/Aggregate
-  (id [_] id)
   (spec [_] ::attrs))
 
 (s/def ::build-params (s/keys :req-un [::title ::author-id]))
