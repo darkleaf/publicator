@@ -1,7 +1,7 @@
 (ns publicator.interactors.user.log-in
   (:require
    [publicator.interactors.abstractions.user-queries :as user-q]
-   [publicator.interactors.abstractions.session :as session]
+   [publicator.interactors.services.user-session :as user-session]
    [publicator.domain.user :as user]
    [better-cond.core :as b]
    [clojure.spec.alpha :as s]))
@@ -9,7 +9,7 @@
 (s/def ::params (s/keys :req-un [::user/login ::user/password]))
 
 (defn- check-logged-out []
-  (when (session/logged-in?)
+  (when (user-session/logged-in?)
     {:type ::already-logged-in}))
 
 (defn- find-user [params]
@@ -18,9 +18,6 @@
 (defn- check-authentication [user params]
   (when-not (and user (user/authenticated? user (:password params)))
     {:type ::authentication-failed}))
-
-(defn- log-in! [user]
-  (session/log-in! (:id user)))
 
 (defn- check-params [params]
   (when-let [exp (s/explain-data ::params params)]
@@ -40,5 +37,5 @@
   :let [user (find-user params)
         err  (check-authentication user params)]
   (some? err) err
-  :do (log-in! user)
+  :do (user-session/log-in! user)
   {:type ::processed :user user})

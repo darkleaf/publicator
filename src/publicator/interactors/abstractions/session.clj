@@ -1,4 +1,5 @@
-(ns publicator.interactors.abstractions.session)
+(ns publicator.interactors.abstractions.session
+  (:refer-clojure :exclude [get set!]))
 
 (defprotocol Session
   (-get [this k])
@@ -6,17 +7,8 @@
 
 (declare ^:dynamic *session*)
 
-(defn log-in! [user-id]
-  (-set! *session* ::user-id user-id))
+(defn get [k]
+  (-get *session* k))
 
-(defn user-id []
-  (-get *session* ::user-id))
-
-(defn logged-in? []
-  (boolean (user-id)))
-
-(defn logged-out? []
-  (not (user-id)))
-
-(defn log-out! []
-  (-set! *session* ::user-id nil))
+(defn set! [k v]
+  (-set! *session* k v))

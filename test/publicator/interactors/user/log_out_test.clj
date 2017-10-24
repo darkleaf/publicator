@@ -2,9 +2,9 @@
   (:require
    [publicator.interactors.user.log-out :as sut]
    [publicator.domain.user :as user]
-   [publicator.interactors.abstractions.storage :as storage]
-   [publicator.interactors.abstractions.session :as session]
+   [publicator.interactors.services.user-session :as user-session]
    [publicator.interactors.fixtures :as fixtures]
+   [publicator.factories :as factories]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]
    [clojure.spec.gen.alpha :as sgen]))
@@ -12,14 +12,13 @@
 (t/use-fixtures :each fixtures/all)
 
 (t/deftest main
-  (let [build-params (sgen/generate (s/gen ::user/build-params))
-        user         (storage/tx-create (user/build build-params))
-        _            (session/log-in! (:id user))
-        resp         (sut/process)]
+  (let [user (factories/create-user)
+        _    (user-session/log-in! user)
+        resp (sut/process)]
     (t/testing "success"
       (t/is (= (:type resp) ::sut/processed)))
     (t/testing "logged out"
-      (t/is (session/logged-out?)))))
+      (t/is (user-session/logged-out?)))))
 
 (t/deftest already-logged-out
   (let [resp (sut/process)]

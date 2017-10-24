@@ -1,8 +1,8 @@
 (ns publicator.interactors.user.register
   (:require
    [publicator.interactors.abstractions.storage :as storage]
-   [publicator.interactors.abstractions.session :as session]
    [publicator.interactors.abstractions.user-queries :as user-q]
+   [publicator.interactors.services.user-session :as user-session]
    [publicator.domain.user :as user]
    [better-cond.core :as b]
    [clojure.spec.alpha :as s]))
@@ -10,7 +10,7 @@
 (s/def ::params ::user/build-params)
 
 (defn- check-logged-out []
-  (when (session/logged-in?)
+  (when (user-session/logged-in?)
     {:type ::already-logged-in}))
 
 (defn- check-registered [params]
@@ -19,9 +19,6 @@
 
 (defn- create-user [params]
   (storage/tx-create (user/build params)))
-
-(defn- log-in! [user]
-  (session/log-in! (:id user)))
 
 (defn- check-params [params]
   (when-let [exp (s/explain-data ::params params)]
@@ -41,5 +38,5 @@
              (check-registered params))]
   (some? err) err
   :let [user (create-user params)]
-  :do  (log-in! user)
+  :do  (user-session/log-in! user)
   {:type ::processed :user user})

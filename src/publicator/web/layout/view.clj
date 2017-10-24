@@ -3,7 +3,7 @@
    [hiccup.core :refer [html]]
    [hiccup.page :refer [html5 include-js]]
    [io.pedestal.http.route :as route]
-   [publicator.interactors.abstractions.session :as session]))
+   [publicator.interactors.services.user-session :as user-session]))
 
 (defn render [body]
   (str
@@ -27,17 +27,19 @@
          [:a.nav-item.nav-link {:href "#"} "Posts"]
          [:a.nav-item.nav-link {:href "#"} "Users"]]
 
-        (into [:div.navbar-nav]
-              (if (session/logged-in?)
-                [[:form {:action (route/url-for :user-log-out)
-                         :method :post}
-                  [:button.btn.btn-link.nav-link {:type :submit} "Log out"]]]
-                [[:a.nav-item.nav-link
-                  {:href (route/url-for :user-register-form)}
-                  "Register"]
-                 [:a.nav-item.nav-link
-                  {:href (route/url-for :user-log-in-form)}
-                  "Log in"]]))]]
+        [:div.navbar-nav
+         (when (user-session/logged-in?)
+           [:form {:action (route/url-for :user-log-out)
+                   :method :post}
+            [:button.btn.btn-link.nav-link {:type :submit} "Log out"]])
+         (when (user-session/logged-out?)
+           [:a.nav-item.nav-link
+            {:href (route/url-for :user-register-form)}
+            "Register"])
+         (when (user-session/logged-out?)
+           [:a.nav-item.nav-link
+            {:href (route/url-for :user-log-in-form)}
+            "Log in"])]]]
 
       [:div.container body]
       (include-js "http://localhost:4200/main.js")]])))

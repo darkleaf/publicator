@@ -2,29 +2,20 @@
   (:require
    [publicator.interactors.post.create :as sut]
    [publicator.interactors.abstractions.storage :as storage]
-   [publicator.interactors.abstractions.session :as session]
+   [publicator.interactors.services.user-session :as user-session]
    [publicator.domain.post :as post]
    [publicator.domain.user :as user]
    [publicator.interactors.fixtures :as fixtures]
+   [publicator.test-utils.factories :as factories]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]
    [clojure.spec.gen.alpha :as sgen]))
 
 (t/use-fixtures :each fixtures/all)
 
-;; ~~~~ move ~~~~
-(defn create-user []
-  (let [params (sgen/generate (s/gen ::user/build-params))]
-    (storage/tx-create (user/build params))))
-
-(defn log-in! [user]
-  (session/log-in! (:id user)))
-;; ~~~~ /move ~~~
-
-
 (t/deftest process
-  (let [user   (create-user)
-        _      (log-in! user)
+  (let [user   (factories/create-user)
+        _      (user-session/log-in! user)
         params (sgen/generate (s/gen ::sut/params))
         resp   (sut/process params)
         post   (:post resp)]
@@ -45,8 +36,8 @@
                 ::sut/logged-out)))))
 
 (t/deftest invalid-params
-  (let [user   (create-user)
-        _      (log-in! user)
+  (let [user   (factories/create-user)
+        _      (user-session/log-in! user)
         params {}
         resp   (sut/process params)]
     (t/testing "error"

@@ -1,6 +1,6 @@
 (ns publicator.interactors.post.create
   (:require
-   [publicator.interactors.abstractions.session :as session]
+   [publicator.interactors.services.user-session :as user-session]
    [publicator.interactors.abstractions.storage :as storage]
    [publicator.domain.post :as post]
    [better-cond.core :as b]
@@ -9,7 +9,7 @@
 (s/def ::params (s/keys :req-un [::post/title]))
 
 (defn- check-logged-in []
-  (when (session/logged-out?)
+  (when (user-session/logged-out?)
     {:type ::logged-out}))
 
 (defn- check-params [params]
@@ -18,7 +18,8 @@
      :explain-data exp}))
 
 (defn- create-post [params]
-  (let [params (assoc params :author-id (session/user-id))]
+  (let [user   (user-session/user)
+        params (assoc params :author-id (:id user))]
     (storage/tx-create (post/build params))))
 
 (b/defnc initial-params []
