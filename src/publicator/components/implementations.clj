@@ -1,22 +1,21 @@
 (ns publicator.components.implementations
   (:require
    [com.stuartsierra.component :as component]
-   [publicator.fakes.storage :as fakes.storage]
-   [publicator.fakes.user-queries :as fakes.user-q]
-   [publicator.fakes.hasher :as fakes.hasher]
-   [publicator.fakes.id-generator :as fakes.id-generator]))
+   [publicator.fakes.storage :as storage]
+   [publicator.fakes.user-queries :as user-q]
+   [publicator.fakes.post-queries :as post-q]
+   [publicator.fakes.hasher :as hasher]
+   [publicator.fakes.id-generator :as id-generator]))
 
 (defrecord Impl [db binding-map]
   component/Lifecycle
   (start [this]
     (assoc this :binding-map
-           (reduce merge [(fakes.storage/binding-map (:conn db))
-                          (fakes.user-q/binging-map (:conn db))
-                          (fakes.hasher/binding-map)
-                          (fakes.id-generator/binging-map)])))
-
-
-
+           (reduce merge [(storage/binding-map (:conn db))
+                          (user-q/binging-map (:conn db))
+                          (post-q/binging-map (:conn db))
+                          (hasher/binding-map)
+                          (id-generator/binging-map)])))
   (stop [this]
     (assoc this :binding-map nil)))
 

@@ -21,10 +21,14 @@
      [:body
       [:nav.navbar.navbar-expand-lg.navbar-light.bg-light
        [:div.container
-        [:a.navbar-brand {:href "#"} "Publicator"]
+        [:a.navbar-brand
+         {:href (route/url-for :root)}
+         "Publicator"]
 
         [:div.navbar-nav.mr-auto
-         [:a.nav-item.nav-link {:href "#"} "Posts"]
+         [:a.nav-item.nav-link
+          {:href (route/url-for :post-list)}
+          "Posts"]
          [:a.nav-item.nav-link {:href "#"} "Users"]]
 
         [:div.navbar-nav
