@@ -11,8 +11,5 @@
   (-check [_ attempt encrypted]
     (= attempt encrypted)))
 
-(defn build []
-  (Hasher.))
-
 (defn binding-map []
-  {#'hasher/*hasher* (build)})
+  {#'hasher/*hasher* (->Hasher)})
