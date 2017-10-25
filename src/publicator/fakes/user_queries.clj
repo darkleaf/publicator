@@ -1,6 +1,8 @@
 (ns publicator.fakes.user-queries
   (:require
-   [publicator.interactors.abstractions.user-queries :as user-q]))
+   [publicator.interactors.abstractions.user-queries :as user-q])
+  (:import
+   [publicator.domain.user User]))
 
 (deftype GetByLogin [db]
   user-q/GetByLogin
@@ -9,6 +11,7 @@
          (deref)
          (vals)
          (map deref)
+         (filter #(instance? User %))
          (filter #(= login (:login %)))
          (first))))
 
