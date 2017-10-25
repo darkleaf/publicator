@@ -6,7 +6,7 @@
    [publicator.domain.post :as post]
    [publicator.domain.user :as user]
    [publicator.interactors.fixtures :as fixtures]
-   [publicator.test-utils.factories :as factories]
+   [publicator.factories :as factories]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]
    [clojure.spec.gen.alpha :as sgen]))
