@@ -8,9 +8,11 @@
 (t/use-fixtures :each fixtures/all)
 
 (t/deftest process
-  (let [post (factories/create-post)
-        resp (sut/process)]
+  (let [post  (factories/create-post)
+        resp  (sut/process)
+        posts (:posts resp)]
     (t/testing "processed"
       (t/is (= ::sut/processed (:type resp))))
     (t/testing "list"
-      (t/is (= [post] (:posts resp))))))
+      (t/is (= 1 (count posts)))
+      (t/is (= (:id post) (-> posts first :id))))))

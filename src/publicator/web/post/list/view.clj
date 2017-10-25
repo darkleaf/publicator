@@ -7,7 +7,8 @@
   (html
    [:tr
     [:th {:scope :row} (:id post)]
-    [:td (:title post)]]))
+    [:td (:title post)]
+    [:td (-> post :author :full-name)]]))
 
 (defn render [posts]
   (html
@@ -15,6 +16,7 @@
     [:thead
      [:tr
       [:th {:scope :col} "#"]
-      [:th {:scope :col} "Title"]]]
+      [:th {:scope :col} "Title"]
+      [:th {:scope :col} "Author"]]]
     [:tbody
      (map render-post posts)]]))
