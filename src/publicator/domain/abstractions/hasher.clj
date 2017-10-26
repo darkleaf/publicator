@@ -11,9 +11,9 @@
 (s/def ::encrypted string?)
 
 (defn derive [password]
-  (s/assert ::encrypted
-            (-derive *hasher* password)))
+  {:post [(s/assert ::encrypted %)]}
+  (-derive *hasher* password))
 
 (defn check [attempt encrypted]
-  (s/assert ::encrypted encrypted)
+  {:pre [(s/assert ::encrypted encrypted)]}
   (-check *hasher* attempt encrypted))

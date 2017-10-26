@@ -7,7 +7,10 @@
   (html
    [:tr
     [:th {:scope :row} (:id post)]
-    [:td (:title post)]
+    [:td
+     [:a
+      {:href (route/url-for :post-show :path-params {:id (:id post)})}
+      (:title post)]]
     [:td (-> post :author :full-name)]]))
 
 (defn render [posts]

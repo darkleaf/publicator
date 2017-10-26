@@ -3,6 +3,7 @@
    [hiccup.core :refer [html]]
    [io.pedestal.http.route :as route]
    [form-ujs.core :as form]
+   [publicator.domain.post :as post]
    [publicator.web
     [transit :as t]]))
 
@@ -21,12 +22,13 @@
      (t/write data)]]))
 
 (defn description [spec]
-  (let [desc (form/spec->widget spec)]
-    {:id :create
+  (let [desc (form/spec->widget spec)
+        desc (assoc-in desc [:items ::post/content :widget] :textarea)]
+    {:id     :create
      :widget :submit
-     :url (route/url-for :post-create)
+     :url    (route/url-for :post-create)
      :method :post
-     :body desc}))
+     :body   desc}))
 
 (defn render [spec params errors]
   (form (description spec)

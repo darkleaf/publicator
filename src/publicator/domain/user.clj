@@ -20,7 +20,7 @@
 (s/def ::build-params (s/keys :req-un [::login ::full-name ::password]))
 
 (defn build [{:keys [login full-name password] :as params}]
-  (s/assert ::build-params params)
+  {:pre [(s/assert ::build-params params)]}
   (let [id              (id-generator/generate)
         password-digest (hasher/derive password)]
     (map->User {:id              id

@@ -6,7 +6,7 @@
    [better-cond.core :as b]
    [clojure.spec.alpha :as s]))
 
-(s/def ::params (s/keys :req-un [::post/title]))
+(s/def ::params (s/keys :req-un [::post/title ::post/content]))
 
 (defn- check-logged-in []
   (when (user-session/logged-out?)

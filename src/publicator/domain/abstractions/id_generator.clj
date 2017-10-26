@@ -10,4 +10,5 @@
 (s/def ::id some?)
 
 (defn generate []
-  (s/assert ::id (-generate *id-generator*)))
+  {:post [(s/assert ::id %)]}
+  (-generate *id-generator*))

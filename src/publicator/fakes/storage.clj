@@ -7,7 +7,9 @@
 (deftype Transaction [db]
   storage/Transaction
   (-get-many [_ ids]
-    (map #(get @db %) ids))
+    (->> ids
+         (map #(get @db %))
+         (remove nil?)))
   (-create [_ state]
     (let [id  (:id state)
           agg (atom state)]

@@ -39,11 +39,14 @@
 
 (defn tx-get-one [id]
   (with-tx tx
-    @(get-one tx id)))
+    (when-let [x (get-one tx id)]
+      @x)))
 
 (defn tx-get-many [ids]
   (with-tx tx
-    @(get-many tx ids)))
+    (->> ids
+         (get-many tx)
+         (map deref))))
 
 (defn tx-create [state]
   (with-tx t
