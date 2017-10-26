@@ -41,5 +41,5 @@
 (derive ::interactor/logged-out ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/posts/new" :get form :route-name :post-create-form]
+  #{["/posts-new" :get form :route-name :post-create-form]
     ["/posts" :post form-handler :route-name :post-create]})

@@ -3,7 +3,8 @@
    [hiccup.core :refer [html]]
    [hiccup.page :refer [html5 include-js]]
    [io.pedestal.http.route :as route]
-   [publicator.interactors.services.user-session :as user-session]))
+   [publicator.interactors.services.user-session :as user-session]
+   [publicator.web.helpers :as h]))
 
 (defn render [body]
   (str
@@ -21,29 +22,21 @@
      [:body
       [:nav.navbar.navbar-expand-lg.navbar-light.bg-light
        [:div.container
-        [:a.navbar-brand
-         {:href (route/url-for :root)}
-         "Publicator"]
-
+        (h/link-to "Publicator" (route/url-for :root)
+                   :class "navbar-brand")
         [:div.navbar-nav.mr-auto
-         [:a.nav-item.nav-link
-          {:href (route/url-for :post-list)}
-          "Posts"]
-         [:a.nav-item.nav-link {:href "#"} "Users"]]
+         (h/link-to "Posts" (route/url-for :post-list)
+                    :class "nav-item nav-link")]
 
         [:div.navbar-nav
          (when (user-session/logged-in?)
-           [:form {:action (route/url-for :user-log-out)
-                   :method :post}
-            [:button.btn.btn-link.nav-link {:type :submit} "Log out"]])
+           (h/action "Log out" (route/url-for :user-log-out) :post
+                     :class "btn btn-link nav-link"))
          (when (user-session/logged-out?)
-           [:a.nav-item.nav-link
-            {:href (route/url-for :user-register-form)}
-            "Register"])
+           (h/link-to "Register" (route/url-for :user-register-form)
+                      :class "nav-item nav-link"))
          (when (user-session/logged-out?)
-           [:a.nav-item.nav-link
-            {:href (route/url-for :user-log-in-form)}
-            "Log in"])]]]
-
+           (h/link-to "Log in" (route/url-for :user-log-in-form)
+                      :class "nav-item nav-link"))]]]
       [:div.container body]
       (include-js "http://localhost:4200/main.js")]])))
