@@ -3,11 +3,14 @@
    [publicator.interactors.abstractions.session :as session]
    [publicator.interactors.abstractions.storage :as storage]))
 
+(defn user-id []
+  (session/get ::id))
+
 (defn user []
-  (storage/tx-get-one (session/get ::id)))
+  (storage/tx-get-one (user-id)))
 
 (defn logged-in? []
-  (boolean (session/get ::id)))
+  (boolean (user-id)))
 
 (defn logged-out? []
   (not (logged-in?)))
