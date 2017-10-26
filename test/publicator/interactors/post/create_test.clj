@@ -27,9 +27,10 @@
                (:id user))))
     (t/testing "persisted"
       (t/is (some? (storage/tx-get-one (:id post)))))
-    (t/testing "update user posts count"
-      (let [user (storage/tx-get-one (:id user))]
-        (t/is (= 1 (:posts-count user)))))))
+    (t/testing "user became author"
+      (let [reloaded-user (storage/tx-get-one (:id user))]
+        (t/is (not (user/author? user)))
+        (t/is (user/author? reloaded-user))))))
 
 (t/deftest logged-out
   (let [params (sgen/generate (s/gen ::sut/params))

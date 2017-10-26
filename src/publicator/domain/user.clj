@@ -31,5 +31,8 @@
                 :password-digest password-digest
                 :posts-count     0})))
 
-(defn authenticated? [{:keys [password-digest]} password]
-  (hasher/check password password-digest))
+(defn authenticated? [user password]
+  (hasher/check password (:password-digest user)))
+
+(defn author? [user]
+  (< 0 (:posts-count user)))
