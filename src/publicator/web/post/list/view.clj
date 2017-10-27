@@ -3,11 +3,17 @@
    [hiccup.core :refer [html]]
    [io.pedestal.http.route :as route]
    [publicator.interactors.services.user-session :as user-session]
-   [publicator.web.helpers :as h]))
+   [publicator.web.helpers :as h]
+   [publicator.domain.post :as post]))
 
+;; динамическая типизация позволяет это делать.
+;; item - неполное представление post
+;; для проверки author? данных в item достаточно
+;; может быть есть более правильный вариант
 (defn- can-operate? [item]
-  (= (user-session/user-id)
-     (:author-id item)))
+  (let [fake-post item
+        user (user-session/user)]
+    (post/author? fake-post user)))
 
 (defn- render-post [{:keys [id title author-full-name] :as item}]
   (html
