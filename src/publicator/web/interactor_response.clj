@@ -7,4 +7,7 @@
    :headers {}
    :body "forbidden"})
 
-;; not-found
+(defmethod handle ::not-found [resp]
+  {:status 404
+   :headers {}
+   :body "not-found"})

@@ -18,4 +18,4 @@
 
 
 (defn routes []
-  #{["/posts" :get handler :route-name :post-list]})
+  #{["/posts" :get #'handler :route-name :post-list]})

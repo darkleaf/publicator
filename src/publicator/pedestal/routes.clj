@@ -7,7 +7,8 @@
    [publicator.web.user.log-out.controller :as user.log-out]
    [publicator.web.post.create.controller :as post.create]
    [publicator.web.post.list.controller :as post.list]
-   [publicator.web.post.show.controller :as post.show]))
+   [publicator.web.post.show.controller :as post.show]
+   [publicator.web.post.update.controller :as post.update]))
 
 (defn build []
   (route/expand-routes
@@ -17,4 +18,5 @@
                  (user.log-out/routes)
                  (post.create/routes)
                  (post.list/routes)
-                 (post.show/routes)])))
+                 (post.show/routes)
+                 (post.update/routes)])))

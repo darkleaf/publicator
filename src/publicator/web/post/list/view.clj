@@ -5,17 +5,22 @@
    [publicator.interactors.services.user-session :as user-session]
    [publicator.web.helpers :as h]))
 
-(defn- render-post [post]
+(defn- can-operate? [item]
+  (= (user-session/user-id)
+     (:author-id item)))
+
+(defn- render-post [{:keys [id title author-full-name] :as item}]
   (html
    [:tr
-    [:th {:scope :row} (:id post)]
+    [:th {:scope :row} id]
+    [:td (h/link-to title (route/url-for :post-show :path-params {:id id}))]
+    [:td author-full-name]
     [:td
-     (h/link-to (:title post)
-                (route/url-for :post-show
-                               :path-params {:id (:id post)}))]
-    [:td (-> post :author :full-name)]]))
+     (when (can-operate? item)
+       [:div
+        (h/link-to "Edit" (route/url-for :post-update-form :path-params {:id 2}))])]]))
 
-(defn render [posts]
+(defn render [items]
   (html
    [:div
     (if (user-session/logged-in?)
@@ -26,6 +31,7 @@
       [:tr
        [:th {:scope :col} "#"]
        [:th {:scope :col} "Title"]
-       [:th {:scope :col} "Author"]]]
+       [:th {:scope :col} "Author"]
+       [:th {:scope :col} "Actions"]]]
      [:tbody
-      (map render-post posts)]]]))
+      (map render-post items)]]]))

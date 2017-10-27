@@ -1,23 +1,24 @@
-(ns publicator.web.user.log-in.controller
+(ns publicator.web.post.update.controller
   (:require
    [form-ujs.spec]
-   [publicator.interactors.user.log-in :as interactor]
+   [publicator.interactors.post.update :as interactor]
    [publicator.web
     [interactor-response :as interactor-resp]
     [transit :as t]
     [problem-presenter :as problem-presenter]]
-   [publicator.web.user.log-in
-    [view :as view]
-    [messages :as messages]]
+   [publicator.web.post.update
+    [view :as view]]
    [io.pedestal.http.route :as route]))
 
 (defn form [req]
-  (let [resp (interactor/initial-params)]
+  (let [id (-> req :path-params :id bigint)
+        resp (interactor/initial-params id)]
     (interactor-resp/handle resp)))
 
 (defn form-handler [req]
-  (let [params (:transit-params req)
-        resp   (interactor/process params)]
+  (let [id (-> req :path-params :id bigint)
+        params (:transit-params req)
+        resp   (interactor/process id params)]
     (interactor-resp/handle resp)))
 
 (defmethod interactor-resp/handle ::interactor/initial-params [resp]
@@ -25,16 +26,11 @@
    :headers {"Content-Type" "text/html"}
    :body    (view/render ::interactor/params
                          (:initial-params resp)
-                         messages/no-errors)})
+                         {})})
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  200
    :headers {"Location" (route/url-for :root)}})
-
-(defmethod interactor-resp/handle ::interactor/authentication-failed [resp]
-  {:status  422
-   :headers {"Content-Type" "application/transit+json"}
-   :body    (t/write messages/authentication-failed)})
 
 (defmethod interactor-resp/handle ::interactor/invalid-params [resp]
   {:status  422
@@ -44,8 +40,10 @@
                  (form-ujs.spec/errors problem-presenter/present)
                  t/write)})
 
-(derive ::interactor/already-logged-in ::interactor-resp/forbidden)
+(derive ::interactor/logged-out ::interactor-resp/forbidden)
+(derive ::interactor/not-authorized ::interactor-resp/forbidden)
+(derive ::interactor/not-found ::interactor-resp/not-found)
 
 (defn routes []
-  #{["/log-in" :get #'form :route-name :user-log-in-form]
-    ["/log-in" :post #'form-handler :route-name :user-log-in]})
+  #{["/posts/:id/edit" :get #'form :route-name :post-update-form]
+    ["/posts/:id" :patch #'form-handler :route-name :post-update]})

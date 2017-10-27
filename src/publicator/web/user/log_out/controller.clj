@@ -17,4 +17,4 @@
 (derive ::interactor/already-logged-out ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/log-out" :post handler :route-name :user-log-out]})
+  #{["/log-out" :post #'handler :route-name :user-log-out]})

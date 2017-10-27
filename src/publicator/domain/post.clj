@@ -22,3 +22,11 @@
   (let [id (id-generator/generate)]
     (map->Post (merge params
                       {:id id}))))
+
+(defn assign [post params]
+  (let [params (select-keys params [:title :content])]
+    (merge post params)))
+
+(defn author? [post user]
+  (= (:author-id post)
+     (:id user)))

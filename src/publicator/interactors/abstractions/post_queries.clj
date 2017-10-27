@@ -1,6 +1,7 @@
 (ns publicator.interactors.abstractions.post-queries
   (:require
-   [publicator.interactors.projections.post-list :as post-list]
+   [publicator.domain.user :as user]
+   [publicator.domain.post :as post]
    [clojure.spec.alpha :as s]))
 
 (defprotocol GetList
@@ -8,6 +9,11 @@
 
 (declare ^:dynamic *get-list*)
 
+(s/def ::author-full-name ::user/full-name)
+(s/def ::list-item (s/keys :req-un [::post/id ::post/title
+                                    ::post/author-id ::author-full-name]))
+(s/def ::list (s/coll-of ::list-item))
+
 (defn get-list []
-  {:post [(s/assert ::post-list/list %)]}
+  {:post [(s/assert ::list %)]}
   (-get-list *get-list*))

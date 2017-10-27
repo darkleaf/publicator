@@ -4,11 +4,10 @@
   (:import
    [publicator.domain.post Post]))
 
-(defn- post->post-list-projection [db post]
-  (let [attrs        (select-keys post [:id :title])
-        author       @(get @db (:author-id post))
-        author-attrs (select-keys author [:full-name])]
-    (merge attrs {:author author-attrs})))
+(defn- list-item-projection [db post]
+  (let [proj   (select-keys post [:id :title :author-id])
+        author @(get @db (:author-id post))]
+    (assoc proj :author-full-name (:full-name author))))
 
 (deftype GetList [db]
   post-q/GetList
@@ -18,7 +17,7 @@
          (vals)
          (map deref)
          (filter #(instance? Post %))
-         (map #(post->post-list-projection db %)))))
+         (map #(list-item-projection db %)))))
 
 (defn binging-map [db]
   {#'post-q/*get-list* (->GetList db)})
