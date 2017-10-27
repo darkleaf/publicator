@@ -14,7 +14,7 @@
   (let [resp (interactor/initial-params)]
     (interactor-resp/handle resp)))
 
-(defn form-handler [req]
+(defn handler [req]
   (let [params (:transit-params req)
         resp   (interactor/process params)]
     (interactor-resp/handle resp)))
@@ -41,5 +41,5 @@
 (derive ::interactor/logged-out ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/posts-new" :get #'form :route-name :post-create-form]
-    ["/posts" :post #'form-handler :route-name :post-create]})
+  #{["/posts-new" :get #'form :route-name :post.create/form]
+    ["/posts" :post #'handler :route-name :post.create/handler]})

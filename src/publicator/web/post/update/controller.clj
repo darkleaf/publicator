@@ -15,7 +15,7 @@
         resp (interactor/initial-params id)]
     (interactor-resp/handle resp)))
 
-(defn form-handler [req]
+(defn handler [req]
   (let [id (-> req :path-params :id bigint)
         params (:transit-params req)
         resp   (interactor/process id params)]
@@ -45,5 +45,5 @@
 (derive ::interactor/not-found ::interactor-resp/not-found)
 
 (defn routes []
-  #{["/posts/:id/edit" :get #'form :route-name :post-update-form]
-    ["/posts/:id" :patch #'form-handler :route-name :post-update]})
+  #{["/posts/:id/edit" :get #'form :route-name :post.update/form]
+    ["/posts/:id" :patch #'handler :route-name :post.update/handler]})

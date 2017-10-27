@@ -20,4 +20,4 @@
 (derive ::interactor/not-found ::interactor-resp/not-found)
 
 (defn routes []
-  #{["/posts/:id" :delete #'handler :route-name :post-destroy]})
+  #{["/posts/:id" :delete #'handler :route-name :post.destroy/handler]})

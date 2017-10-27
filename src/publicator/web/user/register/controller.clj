@@ -47,5 +47,5 @@
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/registration" :get #'form :route-name :user-register-form]
-    ["/registration" :post #'form-handler :route-name :user-register]})
+  #{["/registration" :get #'form :route-name :user.register/form]
+    ["/registration" :post #'form-handler :route-name :user.register/handler]})

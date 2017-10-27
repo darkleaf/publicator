@@ -24,7 +24,7 @@
   (let [desc (form/spec->widget spec)]
     {:id :register
      :widget :submit
-     :url (route/url-for :user-register)
+     :url (route/url-for :user.register/handler)
      :method :post
      :body desc}))
 

@@ -13,15 +13,15 @@
   (html
    [:tr
     [:th {:scope :row} id]
-    [:td (h/link-to title (route/url-for :post-show :path-params {:id id}))]
+    [:td (h/link-to title (route/url-for :post.show/handler :path-params {:id id}))]
     [:td author-full-name]
     [:td
      (when (can-operate? item)
        [:div
-        (h/link-to "Edit" (route/url-for :post-update-form :path-params {:id id})
+        (h/link-to "Edit" (route/url-for :post.update/form :path-params {:id id})
                    :class "btn btn-sm btn-primary mr-3")
         (h/action-btn "Destroy"
-                      (route/url-for :post-destroy
+                      (route/url-for :post.destroy/handler
                                      :path-params {:id id}
                                      :query-params {:_method "delete"})
                       :class "btn btn-sm btn-warning")])]]))
@@ -30,7 +30,7 @@
   (html
    [:div
     (if (user-session/logged-in?)
-      (h/link-to "New post" (route/url-for :post-create-form)
+      (h/link-to "New post" (route/url-for :post.create/form)
                  :class "btn btn-primary my-3"))
     [:table.table
      [:thead

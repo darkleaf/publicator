@@ -15,7 +15,7 @@
   (let [resp (interactor/initial-params)]
     (interactor-resp/handle resp)))
 
-(defn form-handler [req]
+(defn handler [req]
   (let [params (:transit-params req)
         resp   (interactor/process params)]
     (interactor-resp/handle resp)))
@@ -47,5 +47,5 @@
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/log-in" :get #'form :route-name :user-log-in-form]
-    ["/log-in" :post #'form-handler :route-name :user-log-in]})
+  #{["/log-in" :get #'form :route-name :user.log-in/form]
+    ["/log-in" :post #'handler :route-name :user.log-in/handler]})

@@ -20,4 +20,4 @@
 (derive ::interactor/not-found ::interactor-resp/not-found)
 
 (defn routes []
-  #{["/posts/:id" :get #'handler :route-name :post-show]})
+  #{["/posts/:id" :get #'handler :route-name :post.show/handler]})

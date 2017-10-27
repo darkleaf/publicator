@@ -26,7 +26,7 @@
         desc (assoc-in desc [:items ::post/content :widget] :textarea)]
     {:id     :create
      :widget :submit
-     :url    (route/url-for :post-create)
+     :url    (route/url-for :post.create/handler)
      :method :post
      :body   desc}))
 
