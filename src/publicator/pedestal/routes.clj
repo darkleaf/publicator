@@ -8,7 +8,8 @@
    [publicator.web.post.create.controller :as post.create]
    [publicator.web.post.list.controller :as post.list]
    [publicator.web.post.show.controller :as post.show]
-   [publicator.web.post.update.controller :as post.update]))
+   [publicator.web.post.update.controller :as post.update]
+   [publicator.web.post.destroy.controller :as post.destroy]))
 
 (defn build []
   (route/expand-routes
@@ -19,4 +20,5 @@
                  (post.create/routes)
                  (post.list/routes)
                  (post.show/routes)
-                 (post.update/routes)])))
+                 (post.update/routes)
+                 (post.destroy/routes)])))

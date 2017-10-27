@@ -30,8 +30,8 @@
 
         [:div.navbar-nav
          (when (user-session/logged-in?)
-           (h/action "Log out" (route/url-for :user-log-out) :post
-                     :class "btn btn-link nav-link"))
+           (h/action-btn "Log out" (route/url-for :user-log-out)
+                         :class "btn btn-link nav-link"))
          (when (user-session/logged-out?)
            (h/link-to "Register" (route/url-for :user-register-form)
                       :class "nav-item nav-link"))

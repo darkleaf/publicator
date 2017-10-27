@@ -18,7 +18,13 @@
     [:td
      (when (can-operate? item)
        [:div
-        (h/link-to "Edit" (route/url-for :post-update-form :path-params {:id 2}))])]]))
+        (h/link-to "Edit" (route/url-for :post-update-form :path-params {:id id})
+                   :class "btn btn-sm btn-primary mr-3")
+        (h/action-btn "Destroy"
+                      (route/url-for :post-destroy
+                                     :path-params {:id id}
+                                     :query-params {:_method "delete"})
+                      :class "btn btn-sm btn-warning")])]]))
 
 (defn render [items]
   (html

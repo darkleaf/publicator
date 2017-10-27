@@ -18,8 +18,9 @@
 (defn- atom? [x] (instance? clojure.lang.Atom x))
 
 (defn- aggregate-validator [state]
-  (when state
-    (s/assert (aggregate/spec state) state)))
+  (if state
+    (s/assert (aggregate/spec state) state)
+    true))
 
 (defn get-many [tx ids]
   {:post [(every? atom? %)]}
