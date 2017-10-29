@@ -1,9 +1,9 @@
 (ns publicator.web.pages.root.controller)
 
-(defn root [req]
+(defn handler [req]
   {:status 200
    :headers {"Content-Type" "text/html"}
    :body "root"})
 
 (defn routes []
-  #{["/" :get root :route-name :root]})
+  #{["/" :get #'handler :route-name :root]})
