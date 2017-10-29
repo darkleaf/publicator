@@ -8,15 +8,16 @@
     [problem-presenter :as problem-presenter]]
    [publicator.web.post.update
     [view :as view]]
-   [io.pedestal.http.route :as route]))
+   [publicator.ring.helpers :refer [path-for]]))
 
 (defn form [req]
-  (let [id (-> req :path-params :id bigint)
-        resp (interactor/initial-params id)]
+  (let [id   (-> req :route-params :id bigint)
+        resp (interactor/initial-params id)
+        resp (assoc resp :id id)]
     (interactor-resp/handle resp)))
 
 (defn handler [req]
-  (let [id (-> req :path-params :id bigint)
+  (let [id (-> req :route-params :id bigint)
         params (:transit-params req)
         resp   (interactor/process id params)]
     (interactor-resp/handle resp)))
@@ -24,13 +25,14 @@
 (defmethod interactor-resp/handle ::interactor/initial-params [resp]
   {:status  200
    :headers {"Content-Type" "text/html"}
-   :body    (view/render ::interactor/params
+   :body    (view/render (:id resp)
+                         ::interactor/params
                          (:initial-params resp)
                          {})})
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  200
-   :headers {"Location" (route/url-for :root)}})
+   :headers {"Location" (path-for :root)}})
 
 (defmethod interactor-resp/handle ::interactor/invalid-params [resp]
   {:status  422
@@ -45,5 +47,5 @@
 (derive ::interactor/not-found ::interactor-resp/not-found)
 
 (defn routes []
-  #{["/posts/:id/edit" :get #'form :route-name :post.update/form]
-    ["/posts/:id" :patch #'handler :route-name :post.update/handler]})
+  [[:get "/posts/:id/edit" #'form :post.update/form]
+   [:patch "/posts/:id" #'handler :post.update/handler]])

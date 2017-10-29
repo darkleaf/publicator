@@ -1,6 +1,7 @@
-(ns publicator.pedestal.routes
+(ns publicator.ring.routes
   (:require
-   [io.pedestal.http.route :as route]
+   [sibiro.core :as sibiro]
+
    [publicator.web.pages.root.controller :as pages.root]
    [publicator.web.user.register.controller :as user.register]
    [publicator.web.user.log-in.controller :as user.log-in]
@@ -12,7 +13,7 @@
    [publicator.web.post.destroy.controller :as post.destroy]))
 
 (defn build []
-  (route/expand-routes
+  (sibiro/compile-routes
    (reduce into [(pages.root/routes)
                  (user.register/routes)
                  (user.log-in/routes)

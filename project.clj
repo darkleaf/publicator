@@ -6,9 +6,12 @@
   :dependencies [[org.clojure/clojure "1.9.0-beta3"]
                  [better-cond "2.0.1-SNAPSHOT"]
                  [com.stuartsierra/component "0.3.2"]
-                 [io.pedestal/pedestal.service "0.5.2"]
-                 [io.pedestal/pedestal.jetty "0.5.2"]
-                 [org.slf4j/slf4j-simple "1.7.25"]
+
+
+                 [ring/ring-core "1.6.2"]
+                 [ring/ring-jetty-adapter "1.6.2"]
+                 [functionalbytes/sibiro "0.1.5"]
+
                  [hiccup "1.0.5"]
                  [com.cognitect/transit-clj "0.8.300"]
                  [akar "0.1.0"]

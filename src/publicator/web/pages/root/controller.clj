@@ -6,4 +6,4 @@
    :body "root"})
 
 (defn routes []
-  #{["/" :get #'handler :route-name :root]})
+  [[:get "/"  #'handler :root]])

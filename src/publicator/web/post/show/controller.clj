@@ -8,7 +8,7 @@
     [view :as view]]))
 
 (defn handler [req]
-  (let [id (-> req :path-params :id bigint)
+  (let [id (-> req :route-params :id bigint)
         resp (interactor/process id)]
     (interactor-resp/handle resp)))
 
@@ -20,4 +20,4 @@
 (derive ::interactor/not-found ::interactor-resp/not-found)
 
 (defn routes []
-  #{["/posts/:id" :get #'handler :route-name :post.show/handler]})
+  [[:get "/posts/:id" #'handler :post.show/handler]])

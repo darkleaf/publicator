@@ -1,7 +1,7 @@
 (ns publicator.system
   (:require
    [publicator.components
-    [pedestal :as pedestal]
+    [jetty :as jetty]
     [db :as db]
     [implementations :as implementations]]
    [com.stuartsierra.component :as component]))
@@ -10,4 +10,4 @@
   (component/system-map
    :db (db/build)
    :implementations (component/using (implementations/build) [:db])
-   :pedestal (component/using (pedestal/build) [:implementations])))
+   :jetty (component/using (jetty/build) [:implementations])))

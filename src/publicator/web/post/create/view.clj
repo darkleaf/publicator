@@ -1,7 +1,7 @@
 (ns publicator.web.post.create.view
   (:require
    [hiccup.core :refer [html]]
-   [io.pedestal.http.route :as route]
+   [publicator.ring.helpers :refer [path-for]]
    [form-ujs.core :as form]
    [form-ujs.html :refer [form]]
    [publicator.domain.post :as post]))
@@ -11,7 +11,7 @@
         desc (assoc-in desc [:items ::post/content :widget] :textarea)]
     {:id     :create
      :widget :submit
-     :url    (route/url-for :post.create/handler)
+     :url    (path-for :post.create/handler)
      :method :post
      :body   desc}))
 

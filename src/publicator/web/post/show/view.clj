@@ -1,7 +1,6 @@
 (ns publicator.web.post.show.view
   (:require
    [hiccup.core :refer [html]]
-   [io.pedestal.http.route :as route]
    [publicator.interactors.abstractions.storage :as storage]))
 
 (defn render [post]

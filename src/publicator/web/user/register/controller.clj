@@ -9,7 +9,7 @@
    [publicator.web.user.register
     [view :as view]
     [messages :as messages]]
-   [io.pedestal.http.route :as route]))
+   [publicator.ring.helpers :refer [path-for]]))
 
 (defn form [req]
   (let [resp (interactor/initial-params)]
@@ -29,7 +29,7 @@
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  200
-   :headers {"Location" (route/url-for :root)}})
+   :headers {"Location" (path-for :root)}})
 
 (defmethod interactor-resp/handle ::interactor/already-registered [resp]
   {:status  422
@@ -47,5 +47,5 @@
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/registration" :get #'form :route-name :user.register/form]
-    ["/registration" :post #'form-handler :route-name :user.register/handler]})
+  [[:get "/registration" #'form :user.register/form]
+   [:post "/registration" #'form-handler :user.register/handler]])

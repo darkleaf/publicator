@@ -1,7 +1,7 @@
 (ns publicator.web.user.register.view
   (:require
    [hiccup.core :refer [html]]
-   [io.pedestal.http.route :as route]
+   [publicator.ring.helpers :refer [path-for]]
    [form-ujs.core :as form]
    [form-ujs.html :refer [form]]))
 
@@ -9,7 +9,7 @@
   (let [desc (form/spec->widget spec)]
     {:id :register
      :widget :submit
-     :url (route/url-for :user.register/handler)
+     :url (path-for :user.register/handler)
      :method :post
      :body desc}))
 

@@ -9,13 +9,16 @@
    [publicator.web.user.log-in
     [view :as view]
     [messages :as messages]]
-   [io.pedestal.http.route :as route]))
+   [publicator.ring.helpers :refer [path-for]]))
 
 (defn form [req]
   (let [resp (interactor/initial-params)]
     (interactor-resp/handle resp)))
 
 (defn handler [req]
+
+  (clojure.pprint/pprint req)
+
   (let [params (:transit-params req)
         resp   (interactor/process params)]
     (interactor-resp/handle resp)))
@@ -29,7 +32,7 @@
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  200
-   :headers {"Location" (route/url-for :root)}})
+   :headers {"Location" (path-for :root)}})
 
 (defmethod interactor-resp/handle ::interactor/authentication-failed [resp]
   {:status  422
@@ -47,5 +50,5 @@
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/log-in" :get #'form :route-name :user.log-in/form]
-    ["/log-in" :post #'handler :route-name :user.log-in/handler]})
+  [[:get "/log-in" #'form :user.log-in/form]
+   [:post "/log-in" #'handler :user.log-in/handler]])

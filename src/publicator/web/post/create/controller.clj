@@ -8,7 +8,7 @@
     [problem-presenter :as problem-presenter]]
    [publicator.web.post.create
     [view :as view]]
-   [io.pedestal.http.route :as route]))
+   [publicator.ring.helpers :refer [path-for]]))
 
 (defn form [req]
   (let [resp (interactor/initial-params)]
@@ -28,7 +28,7 @@
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  200
-   :headers {"Location" (route/url-for :root)}})
+   :headers {"Location" (path-for :root)}})
 
 (defmethod interactor-resp/handle ::interactor/invalid-params [resp]
   {:status  422
@@ -41,5 +41,5 @@
 (derive ::interactor/logged-out ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/posts-new" :get #'form :route-name :post.create/form]
-    ["/posts" :post #'handler :route-name :post.create/handler]})
+  [[:get "/posts-new" #'form :post.create/form]
+   [:post "/posts" #'handler :post.create/handler]])

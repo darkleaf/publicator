@@ -4,7 +4,7 @@
    [publicator.interactors.user.log-out :as interactor]
    [publicator.web
     [interactor-response :as interactor-resp]]
-   [io.pedestal.http.route :as route]))
+   [publicator.ring.helpers :refer [path-for]]))
 
 (defn handler [req]
   (let [resp   (interactor/process)]
@@ -12,9 +12,9 @@
 
 (defmethod interactor-resp/handle ::interactor/processed [resp]
   {:status  302
-   :headers {"Location" (route/url-for :root)}})
+   :headers {"Location" (path-for :root)}})
 
 (derive ::interactor/already-logged-out ::interactor-resp/forbidden)
 
 (defn routes []
-  #{["/log-out" :post #'handler :route-name :user.log-out/handler]})
+  [[:post "/log-out" #'handler :user.log-out/handler]])
