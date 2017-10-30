@@ -11,6 +11,7 @@
                  [ring/ring-core "1.6.2"]
                  [ring/ring-jetty-adapter "1.6.2"]
                  [functionalbytes/sibiro "0.1.5"]
+                 [metosin/ring-http-response "0.9.0"]
 
                  [hiccup "1.0.5"]
                  [com.cognitect/transit-clj "0.8.300"]
@@ -21,6 +22,7 @@
 
                  ;; overrides
                  [org.clojure/core.async "0.3.443"]]
-  :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]]
+  :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
+                                  [ring/ring-mock "0.3.1"]]
                    :source-paths ["dev"]}}
   :local-repo "local-m2")
