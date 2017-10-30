@@ -16,9 +16,6 @@
     (interactor-resp/handle resp)))
 
 (defn handler [req]
-
-  (clojure.pprint/pprint req)
-
   (let [params (:transit-params req)
         resp   (interactor/process params)]
     (interactor-resp/handle resp)))
