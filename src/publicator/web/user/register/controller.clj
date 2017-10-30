@@ -15,7 +15,7 @@
   (let [resp (interactor/initial-params)]
     (interactor-resp/handle resp)))
 
-(defn form-handler [req]
+(defn handler [req]
   (let [params (:transit-params req)
         resp   (interactor/process params)]
     (interactor-resp/handle resp)))
@@ -48,4 +48,4 @@
 
 (defn routes []
   [[:get "/registration" #'form :user.register/form]
-   [:post "/registration" #'form-handler :user.register/handler]])
+   [:post "/registration" #'handler :user.register/handler]])
