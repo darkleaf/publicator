@@ -4,6 +4,13 @@
    [akar.syntax :refer [match]]
    [akar.patterns :refer :all]))
 
+;; https://github.com/missingfaktor/akar/issues/20
+(defmacro fn-silent-> [& xs]
+  `(fn [x#]
+     (try
+       (-> x# ~@xs)
+       (catch RuntimeException _# nil))))
+
 ;;todo wait akar 0.2.0
 (defn- !required-key [problem]
   (comment
@@ -11,8 +18,9 @@
      :pred (clojure.core/fn [%] (clojure.core/contains? % :SOME/K))
      :via [:SOME/SPEC-1 :SOME/SPEC-2]})
   (match problem
-         {:via (:view (comp first s/form peek) [(!constant `s/keys)])
-          :pred (:view (comp last last) k)
+         {:via (:view (fn-silent-> peek s/form first) [(!constant `s/keys)])
+          :pred (:and (:view (fn-silent-> last first) [(!constant `contains?)])
+                      (:view (fn-silent-> last last) k))
           :in in}
          [(conj in k)]
          :_ nil))
@@ -26,9 +34,9 @@
        :via []})
     (match problem
            {:pred (:and
-                   (:view (comp first last)
+                   (:view (fn-silent-> last first)
                           [(!constant `re-matches)])
-                   (:view (comp str second last)
+                   (:view (fn-silent-> last second str)
                           [(!regex (re-pattern
                                     (str "\\A"
                                          char-pattern
