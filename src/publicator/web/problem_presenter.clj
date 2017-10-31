@@ -1,62 +1,52 @@
 (ns publicator.web.problem-presenter
   (:require
    [clojure.spec.alpha :as s]
-   [akar.syntax :refer [match]]
-   [akar.patterns :refer :all]))
+   [better-cond.core :as b]))
 
-;; https://github.com/missingfaktor/akar/issues/20
-(defmacro fn-silent-> [& xs]
-  `(fn [x#]
-     (try
-       (-> x# ~@xs)
-       (catch RuntimeException _# nil))))
+(defmacro try-> [x & xs]
+  `(try
+     (-> ~x ~@xs)
+     (catch RuntimeException _# nil)))
 
-;;todo wait akar 0.2.0
-(defn- !required-key [problem]
-  (comment
-    {:path [], :val {}, :in []
-     :pred (clojure.core/fn [%] (clojure.core/contains? % :SOME/K))
-     :via [:SOME/SPEC-1 :SOME/SPEC-2]})
-  (match problem
-         {:via (:view (fn-silent-> peek s/form first) [(!constant `s/keys)])
-          :pred (:and (:view (fn-silent-> last first) [(!constant `contains?)])
-                      (:view (fn-silent-> last last) k))
-          :in in}
-         [(conj in k)]
-         :_ nil))
+(comment
+  {:path [], :val {}, :in []
+   :pred (clojure.core/fn [%] (clojure.core/contains? % :SOME/K))
+   :via [:SOME/SPEC-1 :SOME/SPEC-2]})
 
-(defn- !min-max-regex [char-pattern]
-  (fn [problem]
-    (comment
-      {:path [:password], :val "1234", :in [:password]
-       :pred (clojure.core/fn [%]
-               (clojure.core/re-matches #".{8,255}" %)),
-       :via []})
-    (match problem
-           {:pred (:and
-                   (:view (fn-silent-> last first)
-                          [(!constant `re-matches)])
-                   (:view (fn-silent-> last second str)
-                          [(!regex (re-pattern
-                                    (str "\\A"
-                                         char-pattern
-                                         "\\{(\\d+),(\\d+)\\}\\z")))
-                           (:view bigint r-min)
-                           (:view bigint r-max)]))
-            :in in}
-           [in r-min r-max]
-           :_ nil)))
+(b/defnc- !required-key [problem]
+  :when-let [_  (= `s/keys (try-> problem :via peek s/form first))
+             _  (= `contains? (try-> problem :pred last first))
+             k  (try-> problem :pred last last)
+             in (try-> problem :in vec)]
+  [(conj in k)])
 
-(defn present [problem]
-  (match problem
-         [!required-key in]
-         [in "Обязательное"]
 
-         [(!min-max-regex #"\.") in r-min r-max]
-         [in (str "Кол-во символов от " r-min " до " r-max)]
+(comment
+  {:path [:password], :val "1234", :in [:password]
+   :pred (clojure.core/fn [%]
+           (clojure.core/re-matches #".{8,255}" %)),
+   :via []})
 
-         [(!min-max-regex #"\\w") in r-min r-max]
-         [in (str "Кол-во латинских букв и цифр от " r-min " до " r-max)]
+(b/defnc !min-max-regex [problem char-pattern]
+  :when-let [pattern (re-pattern (str "\\A" char-pattern "\\{(\\d+),(\\d+)\\}\\z"))
+             _       (= `re-matches (try-> problem :pred last first))
+             regex   (try-> problem :pred last second str)
+             matches (re-matches pattern regex)
+             r-min   (try-> matches (get 1) bigint)
+             r-max   (try-> matches (get 2) bigint)
+             in      (try-> problem :in vec)]
+  [in r-min r-max])
 
-         {:in in}
-         [in "Неопознанная ошибка, обратитесь к администратору"]))
+
+(b/defnc present [problem]
+  :let [[in :as res] (!required-key problem)]
+  (some? res) [in "Обязательное"]
+
+  :let [[in r-min r-max :as res] (!min-max-regex problem #"\.")]
+  (some? res) [in (str "Кол-во символов от " r-min " до " r-max)]
+
+  :let [[in r-min r-max :as res] (!min-max-regex problem #"\\w")]
+  (some? res) [in (str "Кол-во латинских букв и цифр от " r-min " до " r-max)]
+
+  :let [in (:in problem)]
+  [in "Неопознанная ошибка, обратитесь к администратору"])

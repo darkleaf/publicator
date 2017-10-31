@@ -15,7 +15,6 @@
 
                  [hiccup "1.0.5"]
                  [com.cognitect/transit-clj "0.8.300"]
-                 [akar "0.1.0"]
 
                  ;; future impl
                  ;; [buddy/buddy-hashers "1.3.0"]
