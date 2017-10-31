@@ -2,9 +2,9 @@
   (:require
    [form-ujs.spec]
    [publicator.interactors.post.update :as interactor]
+   [publicator.transit :as transit]
    [publicator.web
     [interactor-response :as interactor-resp]
-    [transit :as t]
     [problem-presenter :as problem-presenter]]
    [publicator.web.post.update
     [view :as view]]
@@ -40,7 +40,7 @@
    :body    (->> resp
                  :explain-data
                  (form-ujs.spec/errors problem-presenter/present)
-                 t/write)})
+                 (transit/write-str))})
 
 (derive ::interactor/logged-out ::interactor-resp/forbidden)
 (derive ::interactor/not-authorized ::interactor-resp/forbidden)

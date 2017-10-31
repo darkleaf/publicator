@@ -8,7 +8,7 @@
    [publicator.ring.helpers :as helpers]
    [publicator.interactors.abstractions.session :as abstractions.session]
    [publicator.web.layout :as layout]
-   [cognitect.transit :as t]))
+   [publicator.transit :as transit]))
 
 (deftype Session [storage]
   abstractions.session/Session
@@ -52,11 +52,9 @@
      (if (= "application/transit+json"
             (:content-type req))
        (let [body   (:body req)
-             reader (t/reader body :json)
-             params (t/read reader)]
+             params (transit/read-stream body)]
          (assoc req :transit-params params))
        req))))
-
 
 (defn- wrap-method-override [handler]
   (fn [req]

@@ -2,9 +2,9 @@
   (:require
    [form-ujs.spec]
    [publicator.interactors.user.log-in :as interactor]
+   [publicator.transit :as transit]
    [publicator.web
     [interactor-response :as interactor-resp]
-    [transit :as t]
     [problem-presenter :as problem-presenter]]
    [publicator.web.user.log-in
     [view :as view]
@@ -34,7 +34,7 @@
 (defmethod interactor-resp/handle ::interactor/authentication-failed [resp]
   {:status  422
    :headers {"Content-Type" "application/transit+json"}
-   :body    (t/write messages/authentication-failed)})
+   :body    (transit/write-str messages/authentication-failed)})
 
 (defmethod interactor-resp/handle ::interactor/invalid-params [resp]
   {:status  422
@@ -42,7 +42,7 @@
    :body    (->> resp
                  :explain-data
                  (form-ujs.spec/errors problem-presenter/present)
-                 t/write)})
+                 (transit/read-str))})
 
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
 

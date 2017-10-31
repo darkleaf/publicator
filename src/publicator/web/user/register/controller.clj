@@ -2,9 +2,9 @@
   (:require
    [form-ujs.spec]
    [publicator.interactors.user.register :as interactor]
+   [publicator.transit :as transit]
    [publicator.web
     [interactor-response :as interactor-resp]
-    [transit :as t]
     [problem-presenter :as problem-presenter]]
    [publicator.web.user.register
     [view :as view]
@@ -34,7 +34,7 @@
 (defmethod interactor-resp/handle ::interactor/already-registered [resp]
   {:status  422
    :headers {"Content-Type" "application/transit+json"}
-   :body    (t/write messages/already-registered)})
+   :body    (transit/read-str messages/already-registered)})
 
 (defmethod interactor-resp/handle ::interactor/invalid-params [resp]
   {:status  422
@@ -42,7 +42,7 @@
    :body    (->> resp
                  :explain-data
                  (form-ujs.spec/errors problem-presenter/present)
-                 t/write)})
+                 (transit/write-str))})
 
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
 
