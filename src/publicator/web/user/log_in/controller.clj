@@ -36,15 +36,8 @@
    :headers {"Content-Type" "application/transit+json"}
    :body    (transit/write-str messages/authentication-failed)})
 
-(defmethod interactor-resp/handle ::interactor/invalid-params [resp]
-  {:status  422
-   :headers {"Content-Type" "application/transit+json"}
-   :body    (->> resp
-                 :explain-data
-                 (form-ujs.spec/errors problem-presenter/present)
-                 (transit/write-str))})
-
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
+(derive ::interactor/invalid-params ::interactor-resp/invalid-params)
 
 (defn routes []
   [[:get "/log-in" #'form :user.log-in/form]

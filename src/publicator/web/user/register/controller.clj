@@ -3,12 +3,10 @@
    [form-ujs.spec]
    [publicator.interactors.user.register :as interactor]
    [publicator.transit :as transit]
-   [publicator.web
-    [interactor-response :as interactor-resp]
-    [problem-presenter :as problem-presenter]]
-   [publicator.web.user.register
-    [view :as view]
-    [messages :as messages]]
+   [publicator.web.interactor-response :as interactor-resp]
+   [publicator.web.problem-presenter :as problem-presenter]
+   [publicator.web.user.register.view :as view]
+   [publicator.web.user.register.messages :as messages]
    [publicator.ring.helpers :refer [path-for]]))
 
 (defn form [req]
@@ -36,15 +34,8 @@
    :headers {"Content-Type" "application/transit+json"}
    :body    (transit/read-str messages/already-registered)})
 
-(defmethod interactor-resp/handle ::interactor/invalid-params [resp]
-  {:status  422
-   :headers {"Content-Type" "application/transit+json"}
-   :body    (->> resp
-                 :explain-data
-                 (form-ujs.spec/errors problem-presenter/present)
-                 (transit/write-str))})
-
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
+(derive ::interactor/invalid-params ::interactor-resp/invalid-params)
 
 (defn routes []
   [[:get "/registration" #'form :user.register/form]

@@ -34,17 +34,10 @@
   {:status  200
    :headers {"Location" (path-for :root)}})
 
-(defmethod interactor-resp/handle ::interactor/invalid-params [resp]
-  {:status  422
-   :headers {"Content-Type" "application/transit+json"}
-   :body    (->> resp
-                 :explain-data
-                 (form-ujs.spec/errors problem-presenter/present)
-                 (transit/write-str))})
-
 (derive ::interactor/logged-out ::interactor-resp/forbidden)
 (derive ::interactor/not-authorized ::interactor-resp/forbidden)
 (derive ::interactor/not-found ::interactor-resp/not-found)
+(derive ::interactor/invalid-params ::interactor-resp/invalid-params)
 
 (defn routes []
   [[:get "/posts/:id/edit" #'form :post.update/form]

@@ -30,14 +30,7 @@
   {:status  200
    :headers {"Location" (path-for :root)}})
 
-(defmethod interactor-resp/handle ::interactor/invalid-params [resp]
-  {:status  422
-   :headers {"Content-Type" "application/transit+json"}
-   :body    (->> resp
-                 :explain-data
-                 (form-ujs.spec/errors problem-presenter/present)
-                 (transit/write-str))})
-
+(derive ::interactor/invalid-params ::interactor-resp/invalid-params)
 (derive ::interactor/logged-out ::interactor-resp/forbidden)
 
 (defn routes []
