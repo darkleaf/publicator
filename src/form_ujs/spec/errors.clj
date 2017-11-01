@@ -1,11 +1,11 @@
-(ns form-ujs.spec
+(ns form-ujs.spec.errors
   (:require
+   [form-ujs.errors :as errors]
    [clojure.spec.alpha :as s]))
 
 (defn- add-error [errors presented]
-  (let [[in message] presented
-        in           (conj in :form-ujs/errors)]
-    (update-in errors in #(conj (vec %) message))))
+  (let [[in message] presented]
+    (errors/add-error errors in message)))
 
 (defn errors [problem-presenter explain-data]
   "problem-presenter :: spec-problem -> [in, message]

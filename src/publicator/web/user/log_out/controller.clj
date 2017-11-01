@@ -1,9 +1,7 @@
 (ns publicator.web.user.log-out.controller
   (:require
-   [form-ujs.spec]
    [publicator.interactors.user.log-out :as interactor]
-   [publicator.web
-    [interactor-response :as interactor-resp]]
+   [publicator.web.interactor-response :as interactor-resp]
    [publicator.ring.helpers :refer [path-for]]))
 
 (defn handler [req]

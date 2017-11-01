@@ -6,7 +6,7 @@
    [form-ujs.html :refer [form]]
    [publicator.domain.post :as post]))
 
-(defn description [post-id spec]
+(defn- description [post-id spec]
   (let [desc (spec->widget spec)
         desc (assoc-in desc [:items ::post/content :widget] :textarea)]
     {:id     :create
@@ -15,7 +15,6 @@
      :method :patch
      :body   desc}))
 
-(defn render [post-id spec params errors]
+(defn render-form [post-id spec params]
   (form (description post-id spec)
-        params
-        errors))
+        params))

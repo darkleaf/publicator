@@ -1,6 +1,5 @@
 (ns publicator.web.post.destroy.controller
   (:require
-   [form-ujs.spec]
    [publicator.interactors.post.destroy :as interactor]
    [publicator.web
     [interactor-response :as interactor-resp]]

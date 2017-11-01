@@ -15,7 +15,6 @@
      :method :post
      :body   desc}))
 
-(defn render [spec params errors]
+(defn render-form [spec params]
   (form (description spec)
-        params
-        errors))
+        params))

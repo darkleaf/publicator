@@ -1,7 +1,7 @@
 (ns publicator.web.interactor-response
   (:require
-   [form-ujs.spec]
-   [publicator.transit :as transit]
+   [form-ujs.spec.errors]
+   [form-ujs.ring]
    [publicator.web.problem-presenter :as problem-presenter]))
 
 (defmulti handle :type)
@@ -17,9 +17,7 @@
    :body "not-found"})
 
 (defmethod handle ::invalid-params [resp]
-  {:status  422
-   :headers {"Content-Type" "application/transit+json"}
-   :body    (->> resp
-                 :explain-data
-                 (form-ujs.spec/errors problem-presenter/present)
-                 (transit/write-str))})
+  (form-ujs.ring/failure-response
+   (->> resp
+        :explain-data
+        (form-ujs.spec.errors/errors problem-presenter/present))))

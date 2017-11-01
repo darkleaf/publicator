@@ -3,7 +3,8 @@
    [hiccup.core :refer [html]]
    [publicator.ring.helpers :refer [path-for]]
    [form-ujs.spec.widget :refer [spec->widget]]
-   [form-ujs.html :refer [form]]))
+   [form-ujs.html :refer [form]]
+   [form-ujs.errors]))
 
 (defn description [spec]
   (let [desc (spec->widget spec)]
@@ -13,7 +14,9 @@
      :method :post
      :body desc}))
 
-(defn render [spec params errors]
+(defn render-form [spec params]
   (form (description spec)
-        params
-        errors))
+        params))
+
+(defn already-registered []
+  (form-ujs.errors/error "Уже зарегистрирован"))

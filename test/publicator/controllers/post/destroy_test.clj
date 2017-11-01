@@ -1,7 +1,6 @@
 (ns publicator.controllers.post.destroy-test
   (:require
    [publicator.ring.handler :as handler]
-   [publicator.transit :as transit]
    [publicator.factories :as factories]
    [publicator.fixtures :as fixtures]
    [publicator.interactors.services.user-session :as user-session]
@@ -18,5 +17,4 @@
         post    (factories/create-post :author-id (:id user))
         req     (-> (mock.request/request :delete (str "/posts/" (:id post))))
         resp    (handler req)]
-    (t/is (util.http-predicates/redirection? resp))
-    (t/is (some? (get-in resp [:headers "Location"])))))
+    (t/is (util.http-predicates/redirection? resp))))

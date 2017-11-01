@@ -1,6 +1,5 @@
 (ns publicator.web.post.list.controller
   (:require
-   [form-ujs.spec]
    [publicator.interactors.post.list :as interactor]
    [publicator.web
     [interactor-response :as interactor-resp]]
