@@ -5,7 +5,7 @@
    [publicator.interactors.abstractions.storage :as storage]
    [publicator.interactors.abstractions.user-queries :as user-q]
    [publicator.domain.user :as user]
-   [publicator.interactors.fixtures :as fixtures]
+   [publicator.fixtures :as fixtures]
    [publicator.factories :as factories]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]

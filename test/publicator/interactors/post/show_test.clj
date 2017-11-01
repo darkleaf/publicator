@@ -3,7 +3,7 @@
    [publicator.interactors.post.show :as sut]
    [clojure.test :as t]
    [publicator.factories :as factories]
-   [publicator.interactors.fixtures :as fixtures]))
+   [publicator.fixtures :as fixtures]))
 
 (t/use-fixtures :each fixtures/all)
 

@@ -3,7 +3,7 @@
    [publicator.interactors.user.log-out :as sut]
    [publicator.domain.user :as user]
    [publicator.interactors.services.user-session :as user-session]
-   [publicator.interactors.fixtures :as fixtures]
+   [publicator.fixtures :as fixtures]
    [publicator.factories :as factories]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]

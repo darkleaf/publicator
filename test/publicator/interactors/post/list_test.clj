@@ -1,7 +1,7 @@
 (ns publicator.interactors.post.list-test
   (:require
    [publicator.interactors.post.list :as sut]
-   [publicator.interactors.fixtures :as fixtures]
+   [publicator.fixtures :as fixtures]
    [publicator.factories :as factories]
    [clojure.test :as t]))
 

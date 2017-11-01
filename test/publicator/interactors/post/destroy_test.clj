@@ -5,7 +5,7 @@
    [publicator.interactors.services.user-session :as user-session]
    [publicator.domain.post :as post]
    [publicator.domain.user :as user]
-   [publicator.interactors.fixtures :as fixtures]
+   [publicator.fixtures :as fixtures]
    [publicator.factories :as factories]
    [clojure.test :as t]))
 

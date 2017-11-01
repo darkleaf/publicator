@@ -1,4 +1,4 @@
-(ns publicator.interactors.fixtures
+(ns publicator.fixtures
   (:require
    [publicator.fakes.storage :as storage]
    [publicator.fakes.session :as session]

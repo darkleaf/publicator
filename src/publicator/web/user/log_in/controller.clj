@@ -42,7 +42,7 @@
    :body    (->> resp
                  :explain-data
                  (form-ujs.spec/errors problem-presenter/present)
-                 (transit/read-str))})
+                 (transit/write-str))})
 
 (derive ::interactor/already-logged-in ::interactor-resp/forbidden)
 
