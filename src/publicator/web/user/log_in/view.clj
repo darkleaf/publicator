@@ -2,11 +2,11 @@
   (:require
    [hiccup.core :refer [html]]
    [publicator.ring.helpers :refer [path-for]]
-   [form-ujs.core :as form]
+   [form-ujs.spec.widget :refer [spec->widget]]
    [form-ujs.html :refer [form]]))
 
 (defn description [spec]
-  (let [desc (form/spec->widget spec)]
+  (let [desc (spec->widget spec)]
     {:id :register
      :widget :submit
      :url (path-for :user.log-in/handler)

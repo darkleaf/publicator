@@ -1,13 +1,7 @@
-(ns form-ujs.core
+(ns form-ujs.spec.widget
   (:require
    [clojure.spec.alpha :as s]
    [clojure.test :as t]))
-
-(s/def ::name string?)
-(s/def ::email (s/and  string?))
-;;(s/def ::kind #{:user :admin})
-(s/def ::user (s/keys :req [::name ::email]))
-
 
 (defmulti symbol->widget identity)
 
@@ -56,4 +50,10 @@
      :items-order (vec (concat req req-un opt opt-un))
      :items       widgets}))
 
-#_(spec->widget ::user)
+(comment
+  (s/def ::name string?)
+  (s/def ::email (s/and  string?))
+  ;;(s/def ::kind #{:user :admin})
+  (s/def ::user (s/keys :req [::name ::email]))
+
+  (spec->widget ::user))
