@@ -1,10 +1,8 @@
 (ns publicator.web.post.show.controller
   (:require
    [publicator.interactors.post.show :as interactor]
-   [publicator.web
-    [interactor-response :as interactor-resp]]
-   [publicator.web.post.show
-    [view :as view]]))
+   [publicator.web.interactor-response :as interactor-resp]
+   [publicator.web.post.show.view :as view]))
 
 (defn handler [req]
   (let [id (-> req :route-params :id bigint)
