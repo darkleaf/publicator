@@ -44,7 +44,8 @@
 
 (defn get-one [tx id]
   {:post [((some-fn nil? atom?) %)]}
-  (first (get-many tx [id])))
+  (when id
+    (first (get-many tx [id]))))
 
 (defn create [tx state]
   {:post [(atom? %)]}
