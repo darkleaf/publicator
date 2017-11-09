@@ -1,4 +1,4 @@
-(ns publicator.impl.session
+(ns publicator.impl.ring-session
   (:require
    [ring.middleware.session :as ring.session]
    [publicator.interactors.abstractions.session :as session]))

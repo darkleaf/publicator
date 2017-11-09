@@ -2,7 +2,7 @@
   (:require
    [com.stuartsierra.component :as component]
    [ring.adapter.jetty :as jetty]
-   [publicator.impl.session :as session]
+   [publicator.impl.ring-session :as ring-session]
    [publicator.ring.handler :as handler]))
 
 (defn- wrap-binding [handler binding-map]
@@ -19,7 +19,7 @@
              (jetty/run-jetty
               (-> (handler/build)
                   (wrap-binding (:binding-map implementations))
-                  (session/wrap-session))
+                  (ring-session/wrap-session))
               {:host  "0.0.0.0"
                :port  4101
                :join? false}))))
