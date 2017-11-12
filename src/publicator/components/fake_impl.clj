@@ -1,4 +1,4 @@
-(ns publicator.components.implementations
+(ns publicator.components.fake-impl
   (:require
    [com.stuartsierra.component :as component]
    [publicator.fakes.storage :as storage]
