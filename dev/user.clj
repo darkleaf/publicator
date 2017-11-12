@@ -2,6 +2,8 @@
   (:require
    [publicator.system :as system]
    [publicator.factories :as factories]
+   [publicator.impl.test-data-source :as test-data-source]
+   [publicator.db.migration :as migration]
    [com.stuartsierra.component :as component]
    [clojure.spec.alpha :as s]))
 
@@ -27,3 +29,10 @@
 #_(start)
 
 #_(stop)
+
+(defn migrate []
+  ;;todo: dev db
+  (migration/migrate test-data-source/data-source))
+
+(comment
+  (migrate))

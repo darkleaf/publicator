@@ -7,7 +7,6 @@
                  [better-cond "2.0.1-SNAPSHOT"]
                  [com.stuartsierra/component "0.3.2"]
 
-
                  [ring/ring-core "1.6.2"]
                  [ring/ring-jetty-adapter "1.6.2"]
                  [functionalbytes/sibiro "0.1.5"]
@@ -15,6 +14,11 @@
 
                  [hiccup "1.0.5"]
                  [com.cognitect/transit-clj "0.8.300"]
+
+                 [org.flywaydb/flyway-core "4.2.0"]
+                 [funcool/clojure.jdbc "0.9.0"]
+                 [org.postgresql/postgresql "42.1.4"]
+                 [com.mchange/c3p0 "0.9.5"]
 
                  ;; future impl
                  ;; [buddy/buddy-hashers "1.3.0"]
