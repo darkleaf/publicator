@@ -11,3 +11,10 @@ services:
     volumes:
       - ".:${PWD}"
       - ~/.lein:/root/.lein:ro
+    links:
+      - db
+  db:
+    build:
+      context: ./docker/postgres
+    environment:
+      - POSTGRES_PASSWORD=password
