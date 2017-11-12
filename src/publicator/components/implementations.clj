@@ -7,17 +7,19 @@
    [publicator.fakes.hasher :as hasher]
    [publicator.fakes.id-generator :as id-generator]))
 
-(defrecord Impl [db binding-map]
+(defrecord Impl [binding-map]
   component/Lifecycle
   (start [this]
-    (assoc this :binding-map
-           (reduce merge [(storage/binding-map (:conn db))
-                          (user-q/binging-map (:conn db))
-                          (post-q/binging-map (:conn db))
-                          (hasher/binding-map)
-                          (id-generator/binging-map)])))
+    (let [db          (storage/build-db)
+          binding-map (merge
+                       (storage/binding-map db)
+                       (user-q/binging-map db)
+                       (post-q/binging-map db)
+                       (hasher/binding-map)
+                       (id-generator/binging-map))]
+      (assoc this :binding-map binding-map)))
   (stop [this]
     (assoc this :binding-map nil)))
 
 (defn build []
-  (Impl. nil nil))
+  (Impl. nil))

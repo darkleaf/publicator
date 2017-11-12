@@ -2,12 +2,10 @@
   (:require
    [publicator.components
     [jetty :as jetty]
-    [db :as db]
     [implementations :as implementations]]
    [com.stuartsierra.component :as component]))
 
 (defn build []
   (component/system-map
-   :db (db/build)
-   :implementations (component/using (implementations/build) [:db])
+   :implementations (implementations/build)
    :jetty (component/using (jetty/build) [:implementations])))
