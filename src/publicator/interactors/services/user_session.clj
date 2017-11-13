@@ -7,7 +7,8 @@
   (session/get ::id))
 
 (defn user []
-  (storage/tx-get-one (user-id)))
+  (when-let [id (user-id)]
+    (storage/tx-get-one id)))
 
 (defn logged-in? []
   (boolean (user-id)))

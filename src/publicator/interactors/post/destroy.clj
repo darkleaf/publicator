@@ -14,7 +14,7 @@
     {:type ::not-authorized}))
 
 (defn- destroy-post [post]
-  (reset! post nil))
+  (storage/destroy! post))
 
 (defn process [id]
   (storage/with-tx t

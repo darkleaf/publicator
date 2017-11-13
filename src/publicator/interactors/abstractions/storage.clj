@@ -1,7 +1,7 @@
 (ns publicator.interactors.abstractions.storage
+  (:refer-clojure :exclude [swap!])
   (:require
-   [publicator.domain.abstractions.aggregate :as aggregate]
-   [clojure.spec.alpha :as s]))
+   [publicator.domain.abstractions.aggregate :as aggregate]))
 
 ;; Транзакция описывает единицу работы(unit of work).
 ;; Идентичность(identity) агрегатов моделируются атомами.
@@ -12,7 +12,7 @@
 ;; Следовательно, тело транзакции может быть запущено несколько раз.
 
 ;; get-* должны поддерживать семантику idenitity map,
-;; т.е. одному id всегда соответствует один и тот же атом.
+;; т.е. одному id всегда соответствует один и тот же aggregate-box.
 
 ;; Внутри http запроса может быть несколько транзакций.
 ;; На каждый http запрос должен быть свой кэш.
@@ -24,39 +24,57 @@
   (-get-many [this ids])
   (-create [this state]))
 
+(defprotocol AggregateBox
+  (-set! [this new])
+  (-id [this])
+  (-version [this]))
+
 (declare ^:dynamic *storage*)
 
 (defmacro with-tx [tx-name & body]
   `(-wrap-tx *storage* (fn [~tx-name] ~@body)))
 
-(defn- atom? [x] (instance? clojure.lang.Atom x))
+(defn box? [x]
+  (and
+   (satisfies? AggregateBox x)
+   (instance? clojure.lang.IDeref x)))
 
-(defn- aggregate-validator [state]
-  (if state
-    (s/assert (aggregate/spec state) state)
-    true))
+(defn id [box]
+  {:pre [(box? box)]}
+  (-id box))
+
+(defn version [box]
+  {:pre [(box? box)]}
+  (-version box))
+
+(defn destroy! [box]
+  {:pre [(box? box)]}
+  (-set! box nil))
+
+(defn swap! [box f & args]
+  {:pre [(box? box)]}
+  (let [old (aggregate/nilable-assert @box)
+        new (aggregate/nilable-assert (apply f old args))]
+    (-set! box new)
+    new))
 
 (defn get-many [tx ids]
-  {:post [(every? atom? %)]}
-  (let [res (-get-many tx ids)]
-    (doseq [x res] (set-validator! x aggregate-validator))
-    res))
+  {:pre [(every? some? ids)]
+   :post [(every? box? %)
+          (= ids (map id %))]}
+  (-get-many tx ids))
 
 (defn get-one [tx id]
-  {:post [((some-fn nil? atom?) %)]}
-  (when id
-    (first (get-many tx [id]))))
+  {:post [(box? %)]}
+  (first (get-many tx [id])))
 
 (defn create [tx state]
-  {:post [(atom? %)]}
-  (let [res (-create tx state)]
-    (set-validator! res aggregate-validator)
-    res))
+  {:post [(box? %)]}
+  (-create tx state))
 
 (defn tx-get-one [id]
   (with-tx tx
-    (when-let [x (get-one tx id)]
-      @x)))
+    @(get-one tx id)))
 
 (defn tx-get-many [ids]
   (with-tx tx

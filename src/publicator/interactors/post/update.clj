@@ -22,7 +22,7 @@
     {:type ::not-authorized}))
 
 (defn- update-post [post params]
-  (swap! post post/assign params))
+  (storage/swap! post post/assign params))
 
 (defn- params-for-update [post]
   (select-keys post [:title :content]))
