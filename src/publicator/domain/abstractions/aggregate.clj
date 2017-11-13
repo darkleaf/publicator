@@ -7,7 +7,9 @@
   (spec [this] "Aggregate validation spec"))
 
 (defn assert [agg]
+  {:pre [(satisfies? Aggregate agg)]}
   (s/assert (spec agg) agg))
 
 (defn nilable-assert [agg]
-  (s/assert (s/nilable (spec agg)) agg))
+  (when agg (assert agg))
+  agg)

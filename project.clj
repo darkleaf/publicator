@@ -5,6 +5,7 @@
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-RC1"]
                  [better-cond "2.0.1-SNAPSHOT"]
+                 [medley "1.0.0"]
                  [com.stuartsierra/component "0.3.2"]
 
                  [ring/ring-core "1.6.2"]
@@ -17,6 +18,8 @@
 
                  [org.flywaydb/flyway-core "4.2.0"]
                  [funcool/clojure.jdbc "0.9.0"]
+                 [com.layerware/hugsql-core "0.4.8"]
+                 [com.layerware/hugsql-adapter-clojure-jdbc "0.4.8"]
                  [org.postgresql/postgresql "42.1.4"]
                  [com.mchange/c3p0 "0.9.5"]
 

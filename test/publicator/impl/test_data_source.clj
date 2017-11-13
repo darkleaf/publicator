@@ -9,7 +9,3 @@
     (.setJdbcUrl "jdbc:postgresql://db/test")
     (.setUser "postgres")
     (.setPassword "password")))
-
-(defn with-conn [f]
-  (with-open [conn (jdbc/connection data-source)]
-    (jdbc/atomic-apply conn f)))

@@ -1,5 +1,6 @@
 (ns user
   (:require
+   [publicator.init]
    [publicator.system :as system]
    [publicator.factories :as factories]
    [publicator.impl.test-data-source :as test-data-source]

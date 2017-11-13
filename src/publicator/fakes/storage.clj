@@ -4,12 +4,6 @@
   (:require
    [publicator.interactors.abstractions.storage :as storage]))
 
-
-;; (defprotocol AggregateBox
-;;   (-set! [this new])
-;;   (-id [this])
-;;   (-version [this]))
-
 (deftype AggregateBox [volatile id]
   clojure.lang.IDeref
   (deref [_] @volatile)
@@ -17,7 +11,7 @@
   storage/AggregateBox
   (-set! [_ new] (vreset! volatile new))
   (-id [_] id)
-  (-version [_] 0))
+  (-version [_] nil))
 
 (defn- build-box [state id]
   (AggregateBox. (volatile! state) id))
