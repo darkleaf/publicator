@@ -1,12 +1,8 @@
 (ns publicator.impl.storage-test
   (:require
    [clojure.test :as t]
-
-   [jdbc.core :as jdbc]
-
-
    [publicator.impl.storage :as sut]
-   [publicator.impl.test-data-source :refer [data-source]]
+   [publicator.impl.test-db :as test-db]
    [publicator.factories :as factories]
    [publicator.interactors.abstractions.storage :as storage]
    [publicator.fakes.id-generator :as fakes.id-generator]
@@ -14,16 +10,12 @@
 
 (t/use-fixtures :each
   (fn [t]
-    (with-open [conn (jdbc/connection data-source)]
-      (jdbc/atomic
-       conn
-       (let [with-conn (fn [f] (f conn))]
-         (with-bindings (merge
-                         (fakes.hasher/binding-map)
-                         (fakes.id-generator/binging-map)
-                         (sut/binding-map with-conn))
-           (t)
-           (jdbc/set-rollback! conn)))))))
+    (with-bindings (merge
+                    (fakes.hasher/binding-map)
+                    (fakes.id-generator/binging-map)
+                    (sut/binding-map test-db/data-source))
+      (t))
+    (test-db/truncate-all)))
 
 (t/deftest user
   (t/testing "create"

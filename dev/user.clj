@@ -3,7 +3,7 @@
    [publicator.init]
    [publicator.system :as system]
    [publicator.factories :as factories]
-   [publicator.impl.test-data-source :as test-data-source]
+   [publicator.impl.test-db :as test-db]
    [publicator.db.migration :as migration]
    [com.stuartsierra.component :as component]
    [clojure.spec.alpha :as s]))
@@ -33,7 +33,7 @@
 
 (defn migrate []
   ;;todo: dev db
-  (migration/migrate test-data-source/data-source))
+  (migration/migrate test-db/data-source))
 
 (comment
   (migrate))

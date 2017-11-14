@@ -45,20 +45,19 @@
 
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(defn select-all [with-conn ids]
-  (with-conn
-    (fn [conn]
-      (reduce-kv
-       (fn [acc k f]
-         (into acc (f k conn ids)))
-       []
-       (methods select-for)))))
+(defn select-all [data-source ids]
+  (with-open [conn (jdbc/connection data-source)]
+    (reduce-kv
+     (fn [acc klass method]
+       (into acc (method klass conn ids)))
+     []
+     (methods select-for))))
 
-(deftype Transaction [with-conn boxes]
+(deftype Transaction [data-source boxes]
   storage/Transaction
   (-get-many [this ids]
     (let [for-fetch     (remove #(contains? @boxes %) ids)
-          from-db       (select-all with-conn ids)
+          from-db       (select-all data-source ids)
           indexed       (->> from-db
                              (group-by storage/id)
                              (medley/map-vals first))
@@ -77,8 +76,8 @@
       (vswap! boxes assoc id it)
       it)))
 
-(defn build-tx [with-conn]
-  (Transaction. with-conn (volatile! {})))
+(defn build-tx [data-source]
+  (Transaction. data-source (volatile! {})))
 
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -100,30 +99,28 @@
       (insert-for klass conn boxes))))
 
 (defn commit! [tx]
-  (let [with-conn (.-with-conn tx)
+  (let [data-source (.-data-source tx)
         boxes     @(.-boxes tx)]
-    (with-conn
-      (fn [conn]
-        (jdbc/atomic
-         conn
-         (lock! conn boxes)
-         (delete! conn boxes)
-         (insert! conn boxes))))))
+    (with-open [conn (jdbc/connection data-source)]
+      (jdbc/atomic conn
+                   (lock! conn boxes)
+                   (delete! conn boxes)
+                   (insert! conn boxes)))))
 
-(defn wrap-tx [with-conn body]
-  (let [tx  (build-tx with-conn)
+(defn wrap-tx [data-source body]
+  (let [tx  (build-tx data-source)
         res (body tx)]
     (commit! tx)
     res))
 
-(deftype Storage [with-conn]
+(deftype Storage [data-source]
   storage/Storage
   (-wrap-tx [this body]
     ;;todo retry
-    (wrap-tx with-conn body)))
+    (wrap-tx data-source body)))
 
-(defn binding-map [with-conn]
-  {#'storage/*storage* (Storage. with-conn)})
+(defn binding-map [data-source]
+  {#'storage/*storage* (Storage. data-source)})
 
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
