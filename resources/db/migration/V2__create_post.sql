@@ -1,5 +1,5 @@
 CREATE TABLE "post" (
-  "id" bigint,
+  "id" bigint PRIMARY KEY,
   "title" varchar(255),
   "content" text,
   "author-id" bigint
