@@ -53,6 +53,15 @@
       (t/is (= (:type resp) ::sut/invalid-params))
       (t/is (contains? resp  :explain-data)))))
 
+(t/deftest not-found
+  (let [user     (factories/create-user)
+        _        (user-session/log-in! user)
+        params   (sgen/generate (s/gen ::sut/params))
+        wrong-id -1
+        resp     (sut/process wrong-id params)]
+    (t/testing "error"
+      (t/is (= (:type resp) ::sut/not-found)))))
+
 (t/deftest initial-params
   (let [user   (factories/create-user)
         _      (user-session/log-in! user)

@@ -33,7 +33,7 @@
       :let [err (check-logged-in)]
       (some? err) err
       :let [post (storage/get-one t id)]
-      (nil? post) {:type ::not-found}
+      (nil? @post) {:type ::not-found}
       :let [err (check-authorization @post)]
       (some? err) err
       :let [params (params-for-update @post)]
@@ -48,7 +48,7 @@
                  (check-params params))]
       (some? err) err
       :let [post (storage/get-one t id)]
-      (nil? post) {:type ::not-found}
+      (nil? @post) {:type ::not-found}
       :let [err (check-authorization @post)]
       (some? err) err
       :do (update-post post params)

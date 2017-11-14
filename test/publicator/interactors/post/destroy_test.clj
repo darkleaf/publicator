@@ -34,3 +34,11 @@
         resp   (sut/process (:id post))]
     (t/testing "error"
       (t/is (= (:type resp) ::sut/not-authorized)))))
+
+(t/deftest not-found
+  (let [user     (factories/create-user)
+        _        (user-session/log-in! user)
+        wrong-id -1
+        resp     (sut/process wrong-id)]
+    (t/testing "error"
+      (t/is (= (:type resp) ::sut/not-found)))))

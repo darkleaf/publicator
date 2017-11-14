@@ -55,6 +55,10 @@
   {:pre [(box? box)]}
   (let [old (aggregate/nilable-assert @box)
         new (aggregate/nilable-assert (apply f old args))]
+    (assert (or (nil? old)
+                (nil? new)
+                (= (:id old) (:id new))
+                (= (class old) (class new))))
     (-set! box new)
     new))
 
@@ -85,3 +89,13 @@
 (defn tx-create [state]
   (with-tx t
     @(create t state)))
+
+(defn tx-swap! [id f & args]
+  (with-tx t
+    (let [x (get-one t id)]
+      (apply swap! x f args))))
+
+(defn tx-destroy! [id]
+  (with-tx t
+    (let [x (get-one t id)]
+      (destroy! x))))

@@ -9,7 +9,7 @@
    [publicator.impl.test-data-source :refer [data-source]]
    [publicator.factories :as factories]
    [publicator.interactors.abstractions.storage :as storage]
-   [publicator.impl.id-generator :as impl.id-generator]
+   [publicator.fakes.id-generator :as fakes.id-generator]
    [publicator.fakes.hasher :as fakes.hasher]))
 
 (t/use-fixtures :each
@@ -20,7 +20,7 @@
        (let [with-conn (fn [f] (f conn))]
          (with-bindings (merge
                          (fakes.hasher/binding-map)
-                         (impl.id-generator/binding-map with-conn)
+                         (fakes.id-generator/binging-map)
                          (sut/binding-map with-conn))
            (t)
            (jdbc/set-rollback! conn)))))))
@@ -33,16 +33,12 @@
   (t/testing "update"
     (let [user      (factories/create-user)
           full-name "new full-name"
-          _         (storage/with-tx t
-                      (let [user (storage/get-one t (:id user))]
-                        (storage/swap! user assoc :full-name full-name)))
+          _         (storage/tx-swap! (:id user) assoc :full-name full-name)
           user      (storage/tx-get-one (:id user))]
       (t/is (= full-name (:full-name user)))))
   (t/testing "destroy"
     (let [user (factories/create-user)
-          _    (storage/with-tx t
-                 (let [user (storage/get-one t (:id user))]
-                   (storage/destroy! user)))
+          _    (storage/tx-destroy!  (:id user))
           user (storage/tx-get-one (:id user))]
       (t/is (nil? user)))))
 

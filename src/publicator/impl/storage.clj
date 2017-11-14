@@ -40,7 +40,7 @@
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (defmulti select-for (fn [klass conn ids] klass))
-(defmulti insert-for (fn [klass conn states] klass))
+(defmulti insert-for (fn [klass conn boxes] klass))
 (defmulti delete-for (fn [klass conn ids] klass))
 
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -87,17 +87,17 @@
 (defn delete! [conn boxes]
   (let [for-delete (filter need-delete? (vals boxes))
         groups     (->> for-delete
-                        (group-by #(class (.-initial %)))
+                        (group-by #(-> % .-initial class))
                         (medley/map-vals #(map storage/id %)))]
     (doseq [[klass ids] groups]
       (delete-for klass conn ids))))
 
 (defn insert! [conn boxes]
   (let [for-insert (filter need-insert? (vals boxes))
-        states     (map deref for-insert)
-        groups     (group-by class states)]
-    (doseq [[klass states] groups]
-      (insert-for klass conn states))))
+        groups     (->> for-insert
+                        (group-by #(-> % deref class)))]
+    (doseq [[klass boxes] groups]
+      (insert-for klass conn boxes))))
 
 (defn commit! [tx]
   (let [with-conn (.-with-conn tx)
@@ -130,8 +130,8 @@
 
 (hugsql/def-db-fns "db/storage/user.sql" {:quoting :ansi})
 
-(defmethod insert-for User [_ conn states]
-  (user-insert conn {:vals (map vals states)}))
+(defmethod insert-for User [_ conn boxes]
+  (user-insert conn {:vals (map #(-> % deref vals) boxes)}))
 
 (defn- row->user-box [row]
   (let [version (-> row :version .getValue)
