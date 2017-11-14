@@ -4,10 +4,14 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-RC1"]
-                 [better-cond "2.0.1-SNAPSHOT"]
-                 [medley "1.0.0"]
                  [com.stuartsierra/component "0.3.2"]
 
+                 ;; utils
+                 [better-cond "2.0.1-SNAPSHOT"]
+                 [medley "1.0.0"]
+                 [slingshot "0.12.2"]
+
+                 ;; ring
                  [ring/ring-core "1.6.2"]
                  [ring/ring-jetty-adapter "1.6.2"]
                  [functionalbytes/sibiro "0.1.5"]
@@ -16,6 +20,7 @@
                  [hiccup "1.0.5"]
                  [com.cognitect/transit-clj "0.8.300"]
 
+                 ;; db
                  [org.flywaydb/flyway-core "4.2.0"]
                  [funcool/clojure.jdbc "0.9.0"]
                  [com.layerware/hugsql-core "0.4.8"]

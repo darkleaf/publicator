@@ -10,6 +10,7 @@
 
 (t/use-fixtures :each
   (fn [t]
+    (test-db/truncate-all)
     (with-bindings (merge
                     (fakes.hasher/binding-map)
                     (fakes.id-generator/binging-map)
@@ -41,3 +42,14 @@
                       (storage/destroy! user)
                       (storage/id user)))]
       (t/is (nil? (storage/tx-get-one user-id))))))
+
+(t/deftest parallel
+  (let [user (factories/create-user :posts-count 0)
+        id   (:id user)
+        n    5
+        _    (->> (range n)
+                  (map (fn [_] (future (storage/tx-swap! id update :posts-count inc))))
+                  (map deref)
+                  (doall))
+        user (storage/tx-get-one id)]
+    (t/is (= n (:posts-count user)))))
