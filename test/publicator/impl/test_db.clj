@@ -13,6 +13,9 @@
 
 (hugsql/def-db-fns "publicator/impl/test_db.sql" {:quoting :ansi})
 
-(defn truncate-all []
-  (with-open [conn (jdbc/connection data-source)]
-    (sql-truncate-all conn)))
+(defn clear-fixture [t]
+  (try
+    (t)
+    (finally
+      (with-open [conn (jdbc/connection data-source)]
+        (truncate-all conn)))))

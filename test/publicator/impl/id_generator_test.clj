@@ -5,10 +5,11 @@
    [publicator.impl.test-db :as test-db]
    [publicator.domain.abstractions.id-generator :as id-generator]))
 
-(t/use-fixtures :each
-  (fn [t]
-    (with-bindings (sut/binding-map test-db/data-source)
-      (t))))
+(defn- setup [t]
+  (with-bindings (sut/binding-map test-db/data-source)
+    (t)))
+
+(t/use-fixtures :each setup)
 
 (t/deftest generate
-    (t/is (pos-int? (id-generator/generate))))
+  (t/is (pos-int? (id-generator/generate))))

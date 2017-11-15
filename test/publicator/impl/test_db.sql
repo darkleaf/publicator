@@ -1,4 +1,4 @@
--- :name- sql-truncate-all :!
+-- :name- truncate-all :!
 DO $$
 BEGIN
   EXECUTE (

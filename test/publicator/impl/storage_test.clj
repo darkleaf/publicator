@@ -8,15 +8,16 @@
    [publicator.fakes.id-generator :as fakes.id-generator]
    [publicator.fakes.hasher :as fakes.hasher]))
 
+(defn- setup [t]
+  (with-bindings (merge
+                  (fakes.hasher/binding-map)
+                  (fakes.id-generator/binging-map)
+                  (sut/binding-map test-db/data-source))
+    (t)))
+
 (t/use-fixtures :each
-  (fn [t]
-    (test-db/truncate-all)
-    (with-bindings (merge
-                    (fakes.hasher/binding-map)
-                    (fakes.id-generator/binging-map)
-                    (sut/binding-map test-db/data-source))
-      (t))
-    (test-db/truncate-all)))
+  test-db/clear-fixture
+  setup)
 
 (t/deftest user
   (t/testing "create"
