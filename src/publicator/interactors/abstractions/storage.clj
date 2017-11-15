@@ -56,20 +56,20 @@
         new (aggregate/nilable-assert (apply f old args))]
     (assert (or (nil? old)
                 (nil? new)
-                (= (:id old) (:id new))
-                (= (class old) (class new))))
+                (and (= (:id old) (:id new))
+                     (= (class old) (class new)))))
     (-set! box new)
     new))
 
 (defn get-many [tx ids]
   {:pre [(every? some? ids)]
    :post [(map? %)
+          (<= (count %) (count ids))
           (every? box? (vals %))]}
   (-get-many tx ids))
 
 (defn get-one [tx id]
-  {:post [(or (nil? %)
-              (box? %))]}
+  {:post [((some-fn nil? box?) %)]}
   (let [res (get-many tx [id])]
     (get res id)))
 
