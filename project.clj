@@ -9,7 +9,6 @@
                  ;; utils
                  [better-cond "2.0.1-SNAPSHOT"]
                  [medley "1.0.0"]
-                 [slingshot "0.12.2"]
 
                  ;; ring
                  [ring/ring-core "1.6.2"]

@@ -3,18 +3,10 @@
    [jdbc.core :as jdbc]
    [hugsql.core :as hugsql]
    [medley.core :as medley]
-   [slingshot.slingshot :refer [try+ throw+]]
    [publicator.interactors.abstractions.storage :as storage]
    [publicator.domain.user :as user])
   (:import
    [publicator.domain.user User]))
-
-;; (defprotocol Storage
-;;   (-wrap-tx [this body]))
-
-;; (defprotocol Transaction
-;;   (-get-many [this ids])
-;;   (-create [this state]))
 
 (deftype AggregateBox [volatile initial id version]
   clojure.lang.IDeref
@@ -29,11 +21,11 @@
   (AggregateBox. (volatile! state) initial id version))
 
 
-(defn need-insert? [box]
+(defn- need-insert? [box]
   (and (some? @box)
        (not= @box (.-initial box))))
 
-(defn need-delete? [box]
+(defn- need-delete? [box]
   (and (some? (.-initial box))
        (or (nil? @box)
            (not= @box (.-initial box)))))
@@ -47,7 +39,7 @@
 
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(defn select-all [data-source ids]
+(defn- select-all [data-source ids]
   (with-open [conn (jdbc/connection data-source)]
     (reduce-kv
      (fn [acc klass method]
@@ -58,19 +50,13 @@
 (deftype Transaction [data-source boxes]
   storage/Transaction
   (-get-many [this ids]
-    (let [for-fetch     (remove #(contains? @boxes %) ids)
-          from-db       (select-all data-source ids)
-          indexed       (->> from-db
-                             (group-by storage/id)
-                             (medley/map-vals first))
-          _             (vswap! boxes merge indexed)
-          not-found-ids (remove #(contains? @boxes %) ids)
-          indexed       (->> not-found-ids
-                             (map #(build-box nil nil % nil))
-                             (group-by storage/id)
-                             (medley/map-vals first))
-          _             (vswap! boxes merge indexed)]
-      (map #(get @boxes %) ids)))
+    (let [for-fetch (remove #(contains? @boxes %) ids)
+          from-db   (select-all data-source ids)
+          indexed   (->> from-db
+                         (group-by storage/id)
+                         (medley/map-vals first))
+          _         (vswap! boxes merge indexed)]
+      (select-keys @boxes ids)))
 
   (-create [this state]
     (let [id (:id state)
@@ -78,7 +64,7 @@
       (vswap! boxes assoc id it)
       it)))
 
-(defn build-tx [data-source]
+(defn- build-tx [data-source]
   (Transaction. data-source (volatile! {})))
 
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,20 +79,18 @@
        {}
        (methods locks-for)))))
 
-(defn- check-locks! [conn boxes]
+(defn- lock [conn boxes]
   (let [ids      (->> (vals boxes)
                       (filter need-delete?)
                       (map storage/id))
         versions (locks-all conn ids)]
-    (doseq [id ids
-            :let [old-version (->> id
-                                   (get boxes)
-                                   (storage/version))
-                  cur-version (get versions id)]
-             :when (not= old-version cur-version)]
-      (throw+ {:type ::locks-failed}))))
+    (every?
+     #(let [old-version (->> % (get boxes) (storage/version))
+            cur-version (get versions %)]
+        (= old-version cur-version))
+     ids)))
 
-(defn delete! [conn boxes]
+(defn- delete [conn boxes]
   (let [for-delete (filter need-delete? (vals boxes))
         groups     (->> for-delete
                         (group-by #(-> % .-initial class))
@@ -114,48 +98,48 @@
     (doseq [[klass ids] groups]
       (delete-for klass conn ids))))
 
-(defn insert! [conn boxes]
+(defn- insert [conn boxes]
   (let [for-insert (filter need-insert? (vals boxes))
         groups     (->> for-insert
                         (group-by #(-> % deref class)))]
     (doseq [[klass boxes] groups]
       (insert-for klass conn boxes))))
 
-(defn commit! [tx]
+(defn- commit [tx]
   (let [data-source (.-data-source tx)
         boxes     @(.-boxes tx)]
     (with-open [conn (jdbc/connection data-source)]
       (jdbc/atomic conn
-                   (check-locks! conn boxes)
-                   (delete! conn boxes)
-                   (insert! conn boxes)))))
+                   (when (lock conn boxes)
+                     (delete conn boxes)
+                     (insert conn boxes)
+                     true)))))
 
-(defn wrap-tx
-  ([data-source body]
-   (wrap-tx data-source body 0))
-  ([data-source body attempt]
-   (let [tx       (build-tx data-source)
-         res      (body tx)
-         success? (try+
-                   (commit! tx)
-                   true
-                   (catch [:type ::locks-failed] _
-                     (if (> 25 attempt)
-                       false
-                       (throw+))))]
-     (if success?
-       res
-       (recur data-source body (inc attempt))))))
+(defn- timestamp []
+  (inst-ms (java.util.Date.)))
 
-(deftype Storage [data-source]
+(defn- wrap-tx [data-source body stop-after]
+  (let [tx       (build-tx data-source)
+        res      (body tx)
+        success? (commit tx)]
+    (cond
+      success? res
+      (< (timestamp) stop-after) (recur data-source body stop-after)
+      ;;TODO: may be chose another excepion class?
+      :else (throw (java.util.concurrent.TimeoutException. "Can't retry transaction")))))
+
+(deftype Storage [data-source opts]
   storage/Storage
   (-wrap-tx [this body]
-    ;;todo retry
-    (wrap-tx data-source body)))
+    (let [soft-timeout (get opts :soft-timeout 500)
+          stop-after   (+ (timestamp) soft-timeout)]
+      (wrap-tx data-source body stop-after))))
 
-(defn binding-map [data-source]
-  {#'storage/*storage* (Storage. data-source)})
-
+(defn binding-map
+  ([data-source]
+   (binding-map data-source {}))
+  ([data-source opts]
+   {#'storage/*storage* (Storage. data-source opts)}))
 
 ;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

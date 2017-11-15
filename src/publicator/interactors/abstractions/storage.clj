@@ -1,6 +1,7 @@
 (ns publicator.interactors.abstractions.storage
   (:refer-clojure :exclude [swap!])
   (:require
+   [medley.core :as medley]
    [publicator.domain.abstractions.aggregate :as aggregate]))
 
 ;; Транзакция описывает единицу работы(unit of work).
@@ -64,13 +65,15 @@
 
 (defn get-many [tx ids]
   {:pre [(every? some? ids)]
-   :post [(every? box? %)
-          (= ids (map id %))]}
+   :post [(map? %)
+          (every? box? (vals %))]}
   (-get-many tx ids))
 
 (defn get-one [tx id]
-  {:post [(box? %)]}
-  (first (get-many tx [id])))
+  {:post [(or (nil? %)
+              (box? %))]}
+  (let [res (get-many tx [id])]
+    (get res id)))
 
 (defn create [tx state]
   {:post [(box? %)]}
@@ -78,13 +81,14 @@
 
 (defn tx-get-one [id]
   (with-tx tx
-    @(get-one tx id)))
+    (when-let [x (get-one tx id)]
+      @x)))
 
 (defn tx-get-many [ids]
   (with-tx tx
     (->> ids
          (get-many tx)
-         (map deref))))
+         (medley/map-vals deref))))
 
 (defn tx-create [state]
   (with-tx t

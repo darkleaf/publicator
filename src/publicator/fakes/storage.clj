@@ -19,9 +19,8 @@
 (deftype Transaction [db]
   storage/Transaction
   (-get-many [_ ids]
-    (->> ids
-         (map #(get @db % (build-box nil %)))
-         (remove nil?)))
+    (select-keys @db ids))
+
   (-create [_ state]
     (let [id  (:id state)
           box (build-box state id)]
