@@ -1,12 +1,12 @@
 (ns publicator.impl.storage-test
   (:require
    [clojure.test :as t]
+   [publicator.factories :as factories]
+   [publicator.fake.hasher :as fakes.hasher]
+   [publicator.fake.id-generator :as fakes.id-generator]
    [publicator.impl.storage :as sut]
    [publicator.impl.test-db :as test-db]
-   [publicator.factories :as factories]
-   [publicator.interactors.abstractions.storage :as storage]
-   [publicator.fakes.id-generator :as fakes.id-generator]
-   [publicator.fakes.hasher :as fakes.hasher]))
+   [publicator.interactors.abstractions.storage :as storage]))
 
 (defn- setup [t]
   (with-bindings (merge

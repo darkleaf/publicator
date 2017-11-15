@@ -1,12 +1,12 @@
 (ns publicator.fixtures
   (:require
-   [publicator.fakes.storage :as storage]
-   [publicator.fakes.session :as session]
-   [publicator.fakes.user-queries :as user-q]
-   [publicator.fakes.post-queries :as post-q]
-   [publicator.fakes.hasher :as hasher]
-   [publicator.fakes.id-generator :as id-generator]
-   [clojure.test :as t]))
+   [clojure.test :as t]
+   [publicator.fake.hasher :as hasher]
+   [publicator.fake.id-generator :as id-generator]
+   [publicator.fake.post-queries :as post-q]
+   [publicator.fake.session :as session]
+   [publicator.fake.storage :as storage]
+   [publicator.fake.user-queries :as user-q]))
 
 (defn implementations [f]
   (let [db (storage/build-db)

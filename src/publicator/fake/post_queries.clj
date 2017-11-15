@@ -1,4 +1,4 @@
-(ns publicator.fakes.post-queries
+(ns publicator.fake.post-queries
   (:require
    [publicator.interactors.abstractions.post-queries :as post-q])
   (:import

@@ -1,4 +1,4 @@
-(ns publicator.fakes.storage
+(ns publicator.fake.storage
   "Storage with fake transactions.
    No isolation, no rollback."
   (:require

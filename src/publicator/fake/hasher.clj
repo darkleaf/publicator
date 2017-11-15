@@ -1,4 +1,4 @@
-(ns publicator.fakes.hasher
+(ns publicator.fake.hasher
   (:require
    [publicator.domain.abstractions.hasher :as hasher]))
 

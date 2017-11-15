@@ -1,4 +1,4 @@
-(ns publicator.fakes.session
+(ns publicator.fake.session
   (:require
    [publicator.interactors.abstractions.session :as session]))
 
