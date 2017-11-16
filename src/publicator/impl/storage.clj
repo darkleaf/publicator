@@ -141,9 +141,12 @@
           stop-after   (+ (timestamp) soft-timeout)]
       (wrap-tx data-source managers body stop-after))))
 
-(defn binding-map [data-source managers opts]
-  {:pre [(map? managers)
-         (every? class? (keys managers))
-         (every? #(satisfies? Manager %) (vals managers))
-         (map? opts)]}
-  {#'storage/*storage* (Storage. data-source managers opts)})
+(defn binding-map
+  ([data-source managers]
+   (binding-map data-source managers {}))
+  ([data-source managers opts]
+   {:pre [(map? managers)
+          (every? class? (keys managers))
+          (every? #(satisfies? Manager %) (vals managers))
+          (map? opts)]}
+   {#'storage/*storage* (Storage. data-source managers opts)}))
