@@ -17,7 +17,7 @@
   (-id [_] id)
   (-version [_] version))
 
-(defn- build-box [state initial id version]
+(defn build-box [state initial id version]
   (AggregateBox. (volatile! state) initial id version))
 
 
