@@ -23,10 +23,9 @@
                  [com.layerware/hugsql-core "0.4.8"]
                  [com.layerware/hugsql-adapter-clojure-jdbc "0.4.8"]
                  [org.postgresql/postgresql "42.1.4"]
-                 [com.mchange/c3p0 "0.9.5"]]
+                 [com.mchange/c3p0 "0.9.5"]
 
-                 ;; future impl
-                 ;; [buddy/buddy-hashers "1.3.0"]
+                 [buddy/buddy-hashers "1.3.0"]]
 
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
                                   [ring/ring-mock "0.3.1"]]
