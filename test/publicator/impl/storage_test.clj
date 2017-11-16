@@ -92,16 +92,23 @@
 
 (t/deftest identity-map-persisted
   (let [id (:id (storage/tx-create (build-test-entity)))]
-    (t/is (storage/with-tx t
-            (let [x (storage/get-one t id)
-                  y (storage/get-one t id)]
-              (identical? x y))))))
+    (storage/with-tx t
+      (let [x (storage/get-one t id)
+            y (storage/get-one t id)]
+        (t/is (identical? x y))))))
 
 (t/deftest identity-map-in-memory
-  (t/is (storage/with-tx t
-          (let [x (storage/create t (build-test-entity))
-                y (storage/get-one t (storage/id x))]
-            (identical? x y)))))
+  (storage/with-tx t
+    (let [x (storage/create t (build-test-entity))
+          y (storage/get-one t (storage/id x))]
+      (t/is (identical? x y)))))
+
+(t/deftest identity-map-swap
+  (storage/with-tx t
+    (let [x (storage/create t (build-test-entity))
+          y (storage/get-one t (storage/id x))
+          _ (storage/swap! x update :counter inc)]
+      (t/is (= 1 (:counter @x) (:counter @y))))))
 
 (t/deftest locks
   (let [entity (storage/tx-create (build-test-entity))
