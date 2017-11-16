@@ -65,10 +65,10 @@
       (let [for-fetch (remove #(contains? @boxes %) ids)
             from-db   (->> managers
                            (vals)
-                           (mapcat #(select % conn ids))
+                           (mapcat #(select % conn for-fetch))
                            (group-by storage/id)
-                           (medley/map-vals first))
-            _         (vswap! boxes merge from-db)]
+                           (medley/map-vals first))]
+        (vswap! boxes merge from-db)
         (select-keys @boxes ids))))
 
   (-create [this state]

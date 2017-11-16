@@ -90,6 +90,19 @@
                (storage/id entity)))]
     (t/is (nil? (storage/tx-get-one id)))))
 
+(t/deftest identity-map-persisted
+  (let [id (:id (storage/tx-create (build-test-entity)))]
+    (t/is (storage/with-tx t
+            (let [x (storage/get-one t id)
+                  y (storage/get-one t id)]
+              (identical? x y))))))
+
+(t/deftest identity-map-in-memory
+  (t/is (storage/with-tx t
+          (let [x (storage/create t (build-test-entity))
+                y (storage/get-one t (storage/id x))]
+            (identical? x y)))))
+
 (t/deftest locks
   (let [entity (storage/tx-create (build-test-entity))
         id     (:id entity)
