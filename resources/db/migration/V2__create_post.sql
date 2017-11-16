@@ -1,6 +1,6 @@
 CREATE TABLE "post" (
   "id" bigint PRIMARY KEY,
+  "author-id" bigint,
   "title" varchar(255),
-  "content" text,
-  "author-id" bigint
+  "content" text
 );

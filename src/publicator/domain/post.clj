@@ -11,7 +11,7 @@
 
 (s/def ::attrs (s/keys :req-un [::id ::author-id ::title ::content]))
 
-(defrecord Post [id author-id title]
+(defrecord Post [id author-id title content]
   aggregate/Aggregate
   (spec [_] ::attrs))
 
