@@ -2,13 +2,21 @@
   (:require
    [com.stuartsierra.component :as component]
    [dev.fakes :as fakes]
-   [dev.seed :as seed]
+   [publicator.factories :as factories]
    [publicator.components.jetty :as jetty]))
+
+(defn- seed [bindig-map]
+  (with-bindings bindig-map
+    (let [admin (factories/create-user :login "admin"
+                                       :password "12345678"
+                                       :full-name "Admin")]
+      (factories/create-post :author-id (:id admin))
+      (factories/create-post))))
 
 (defrecord Seed [implementations]
   component/Lifecycle
   (start [this]
-    (seed/seed (:binding-map implementations))
+    (seed (:binding-map implementations))
     this)
   (stop [this]
     this))
