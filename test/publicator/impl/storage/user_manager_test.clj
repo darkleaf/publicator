@@ -27,10 +27,11 @@
     (t/is (some? (storage/tx-get-one (:id entity))))))
 
 (t/deftest swap
-  (let [entity (factories/create-user)
-        _      (storage/tx-swap! (:id entity) update :posts-count inc)
-        entity (storage/tx-get-one (:id entity))]
-    (t/is (= 1 (:posts-count entity)))))
+  (let [entity    (factories/create-user)
+        full-name "new full name"
+        _         (storage/tx-swap! (:id entity) assoc :full-name full-name)
+        entity    (storage/tx-get-one (:id entity))]
+    (t/is (= full-name (:full-name entity)))))
 
 (t/deftest destroy
   (let [entity (factories/create-user)

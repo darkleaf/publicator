@@ -21,9 +21,7 @@
   (storage/with-tx t
     (let [user-id (user-session/user-id)
           params  (assoc params :author-id user-id)
-          post    (storage/create t (post/build params))
-          user    (storage/get-one t user-id)
-          _       (storage/swap! user update :posts-count inc)]
+          post    (storage/create t (post/build params))]
       @post)))
 
 (b/defnc initial-params []

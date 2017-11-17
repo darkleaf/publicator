@@ -2,6 +2,5 @@ CREATE TABLE "user" (
   "id" bigint PRIMARY KEY,
   "login" varchar(255) UNIQUE,
   "full-name" varchar(255),
-  "password-digest" text,
-  "posts-count" integer
+  "password-digest" text
 );
