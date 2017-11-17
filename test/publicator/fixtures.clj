@@ -12,10 +12,10 @@
   (let [db (storage/build-db)
         binding-map (reduce merge [(storage/binding-map db)
                                    (session/binding-map)
-                                   (user-q/binging-map db)
-                                   (post-q/binging-map db)
+                                   (user-q/binding-map db)
+                                   (post-q/binding-map db)
                                    (hasher/binding-map)
-                                   (id-generator/binging-map)])]
+                                   (id-generator/binding-map)])]
     (with-bindings binding-map
       (f))))
 

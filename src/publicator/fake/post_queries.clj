@@ -19,5 +19,5 @@
          (filter #(instance? Post %))
          (map #(list-item-projection db %)))))
 
-(defn binging-map [db]
+(defn binding-map [db]
   {#'post-q/*get-list* (->GetList db)})

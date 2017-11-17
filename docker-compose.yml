@@ -7,7 +7,8 @@ services:
     command: lein repl :headless :host "0.0.0.0" :port 4100
     ports:
       - "4100:4100" # repl
-      - "4101:4101" # http
+      - "4101:4101" # http fakes
+      - "4102:4102" # http impls
     volumes:
       - ".:${PWD}"
       - ~/.lein:/root/.lein:ro

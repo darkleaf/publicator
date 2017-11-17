@@ -1,6 +1,5 @@
 (ns publicator.interactors.user.log-out
   (:require
-   [publicator.interactors.abstractions.user-queries :as user-q]
    [publicator.interactors.services.user-session :as user-session]
    [publicator.domain.user :as user]
    [better-cond.core :as b]

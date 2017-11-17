@@ -1,39 +1,31 @@
 (ns user
   (:require
    [publicator.init]
-   [publicator.system :as system]
-   [publicator.factories :as factories]
    [publicator.impl.test-db :as test-db]
    [publicator.db.migration :as migration]
    [com.stuartsierra.component :as component]
+   [dev.fake-system :as fake-system]
+   [dev.impl-system :as impl-system]
    [clojure.spec.alpha :as s]))
 
 (s/check-asserts true)
 
-(def system (system/build))
-
-(defn- seed []
-  (with-bindings (get-in system [:implementations :binding-map])
-    (let [admin (factories/create-user :login "admin"
-                                       :password "12345678"
-                                       :full-name "Admin")
-          _     (factories/create-post :author-id (:id admin))
-          _     (factories/create-post)])))
+(def fake-system (fake-system/build))
+(def impl-system (impl-system/build))
 
 (defn start []
-  (alter-var-root #'system component/start)
-  (seed))
+  (alter-var-root #'fake-system component/start)
+  (alter-var-root #'impl-system component/start))
 
 (defn stop []
-  (alter-var-root #'system component/stop))
-
-#_(start)
-
-#_(stop)
+  (alter-var-root #'fake-system component/stop)
+  (alter-var-root #'impl-system component/stop))
 
 (defn migrate []
-  ;;todo: dev db
+  (migration/migrate (get-in impl-system [:data-source :data-source]))
   (migration/migrate test-db/data-source))
 
 (comment
+  (start)
+  (stop)
   (migrate))

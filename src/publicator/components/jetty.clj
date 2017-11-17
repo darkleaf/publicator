@@ -10,7 +10,7 @@
     (with-bindings binding-map
       (handler req))))
 
-(defrecord Jetty [implementations server]
+(defrecord Jetty [config implementations server]
   component/Lifecycle
   (start [this]
     (if server
@@ -20,9 +20,7 @@
               (-> (handler/build)
                   (wrap-binding (:binding-map implementations))
                   (ring-session/wrap-session))
-              {:host  "0.0.0.0"
-               :port  4101
-               :join? false}))))
+              (assoc config :join? false)))))
   (stop [this]
     (if server
       (do
@@ -30,5 +28,5 @@
         (assoc this :server nil))
       this)))
 
-(defn build []
-  (Jetty. nil nil))
+(defn build [config]
+  (Jetty. config nil nil))

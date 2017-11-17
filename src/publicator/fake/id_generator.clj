@@ -11,5 +11,5 @@
 (defn build []
   (IdGenerator. (atom 0)))
 
-(defn binging-map []
+(defn binding-map []
   {#'id-generator/*id-generator* (build)})

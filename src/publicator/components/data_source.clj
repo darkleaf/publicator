@@ -1,4 +1,4 @@
-(ns publicator.components.db-pool
+(ns publicator.components.data-source
   (:require
    [com.stuartsierra.component :as component])
   (:import
@@ -11,12 +11,12 @@
     (.setUser user)
     (.setPassword password)))
 
-(defrecord DbPool [pool config]
+(defrecord DataSource [config data-source]
   component/Lifecycle
   (start [this]
-    (assoc this :pool (build-pool config)))
+    (assoc this :data-source (build-pool config)))
   (stop [this]
-    (assoc this :pool nil)))
+    (assoc this :data-source nil)))
 
-(defn build []
-  (DbPool. nil nil))
+(defn build [config]
+  (DataSource. config nil))

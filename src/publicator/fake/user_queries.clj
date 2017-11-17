@@ -15,5 +15,5 @@
          (filter #(= login (:login %)))
          (first))))
 
-(defn binging-map [db]
+(defn binding-map [db]
   {#'user-q/*get-by-login* (->GetByLogin db)})

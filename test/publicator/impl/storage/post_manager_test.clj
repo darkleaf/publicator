@@ -13,7 +13,7 @@
 (defn- setup [t]
   (with-bindings (merge
                   (fake.hasher/binding-map)
-                  (fake.id-generator/binging-map)
+                  (fake.id-generator/binding-map)
                   (impl.storage/binding-map test-db/data-source
                                             (merge
                                              (sut/manager)
