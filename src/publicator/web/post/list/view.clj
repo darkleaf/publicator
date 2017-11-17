@@ -6,23 +6,14 @@
    [publicator.web.helpers :as h]
    [publicator.domain.post :as post]))
 
-;; динамическая типизация позволяет это делать.
-;; item - неполное представление post
-;; для проверки author? данных в item достаточно
-;; может быть есть более правильный вариант
-(defn- can-operate? [item]
-  (let [fake-post item
-        user (user-session/user)]
-    (post/author? fake-post user)))
-
-(defn- render-post [{:keys [id title author-full-name] :as item}]
+(defn- render-post [{:keys [id title author-full-name] :as item} user]
   (html
    [:tr
     [:th {:scope :row} id]
     [:td (h/link-to title (path-for :post.show/handler {:id id}))]
     [:td author-full-name]
     [:td
-     (when (can-operate? item)
+     (when (post/author? item user)
        [:div
         (h/link-to "Edit" (path-for :post.update/form {:id id})
                    :class "btn btn-sm btn-primary mr-3")
@@ -46,4 +37,5 @@
        [:th {:scope :col} "Author"]
        [:th {:scope :col} "Actions"]]]
      [:tbody
-      (map render-post items)]]]))
+      (let [user (user-session/user)]
+        (map #(render-post % user) items))]]]))
