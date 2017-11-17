@@ -4,7 +4,8 @@
 
 (declare ^:dynamic *routes*)
 
-(defn path-for [& xs]
+(defn path-for
   {:arglists '([handler] [handler params]
                [tag] [tag params])}
+  [& xs]
   (apply sibiro/path-for *routes* xs))
