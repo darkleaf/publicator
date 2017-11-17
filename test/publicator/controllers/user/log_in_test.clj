@@ -9,7 +9,7 @@
    [form-ujs.ring]
    [clojure.test :as t]))
 
-(t/use-fixtures :each fixtures/all)
+(t/use-fixtures :each fixtures/fake-bindings)
 
 (t/deftest form
   (let [handler (handler/build)

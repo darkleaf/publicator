@@ -9,7 +9,7 @@
    [publicator.factories :as factories]
    [clojure.test :as t]))
 
-(t/use-fixtures :each fixtures/all)
+(t/use-fixtures :each fixtures/fake-bindings)
 
 (t/deftest process
   (let [user   (factories/create-user)

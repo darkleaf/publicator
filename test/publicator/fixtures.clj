@@ -8,7 +8,7 @@
    [publicator.fake.storage :as storage]
    [publicator.fake.user-queries :as user-q]))
 
-(defn implementations [f]
+(defn fake-bindings [f]
   (let [db (storage/build-db)
         binding-map (reduce merge [(storage/binding-map db)
                                    (session/binding-map)
@@ -18,5 +18,3 @@
                                    (id-generator/binding-map)])]
     (with-bindings binding-map
       (f))))
-
-(def all (t/join-fixtures [implementations]))

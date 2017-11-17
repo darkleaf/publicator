@@ -5,7 +5,7 @@
    [publicator.factories :as factories]
    [publicator.fixtures :as fixtures]))
 
-(t/use-fixtures :each fixtures/all)
+(t/use-fixtures :each fixtures/fake-bindings)
 
 (t/deftest process
   (let [post (factories/create-post)

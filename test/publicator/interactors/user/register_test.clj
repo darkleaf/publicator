@@ -11,7 +11,7 @@
    [clojure.spec.alpha :as s]
    [clojure.spec.gen.alpha :as sgen]))
 
-(t/use-fixtures :each fixtures/all)
+(t/use-fixtures :each fixtures/fake-bindings)
 
 (t/deftest process
   (let [params (sgen/generate (s/gen ::sut/params))

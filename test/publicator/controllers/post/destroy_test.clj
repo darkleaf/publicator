@@ -8,7 +8,7 @@
    [ring.util.http-predicates :as util.http-predicates]
    [clojure.test :as t]))
 
-(t/use-fixtures :each fixtures/all)
+(t/use-fixtures :each fixtures/fake-bindings)
 
 (t/deftest handler
   (let [handler (handler/build)
