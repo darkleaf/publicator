@@ -4,7 +4,7 @@
    [publicator.ring.helpers :refer [path-for]]
    [form-ujs.spec.widget :refer [spec->widget]]
    [form-ujs.html :refer [form]]
-   [form-ujs.errors]))
+   [form-ujs.errors :as errors]))
 
 (defn description [spec]
   (let [desc (spec->widget spec)]
@@ -19,4 +19,4 @@
         params))
 
 (defn already-registered []
-  (form-ujs.errors/error "Уже зарегистрирован"))
+  (errors/add-message (errors/blank) [] "Уже зарегистрирован"))

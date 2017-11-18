@@ -5,7 +5,7 @@
 
 (defn- add-error [errors presented]
   (let [[in message] presented]
-    (errors/add-error errors in message)))
+    (errors/add-message errors in message)))
 
 (defn errors [problem-presenter explain-data]
   "problem-presenter :: spec-problem -> [in, message]
@@ -13,4 +13,4 @@
   message :: string?"
   (let [problems  (::s/problems explain-data)
         presented (map problem-presenter problems)]
-    (reduce add-error {} presented)))
+    (reduce add-error (errors/blank) presented)))
