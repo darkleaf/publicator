@@ -5,7 +5,7 @@
    [jdbc.core :as jdbc]
    [publicator.impl.storage :as impl.storage]
    [publicator.impl.test-db :as test-db]
-   [publicator.domain.abstractions.aggregate :as aggregate]
+   [publicator.domain.protocols.aggregate :as aggregate]
    [publicator.interactors.abstractions.storage :as storage]))
 
 (defrecord TestEntity [id counter]

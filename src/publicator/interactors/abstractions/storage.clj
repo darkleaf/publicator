@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [swap!])
   (:require
    [medley.core :as medley]
-   [publicator.domain.abstractions.aggregate :as aggregate]))
+   [publicator.domain.protocols.aggregate :as aggregate]))
 
 ;; Транзакция описывает единицу работы(unit of work).
 ;; Идентичность(identity) агрегатов моделируются AggregateBox.

@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.abstractions.hasher :as hasher]
    [publicator.domain.abstractions.id-generator :as id-generator]
-   [publicator.domain.abstractions.aggregate :as aggregate]
+   [publicator.domain.protocols.aggregate :as aggregate]
    [clojure.spec.alpha :as s]))
 
 (s/def ::id ::id-generator/id)

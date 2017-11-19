@@ -1,4 +1,4 @@
-(ns publicator.domain.abstractions.aggregate
+(ns publicator.domain.protocols.aggregate
   (:refer-clojure :exclude [assert])
   (:require
    [clojure.spec.alpha :as s]))
