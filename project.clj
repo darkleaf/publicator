@@ -27,6 +27,8 @@
 
                  [buddy/buddy-hashers "1.3.0"]]
 
+  ;; todo: move to clojars
+  :resource-paths ["resources", "resources/form-ujs-0.1.0-SNAPSHOT.jar"]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]
                                   [ring/ring-mock "0.3.1"]]
                    :source-paths ["dev"]}}

@@ -3,6 +3,7 @@
    [sibiro.extras]
    [ring.middleware.params :as ring.params]
    [ring.middleware.keyword-params :as ring.keyword-params]
+   [ring.middleware.resource :as ring.resource]
    [publicator.ring.routes :as routes]
    [publicator.ring.helpers :as helpers]
    [publicator.web.layout :as layout]))
@@ -34,4 +35,7 @@
          (wrap-routes routes)
          (wrap-method-override)
          (ring.keyword-params/wrap-keyword-params)
-         (ring.params/wrap-params))))
+         (ring.params/wrap-params)
+
+         ;; todo: fix security
+         (ring.resource/wrap-resource "form_ujs"))))

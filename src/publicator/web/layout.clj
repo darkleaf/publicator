@@ -39,4 +39,5 @@
            (h/link-to "Log in" (path-for :user.log-in/form)
                       :class "nav-item nav-link"))]]]
       [:div.container body]
-      (include-js "http://localhost:4200/main.js")]])))
+      ;; todo: form-ujs helper?
+      (include-js "/frontend.js")]])))
