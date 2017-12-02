@@ -1,7 +1,8 @@
 (ns publicator.web.problem-presenter
   (:require
    [clojure.spec.alpha :as s]
-   [better-cond.core :as b]))
+   [better-cond.core :as b]
+   [form-ujs.errors :as errors]))
 
 (defmacro try-> [x & xs]
   `(try
@@ -37,8 +38,7 @@
              in      (try-> problem :in vec)]
   [in r-min r-max])
 
-
-(b/defnc present [problem]
+(b/defnc present-problem [problem]
   :let [[in :as res] (!required-key problem)]
   (some? res) [in "Обязательное"]
 
@@ -50,3 +50,12 @@
 
   :let [in (:in problem)]
   [in "Неопознанная ошибка, обратитесь к администратору"])
+
+(defn present-explain-data [explain-data]
+  (let [problems  (::s/problems explain-data)
+        pairs (map present-problem  problems)]
+    (reduce
+     (fn [acc [in message]]
+       (errors/add-message acc in message))
+     (errors/blank)
+     pairs)))

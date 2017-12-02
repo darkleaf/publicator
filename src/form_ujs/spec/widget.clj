@@ -42,8 +42,9 @@
         keys-map (merge
                   (zipmap req req)
                   (zipmap req-un (map unqualify req-un))
-                  (zipmap opt opt)
-                  (zipmap opt-un (map unqualify opt-un)))]
+                  ;; todo: видимо, опциональные нужно иначе обрабатывать
+                  #_(zipmap opt opt)
+                  #_(zipmap opt-un (map unqualify opt-un)))]
 
     {:widget      :group
      :keys-map    keys-map

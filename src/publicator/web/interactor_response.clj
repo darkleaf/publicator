@@ -1,6 +1,5 @@
 (ns publicator.web.interactor-response
   (:require
-   [form-ujs.spec.errors]
    [form-ujs.ring]
    [publicator.web.problem-presenter :as problem-presenter]))
 
@@ -18,6 +17,6 @@
 
 (defmethod handle ::invalid-params [resp]
   (form-ujs.ring/failure-response
-   (->> resp
-        :explain-data
-        (form-ujs.spec.errors/errors problem-presenter/present))))
+   (-> resp
+       :explain-data
+       problem-presenter/present-explain-data)))
