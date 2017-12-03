@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.9.0-RC1"]
 
                  [com.stuartsierra/component "0.3.2"]
+                 [spootnik/signal "0.2.1"]
 
                  [better-cond "2.0.1-SNAPSHOT"]
                  [medley "1.0.0"]

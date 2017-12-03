@@ -2,7 +2,8 @@
   (:require
    [publicator.init]
    [com.stuartsierra.component :as component]
-   [publicator.systems.impl :as systems.impl]))
+   [publicator.systems.impl :as systems.impl]
+   [signal.handler :as signal]))
 
 (defn data-source-opts []
   (let [database-url                   (System/getenv "DATABASE_URL")
@@ -16,10 +17,12 @@
   {:host "0.0.0.0"
    :port (bigint (System/getenv "PORT"))})
 
-;; todo: stop
-;; https://github.com/pyr/signal
 (defn -main [& _]
   (let [system (systems.impl/build
                 {:http-opts (http-opts)
-                 :data-source-opts (data-source-opts)})]
-    (component/start system)))
+                 :data-source-opts (data-source-opts)})
+        system (component/start system)]
+    (signal/with-handler :term
+      (prn "caught SIGTERM, quitting.")
+      (component/stop system)
+      (System/exit 0))))
