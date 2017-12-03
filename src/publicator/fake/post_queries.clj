@@ -1,6 +1,7 @@
 (ns publicator.fake.post-queries
   (:require
-   [publicator.interactors.abstractions.post-queries :as post-q])
+   [publicator.interactors.abstractions.post-queries :as post-q]
+   [publicator.domain.post])
   (:import
    [publicator.domain.post Post]))
 

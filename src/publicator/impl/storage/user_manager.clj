@@ -2,7 +2,8 @@
   (:require
    [hugsql.core :as hugsql]
    [publicator.domain.user :as user]
-   [publicator.impl.storage :as impl.storage])
+   [publicator.impl.storage :as impl.storage]
+   [publicator.domain.user])
   (:import
    [publicator.domain.user User]))
 

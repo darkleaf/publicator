@@ -1,4 +1,6 @@
 (ns publicator.interactors.abstractions.user-queries
+  (:require
+   [publicator.domain.user])
   (:import
    [publicator.domain.user User]))
 
