@@ -1,4 +1,4 @@
-(ns dev.impls
+(ns publicator.components.impls
   (:require
    [com.stuartsierra.component :as component]
    [publicator.impl.hasher :as hasher]

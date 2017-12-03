@@ -1,17 +1,20 @@
 (ns user
   (:require
    [publicator.init]
-   [publicator.impl.test-db :as test-db]
-   [publicator.db.migration :as migration]
    [com.stuartsierra.component :as component]
-   [dev.fake-system :as fake-system]
-   [dev.impl-system :as impl-system]
+   [publicator.systems.fake :as systems.fake]
+   [publicator.systems.impl :as systems.impl]
    [clojure.spec.alpha :as s]))
 
 (s/check-asserts true)
 
-(def fake-system (fake-system/build))
-(def impl-system (impl-system/build))
+(def fake-system (systems.fake/build
+                  {:http-opts {:host "0.0.0.0", :port 4101}}))
+(def impl-system (systems.impl/build
+                  {:http-opts {:host "0.0.0.0", :port 4102}
+                   :data-source-opts {:jdbc-url "jdbc:postgresql://db/development"
+                                      :user "postgres"
+                                      :password "password"}}))
 
 (defn start []
   (alter-var-root #'fake-system component/start)
@@ -21,11 +24,6 @@
   (alter-var-root #'fake-system component/stop)
   (alter-var-root #'impl-system component/stop))
 
-(defn migrate []
-  (migration/migrate (get-in impl-system [:data-source :data-source]))
-  (migration/migrate test-db/data-source))
-
 (comment
   (start)
-  (stop)
-  (migrate))
+  (stop))

@@ -1,7 +1,7 @@
-(ns dev.fake-system
+(ns publicator.systems.fake
   (:require
    [com.stuartsierra.component :as component]
-   [dev.fakes :as fakes]
+   [publicator.components.fakes :as fakes]
    [publicator.factories :as factories]
    [publicator.components.jetty :as jetty]))
 
@@ -21,12 +21,12 @@
   (stop [this]
     this))
 
-(defn build []
+(defn build [{:keys [http-opts]}]
   (component/system-map
    :implementations (fakes/build)
    :seed (component/using
           (Seed. nil)
           [:implementations])
    :jetty (component/using
-           (jetty/build {:host "0.0.0.0", :port 4101})
+           (jetty/build http-opts)
            [:implementations])))

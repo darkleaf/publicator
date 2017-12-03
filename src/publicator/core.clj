@@ -2,37 +2,7 @@
   (:require
    [publicator.init]
    [com.stuartsierra.component :as component]
-   [publicator.components.data-source :as data-source]
-   [publicator.components.jetty :as jetty]
-   [publicator.db.migration :as migration]
-
-   [publicator.impl.hasher :as hasher]
-   [publicator.impl.id-generator :as id-generator]
-   [publicator.impl.post-queries :as post-q]
-   [publicator.impl.storage :as storage]
-   [publicator.impl.storage.post-manager :as post-manager]
-   [publicator.impl.storage.user-manager :as user-manager]
-   [publicator.impl.user-queries :as user-q]))
-
-(defrecord Impls [data-source binding-map]
-  component/Lifecycle
-  (start [this]
-    (let [data-source (:data-source data-source)
-          managers    (merge
-                       (post-manager/manager)
-                       (user-manager/manager))
-          binding-map (merge
-                       (storage/binding-map data-source managers)
-                       (user-q/binding-map data-source)
-                       (post-q/binding-map data-source)
-                       (hasher/binding-map)
-                       (id-generator/binding-map data-source))]
-      (assoc this :binding-map binding-map)))
-  (stop [this]
-    (assoc this :binding-map nil)))
-
-(defn build-impls []
-  (Impls. nil nil))
+   [publicator.systems.impl :as systems.impl]))
 
 (defn data-source-opts []
   (let [database-url                   (System/getenv "DATABASE_URL")
@@ -42,29 +12,14 @@
      :user     user
      :password password}))
 
-(defrecord Migration [data-source]
-  component/Lifecycle
-  (start [this]
-    (migration/migrate (:data-source data-source))
-    this)
-  (stop [this]
-    this))
+(defn http-opts []
+  {:host "0.0.0.0"
+   :port (bigint (System/getenv "PORT"))})
 
-(defn build []
-  (component/system-map
-   :data-source (data-source/build (data-source-opts))
-   :implementations (component/using
-                     (build-impls)
-                     [:data-source])
-   :jetty (component/using
-           (jetty/build {:host "0.0.0.0"
-                         :port (-> "PORT" System/getenv bigint)})
-           [:implementations])
-   :migration (component/using
-               (->Migration nil)
-               [:data-source])))
-
+;; todo: stop
+;; https://github.com/pyr/signal
 (defn -main [& _]
-  ;; todo: stop
-  (let [system (build)]
+  (let [system (systems.impl/build
+                {:http-opts (http-opts)
+                 :data-source-opts (data-source-opts)})]
     (component/start system)))

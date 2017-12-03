@@ -1,4 +1,4 @@
-(ns dev.fakes
+(ns publicator.components.fakes
   (:require
    [com.stuartsierra.component :as component]
    [publicator.fake.hasher :as hasher]
