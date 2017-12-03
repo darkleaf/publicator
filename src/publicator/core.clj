@@ -3,7 +3,11 @@
    [publicator.init]
    [com.stuartsierra.component :as component]
    [publicator.systems.impl :as systems.impl]
-   [signal.handler :as signal]))
+   [signal.handler :as signal]
+   [clojure.spec.alpha :as s]))
+
+(s/check-asserts false)
+(set! *assert* false)
 
 (defn data-source-opts []
   (let [database-url                   (System/getenv "DATABASE_URL")
