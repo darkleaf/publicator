@@ -22,7 +22,8 @@
     {:type ::not-authorized}))
 
 (defn- update-post [post params]
-  (storage/swap! post post/assign params))
+  (let [params (select-keys params [:title :content])]
+    (storage/swap! post merge params)))
 
 (defn- params-for-update [post]
   (select-keys post [:title :content]))
