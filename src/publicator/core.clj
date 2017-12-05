@@ -6,9 +6,6 @@
    [signal.handler :as signal]
    [clojure.spec.alpha :as s]))
 
-(s/check-asserts false)
-(set! *assert* false)
-
 (defn data-source-opts []
   (let [database-url                   (System/getenv "DATABASE_URL")
         pattern                        #"postgres://(\S+):(\S+)@(\S+):(\S+)/(\S+)"
