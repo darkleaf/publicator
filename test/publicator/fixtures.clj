@@ -10,11 +10,11 @@
 
 (defn fake-bindings [f]
   (let [db (storage/build-db)
-        binding-map (reduce merge [(storage/binding-map db)
-                                   (session/binding-map)
-                                   (user-q/binding-map db)
-                                   (post-q/binding-map db)
-                                   (hasher/binding-map)
-                                   (id-generator/binding-map)])]
+        binding-map (merge (storage/binding-map db)
+                           (session/binding-map)
+                           (user-q/binding-map db)
+                           (post-q/binding-map db)
+                           (hasher/binding-map)
+                           (id-generator/binding-map))]
     (with-bindings binding-map
       (f))))
