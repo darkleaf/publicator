@@ -94,7 +94,7 @@
 
 (defn tx-swap! [id f & args]
   (with-tx t
-    (let [x (get-one t id)]
+    (when-let [x (get-one t id)]
       (apply swap! x f args))))
 
 (defn tx-destroy! [id]
