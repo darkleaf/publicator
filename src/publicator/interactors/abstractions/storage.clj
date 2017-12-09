@@ -61,20 +61,23 @@
 
 (declare ^:dynamic *storage*)
 
-(defmacro with-tx [tx-name & body]
-  `(-wrap-tx *storage* (fn [~tx-name] ~@body)))
+(defmacro with-tx
+  "Note that body forms may be called multiple times,
+   and thus should be free of side effects."
+  [tx-name & body-forms-free-of-side-effects]
+  `(-wrap-tx *storage* (fn [~tx-name] ~@body-forms-free-of-side-effects)))
 
-(defmacro ^:private assert-identity-map [form]
-  `(let [res# ~form]
-     (assert (= res# ~form) "Identity Map isn't implemented!")
-     res#))
+(defmacro ^:private assert-idempotence [form message]
+  `(let [first-result# ~form]
+     (assert (= first-result# ~form) ~message)
+     first-result#))
 
 (defn get-many [tx ids]
   {:pre [(every? some? ids)]
    :post [(map? %)
           (<= (count %) (count ids))
           (every? box? (vals %))]}
-  (assert-identity-map (-get-many tx ids)))
+  (assert-idempotence (-get-many tx ids) "Identity Map isn't implemented!"))
 
 (defn get-one [tx id]
   {:post [((some-fn nil? box?) %)]}
