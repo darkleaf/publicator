@@ -61,12 +61,17 @@
     (-set! box new)
     new))
 
+(defmacro ^:private assert-identity-map [form]
+  `(let [res# ~form]
+     (assert (= res# ~form) "Identity Map isn't implemented!")
+     res#))
+
 (defn get-many [tx ids]
   {:pre [(every? some? ids)]
    :post [(map? %)
           (<= (count %) (count ids))
           (every? box? (vals %))]}
-  (-get-many tx ids))
+  (assert-identity-map (-get-many tx ids)))
 
 (defn get-one [tx id]
   {:post [((some-fn nil? box?) %)]}
