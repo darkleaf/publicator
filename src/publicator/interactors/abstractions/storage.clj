@@ -16,22 +16,11 @@
 ;; get-* должны поддерживать семантику idenitity map,
 ;; т.е. одному id всегда соответствует один и тот же aggregate box.
 
-(defprotocol Storage
-  (-wrap-tx [this body]))
-
-(defprotocol Transaction
-  (-get-many [this ids])
-  (-create [this state]))
 
 (defprotocol AggregateBox
   (-set! [this new])
   (-id [this])
   (-version [this]))
-
-(declare ^:dynamic *storage*)
-
-(defmacro with-tx [tx-name & body]
-  `(-wrap-tx *storage* (fn [~tx-name] ~@body)))
 
 (defn box? [x]
   (and
@@ -61,6 +50,20 @@
     (-set! box new)
     new))
 
+;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(defprotocol Storage
+  (-wrap-tx [this body]))
+
+(defprotocol Transaction
+  (-get-many [this ids])
+  (-create [this state]))
+
+(declare ^:dynamic *storage*)
+
+(defmacro with-tx [tx-name & body]
+  `(-wrap-tx *storage* (fn [~tx-name] ~@body)))
+
 (defmacro ^:private assert-identity-map [form]
   `(let [res# ~form]
      (assert (= res# ~form) "Identity Map isn't implemented!")
@@ -81,6 +84,8 @@
 (defn create [tx state]
   {:post [(box? %)]}
   (-create tx state))
+
+;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (defn tx-get-one [id]
   (with-tx tx
