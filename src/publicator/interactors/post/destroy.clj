@@ -13,17 +13,14 @@
   (when-not (post/author? post (user-session/user))
     {:type ::not-authorized}))
 
-(defn- destroy-post [post]
-  (storage/destroy! post))
-
 (defn process [id]
-  (storage/with-tx t
-    (b/cond
-      :let [err (check-logged-in)]
-      (some? err) err
-      :let [post (storage/get-one t id)]
-      (nil? post) {:type ::not-found}
-      :let [err (check-authorization @post)]
-      (some? err) err
-      :do (destroy-post post)
-      {:type ::processed})))
+  (or
+   (check-logged-in)
+   (storage/with-tx t
+     (b/cond
+       :let [post (storage/get-one t id)]
+       (nil? post) {:type ::not-found}
+       :let [err (check-authorization @post)]
+       (some? err) err
+       :do (storage/destroy! post)
+       {:type ::processed}))))

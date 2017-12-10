@@ -29,29 +29,28 @@
   (select-keys post [:title :content]))
 
 (defn initial-params [id]
-  (storage/with-tx t
-    (b/cond
-      :let [err (check-logged-in)]
-      (some? err) err
-      :let [post (storage/get-one t id)]
-      (nil? post) {:type ::not-found}
-      :let [err (check-authorization @post)]
-      (some? err) err
-      :let [params (params-for-update @post)]
-      {:type ::initial-params
-       :initial-params params})))
+  (or
+   (check-logged-in)
+   (storage/with-tx t
+     (b/cond
+       :let [post (storage/get-one t id)]
+       (nil? post) {:type ::not-found}
+       :let [err (check-authorization @post)]
+       (some? err) err
+       :let [params (params-for-update @post)]
+       {:type ::initial-params
+        :initial-params params}))))
 
 (defn process [id params]
-  (storage/with-tx t
-    (b/cond
-      :let [err (or
-                 (check-logged-in)
-                 (check-params params))]
-      (some? err) err
-      :let [post (storage/get-one t id)]
-      (nil? post) {:type ::not-found}
-      :let [err (check-authorization @post)]
-      (some? err) err
-      :do (update-post post params)
-      {:type ::processed
-       :post @post})))
+  (or
+   (check-logged-in)
+   (check-params params)
+   (storage/with-tx t
+     (b/cond
+       :let [post (storage/get-one t id)]
+       (nil? post) {:type ::not-found}
+       :let [err (check-authorization @post)]
+       (some? err) err
+       :do (update-post post params)
+       {:type ::processed
+        :post @post}))))
