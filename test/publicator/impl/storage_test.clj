@@ -3,14 +3,14 @@
    [clojure.test :as t]
    [hugsql.core :as hugsql]
    [jdbc.core :as jdbc]
+   [publicator.domain.aggregate :as aggregate]
    [publicator.impl.storage :as impl.storage]
    [publicator.impl.test-db :as test-db]
-   [publicator.domain.protocols.aggregate :as aggregate]
    [publicator.interactors.abstractions.storage :as storage]))
 
-(defrecord TestEntity [id counter]
-  aggregate/Aggregate
-  (spec [_] any?))
+(defrecord TestEntity [id counter])
+
+(defmethod aggregate/spec TestEntity [_] any?)
 
 (defn build-test-entity []
   (TestEntity. 1 0))

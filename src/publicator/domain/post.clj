@@ -1,7 +1,7 @@
 (ns publicator.domain.post
   (:require
    [publicator.domain.abstractions.id-generator :as id-generator]
-   [publicator.domain.protocols.aggregate :as aggregate]
+   [publicator.domain.aggregate :as aggregate]
    [clojure.spec.alpha :as s]))
 
 (s/def ::id ::id-generator/id)
@@ -11,9 +11,9 @@
 
 (s/def ::attrs (s/keys :req-un [::id ::author-id ::title ::content]))
 
-(defrecord Post [id author-id title content]
-  aggregate/Aggregate
-  (spec [_] ::attrs))
+(defrecord Post [id author-id title content])
+
+(defmethod aggregate/spec Post [_] ::attrs)
 
 (s/def ::build-params (s/keys :req-un [::title ::content ::author-id]))
 

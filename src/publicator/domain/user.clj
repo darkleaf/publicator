@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.abstractions.hasher :as hasher]
    [publicator.domain.abstractions.id-generator :as id-generator]
-   [publicator.domain.protocols.aggregate :as aggregate]
+   [publicator.domain.aggregate :as aggregate]
    [clojure.spec.alpha :as s]))
 
 (s/def ::id ::id-generator/id)
@@ -13,9 +13,9 @@
 
 (s/def ::attrs (s/keys :req-un [::id ::login ::full-name ::password-digest]))
 
-(defrecord User [id login full-name password-digest]
-  aggregate/Aggregate
-  (spec [_] ::attrs))
+(defrecord User [id login full-name password-digest])
+
+(defmethod aggregate/spec User [_] ::attrs)
 
 (s/def ::build-params (s/keys :req-un [::login ::full-name ::password]))
 

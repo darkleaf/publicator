@@ -2,7 +2,8 @@
   (:refer-clojure :exclude [swap!])
   (:require
    [medley.core :as medley]
-   [publicator.domain.protocols.aggregate :as aggregate]))
+   [clojure.spec.alpha :as s]
+   [publicator.domain.aggregate :as aggregate]))
 
 ;; Транзакция описывает единицу работы(unit of work).
 ;; Идентичность(identity) агрегатов моделируются AggregateBox.
@@ -41,8 +42,8 @@
 
 (defn swap! [box f & args]
   {:pre [(box? box)]}
-  (let [old (aggregate/nilable-assert @box)
-        new (aggregate/nilable-assert (apply f old args))]
+  (let [old (s/assert ::aggregate/nilable-spec @box)
+        new (s/assert ::aggregate/nilable-spec (apply f old args))]
     (assert (or (nil? old)
                 (nil? new)
                 (and (= (:id old) (:id new))
