@@ -1,26 +1,26 @@
 (ns publicator.web.problem-presenter
   (:require
    [clojure.spec.alpha :as s]
-   [better-cond.core :as b]
    [form-ujs.errors :as errors]))
 
-(defmacro try-> [x & xs]
-  `(try
-     (-> ~x ~@xs)
-     (catch RuntimeException _# nil)))
+(defmacro when-some* [bindings & body]
+  (if (empty? bindings)
+    `(do ~@body)
+    `(when-some [~@(take 2 bindings)]
+       (when-some* [~@(drop 2 bindings)]
+         ~@body))))
 
 (comment
   {:path [], :val {}, :in []
    :pred (clojure.core/fn [%] (clojure.core/contains? % :SOME/K))
    :via [:SOME/SPEC-1 :SOME/SPEC-2]})
 
-(b/defnc- !required-key [problem]
-  :when-let [_  (= `s/keys (try-> problem :via peek s/form first))
-             _  (= `contains? (try-> problem :pred last first))
-             k  (try-> problem :pred last last)
-             in (try-> problem :in vec)]
-  [(conj in k)])
-
+(defn- !required-key [problem]
+  (when (and (= `s/keys (some-> problem :via peek s/form first))
+             (= `contains? (some-> problem :pred last first)))
+    (when-some* [k  (some-> problem :pred last last)
+                 in (some-> problem :in vec)]
+      [(conj in k)])))
 
 (comment
   {:path [:password], :val "1234", :in [:password]
@@ -28,28 +28,26 @@
            (clojure.core/re-matches #".{8,255}" %)),
    :via []})
 
-(b/defnc !min-max-regex [problem char-pattern]
-  :when-let [pattern (re-pattern (str "\\A" char-pattern "\\{(\\d+),(\\d+)\\}\\z"))
-             _       (= `re-matches (try-> problem :pred last first))
-             regex   (try-> problem :pred last second str)
-             matches (re-matches pattern regex)
-             r-min   (try-> matches (get 1) bigint)
-             r-max   (try-> matches (get 2) bigint)
-             in      (try-> problem :in vec)]
-  [in r-min r-max])
+(defn- !min-max-regex [problem char-pattern]
+  (when (= `re-matches (some-> problem :pred last first))
+    (when-some* [pattern (re-pattern (str "\\A" char-pattern "\\{(\\d+),(\\d+)\\}\\z"))
+                 regex   (some-> problem :pred last second str)
+                 matches (re-matches pattern regex)
+                 r-min   (some-> matches (get 1) bigint)
+                 r-max   (some-> matches (get 2) bigint)
+                 in      (some-> problem :in vec)]
+      [in r-min r-max])))
 
-(b/defnc present-problem [problem]
-  :let [[in :as res] (!required-key problem)]
-  (some? res) [in "Обязательное"]
-
-  :let [[in r-min r-max :as res] (!min-max-regex problem #"\.")]
-  (some? res) [in (str "Кол-во символов от " r-min " до " r-max)]
-
-  :let [[in r-min r-max :as res] (!min-max-regex problem #"\\w")]
-  (some? res) [in (str "Кол-во латинских букв и цифр от " r-min " до " r-max)]
-
-  :let [in (:in problem)]
-  [in "Неопознанная ошибка, обратитесь к администратору"])
+(defn- present-problem [problem]
+  (or
+   (when-let [[in] (!required-key problem)]
+     [in "Обязательное"])
+   (when-let [[in r-min r-max] (!min-max-regex problem #"\.")]
+     [in (str "Кол-во символов от " r-min " до " r-max)])
+   (when-let [[in r-min r-max] (!min-max-regex problem #"\\w")]
+     [in (str "Кол-во латинских букв и цифр от " r-min " до " r-max)])
+   (let [in (:in problem)]
+     [in "Неопознанная ошибка, обратитесь к администратору"])))
 
 (defn present-explain-data [explain-data]
   (let [problems  (::s/problems explain-data)

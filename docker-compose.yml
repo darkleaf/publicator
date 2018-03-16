@@ -10,7 +10,7 @@ services:
       - "4101:4101" # http fakes
       - "4102:4102" # http impls
     volumes:
-      - ".:${PWD}"
+      - ".:${PWD}:cached"
       - ~/.lein:/root/.lein:ro
     links:
       - db
