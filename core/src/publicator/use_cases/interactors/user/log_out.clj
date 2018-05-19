@@ -19,8 +19,8 @@
 (s/def ::processed (s/tuple #{::processed}))
 
 (s/fdef process
-        :ret (s/or :ok  ::processed
-                   :err ::already-logged-out))
+  :ret (s/or :ok  ::processed
+             :err ::already-logged-out))
 
 (defn process []
   (*process*))

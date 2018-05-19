@@ -47,13 +47,13 @@
 (s/def ::processed (s/tuple #{::processed} ::post/post))
 
 (s/fdef initial-params
-        :ret (s/or :ok  ::initial-params
-                   :err ::logged-out))
+  :ret (s/or :ok  ::initial-params
+             :err ::logged-out))
 
 (s/fdef process
-        :ret (s/or :ok  ::processed
-                   :err ::logged-out
-                   :err ::invalid-params))
+  :ret (s/or :ok  ::processed
+             :err ::logged-out
+             :err ::invalid-params))
 
 (defn initial-params []
   (*initial-params*))

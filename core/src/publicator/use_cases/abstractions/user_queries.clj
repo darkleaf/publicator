@@ -9,8 +9,8 @@
 (declare ^:dynamic *get-by-login*)
 
 (s/fdef get-by-login
-        :args (s/cat :login ::user/login)
-        :ret (s/nilable ::user/user))
+  :args (s/cat :login ::user/login)
+  :ret (s/nilable ::user/user))
 
 (defn get-by-login [login]
   (-get-by-login *get-by-login* login))

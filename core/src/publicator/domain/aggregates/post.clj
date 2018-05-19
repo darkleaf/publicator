@@ -22,8 +22,8 @@
 (defn post? [x] (instance? Post x))
 
 (s/fdef build
-        :args (s/cat :params (s/keys :req-un [::title ::content]))
-        :ret ::post)
+  :args (s/cat :params (s/keys :req-un [::title ::content]))
+  :ret ::post)
 
 (defn build [{:keys [title content]}]
   (map->Post {:id (id-generator/generate)

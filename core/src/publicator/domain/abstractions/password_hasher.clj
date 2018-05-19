@@ -15,19 +15,19 @@
 (s/def ::encrypted string?)
 
 (s/fdef derive
-        :args (s/cat :password ::password)
-        :ret ::encrypted
-        :fn #(not= (-> % :args :password)
-                   (-> % :ret)))
+  :args (s/cat :password ::password)
+  :ret ::encrypted
+  :fn #(not= (-> % :args :password)
+             (-> % :ret)))
 
 (defn derive [password]
   (-derive *password-hasher* password))
 
 
 (s/fdef check
-        :args (s/cat :attempt ::password
-                     :encrypted ::encrypted)
-        :ret boolean?)
+  :args (s/cat :attempt ::password
+               :encrypted ::encrypted)
+  :ret boolean?)
 
 (defn check [attempt encrypted]
   (-check *password-hasher* attempt encrypted))

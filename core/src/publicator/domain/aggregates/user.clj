@@ -27,9 +27,9 @@
 (defn user? [x] (instance? User x))
 
 (s/fdef build
-        :args (s/cat :params (s/keys :req-un [::login ::full-name ::password]
-                                     :opt-un [::posts-ids]))
-        :ret ::user)
+  :args (s/cat :params (s/keys :req-un [::login ::full-name ::password]
+                               :opt-un [::posts-ids]))
+  :ret ::user)
 
 (defn build [{:keys [login full-name password posts-ids]
               :or   {posts-ids []}}]

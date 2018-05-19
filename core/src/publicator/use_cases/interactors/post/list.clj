@@ -19,7 +19,7 @@
 (s/def ::processed (s/tuple #{::processed} ::posts))
 
 (s/fdef process
-        :ret (s/or :ok ::processed))
+  :ret (s/or :ok ::processed))
 
 (defn process []
   (*process*))

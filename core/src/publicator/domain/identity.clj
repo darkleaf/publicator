@@ -37,10 +37,10 @@
        :validator (build-validator initial)))
 
 (s/fdef alter
-        :args (s/cat :identity ::identity
-                     :f ifn?
-                     :args (s/* any?))
-        :ret ::aggregate/aggregate)
+  :args (s/cat :identity ::identity
+               :f ifn?
+               :args (s/* any?))
+  :ret ::aggregate/aggregate)
 
 (defn alter [identity f & args]
   (let [updater (comp aggregate/wrap-update f)]

@@ -63,20 +63,20 @@
 (s/def ::processed (s/tuple #{::processed} ::post/post))
 
 (s/fdef initial-params
-        :args (s/cat :id ::post/id)
-        :ret (s/or :ok  ::initial-params
-                   :err ::logged-out
-                   :err ::not-authorized
-                   :err ::not-found))
+  :args (s/cat :id ::post/id)
+  :ret (s/or :ok  ::initial-params
+             :err ::logged-out
+             :err ::not-authorized
+             :err ::not-found))
 
 (s/fdef process
-        :args (s/cat :id ::post/id
-                     :params any?)
-        :ret (s/or :ok  ::processed
-                   :err ::logged-out
-                   :err ::not-authorized
-                   :err ::not-found
-                   :err ::invalid-params))
+  :args (s/cat :id ::post/id
+               :params any?)
+  :ret (s/or :ok  ::processed
+             :err ::logged-out
+             :err ::not-authorized
+             :err ::not-found
+             :err ::invalid-params))
 
 (defn initial-params [id]
   (*initial-params* id))

@@ -25,8 +25,8 @@
 (declare ^:dynamic *get-by-id*)
 
 (s/fdef get-by-id
-        :args (s/cat :id ::post/id)
-        :ret (s/nilable ::post))
+  :args (s/cat :id ::post/id)
+  :ret (s/nilable ::post))
 
 (defn get-by-id [id]
   (-get-by-id *get-by-id* id))

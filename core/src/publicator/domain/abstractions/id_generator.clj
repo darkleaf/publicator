@@ -10,7 +10,7 @@
 (s/def ::id pos-int?)
 
 (s/fdef generate
-        :ret ::id)
+  :ret ::id)
 
 (defn generate []
   (-generate *id-generator*))

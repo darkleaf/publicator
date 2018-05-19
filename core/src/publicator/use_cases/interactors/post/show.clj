@@ -26,9 +26,9 @@
 (s/def ::processed (s/tuple #{::processed} ::post))
 
 (s/fdef process
-        :args (s/cat :id ::post/id)
-        :ret (s/or :ok  ::processed
-                   :err ::not-found))
+  :args (s/cat :id ::post/id)
+  :ret (s/or :ok  ::processed
+             :err ::not-found))
 
 (defn process [id]
   (*process* id))

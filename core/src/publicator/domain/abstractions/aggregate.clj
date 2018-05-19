@@ -10,4 +10,4 @@
 (s/def ::aggregate #(satisfies? Aggregate %))
 
 (s/fdef wrap-update
-        :ret ::aggregate)
+  :ret ::aggregate)

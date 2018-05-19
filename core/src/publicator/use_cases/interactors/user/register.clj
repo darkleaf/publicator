@@ -49,15 +49,15 @@
 (s/def ::processed (s/tuple #{::processed} ::user/user))
 
 (s/fdef initial-params
-        :ret (s/or :ok  ::initial-params
-                   :err ::already-logged-in))
+  :ret (s/or :ok  ::initial-params
+             :err ::already-logged-in))
 
 (s/fdef process
-        :args (s/cat :params any?)
-        :ret (s/or :ok  ::processed
-                   :err ::already-logged-in
-                   :err ::invalid-params
-                   :err ::already-registered))
+  :args (s/cat :params any?)
+  :ret (s/or :ok  ::processed
+             :err ::already-logged-in
+             :err ::invalid-params
+             :err ::already-registered))
 
 (defn initial-params []
   (*initial-params*))
