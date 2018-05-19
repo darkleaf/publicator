@@ -54,7 +54,7 @@
   (let [user     (factories/create-user)
         _        (user-session/log-in! user)
         params   (factories/gen ::sut/params)
-        wrong-id -1
+        wrong-id (inc (:id user))
         [tag]    (sut/process wrong-id params)]
     (t/testing "error"
       (t/is (= ::sut/not-found tag)))))
