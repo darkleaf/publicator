@@ -33,7 +33,7 @@
     (e/left [::not-found])))
 
 (defn- update-post [ipost params]
-  (dosync (identity/alter ipost merge params)))
+  (dosync (alter ipost merge params)))
 
 (defn- post->params [post]
   (select-keys post [:title :content]))

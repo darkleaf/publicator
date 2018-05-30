@@ -1,7 +1,5 @@
 (ns publicator.domain.identity
-  (:refer-clojure :exclude [alter])
   (:require
-   [clojure.core :as core]
    [publicator.domain.abstractions.aggregate :as aggregate]
    [clojure.spec.alpha :as s])
   (:import
@@ -28,20 +26,8 @@
                        ::explain-data ed})))
     true))
 
-(s/def ::identity (s/and #(instance? Ref %)
-                         #(-> % meta ::identity true?)))
+(s/def ::identity #(instance? Ref %))
 
 (defn build [initial]
   (ref initial
-       :meta {::identity true}
        :validator (build-validator initial)))
-
-(s/fdef alter
-  :args (s/cat :identity ::identity
-               :f ifn?
-               :args (s/* any?))
-  :ret ::aggregate/aggregate)
-
-(defn alter [identity f & args]
-  (let [updater (comp aggregate/wrap-update f)]
-    (apply core/alter identity updater args)))

@@ -26,7 +26,7 @@
 
 (defn- set-authorship [t ipost]
   (let [iuser (user-session/iuser t)]
-    (dosync (identity/alter iuser user-posts/add-post @ipost))))
+    (dosync (alter iuser user-posts/add-post @ipost))))
 
 (defn ^:dynamic *initial-params* []
   @(e/let= [ok (check-logged-in=)]

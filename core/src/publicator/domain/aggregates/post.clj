@@ -9,15 +9,13 @@
 (s/def ::title (s/and string? #(re-matches #".{1,255}" %)))
 (s/def ::content string?)
 (s/def ::created-at inst?)
-(s/def ::updated-at inst?)
 
-(s/def ::post (s/keys :req-un [::id ::title ::content ::created-at ::updated-at]))
+(s/def ::post (s/keys :req-un [::id ::title ::content ::created-at]))
 
-(defrecord Post [id title content created-at updated-at]
+(defrecord Post [id title content created-at]
   aggregate/Aggregate
   (id [_] id)
-  (spec [_] ::post)
-  (wrap-update [this] (assoc this :updated-at (instant/now))))
+  (spec [_] ::post))
 
 (defn post? [x] (instance? Post x))
 
@@ -29,5 +27,4 @@
   (map->Post {:id (id-generator/generate)
               :title title
               :content content
-              :created-at (instant/now)
-              :updated-at (instant/now)}))
+              :created-at (instant/now)}))

@@ -13,16 +13,14 @@
 (s/def ::password-digest ::password-hasher/encrypted)
 (s/def ::posts-ids (s/coll-of ::id-generator/id :kind vector? :distinct true))
 (s/def ::created-at inst?)
-(s/def ::updated-at inst?)
 
 (s/def ::user (s/keys :req-un [::id ::login ::full-name ::password-digest ::posts-ids
-                               ::created-at ::updated-at]))
+                               ::created-at]))
 
-(defrecord User [id login full-name password-digest posts-ids created-at updated-at]
+(defrecord User [id login full-name password-digest posts-ids created-at]
   aggregate/Aggregate
   (id [_] id)
-  (spec [_] ::user)
-  (wrap-update [this] (assoc this :updated-at (instant/now))))
+  (spec [_] ::user))
 
 (defn user? [x] (instance? User x))
 
@@ -38,7 +36,6 @@
               :full-name       full-name
               :password-digest (password-hasher/derive password)
               :posts-ids       posts-ids
-              :updated-at      (instant/now)
               :created-at      (instant/now)}))
 
 (defn authenticated? [user password]
