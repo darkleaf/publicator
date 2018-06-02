@@ -5,12 +5,12 @@
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.use-cases.abstractions.user-queries :as user-q]
    [publicator.use-cases.test.fixtures :as fixtures]
-   [publicator.utils.fixtures :as utils.fixtures]
+   [publicator.utils.test.instrument :as instrument]
    [publicator.use-cases.test.factories :as factories]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fixtures/fakes)
-(t/use-fixtures :once utils.fixtures/instrument)
+(t/use-fixtures :once instrument/fixture)
 
 (t/deftest process
   (let [params     (factories/gen ::sut/params)

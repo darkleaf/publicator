@@ -2,11 +2,11 @@
   (:require
    [publicator.domain.identity :as sut]
    [publicator.domain.abstractions.aggregate :as aggregate]
-   [publicator.utils.fixtures :as utils.fixtures]
+   [publicator.utils.test.instrument :as instrument]
    [clojure.spec.alpha :as s]
    [clojure.test :as t]))
 
-(t/use-fixtures :once utils.fixtures/instrument)
+(t/use-fixtures :once instrument/fixture)
 
 (defrecord Aggregate [id property]
   aggregate/Aggregate

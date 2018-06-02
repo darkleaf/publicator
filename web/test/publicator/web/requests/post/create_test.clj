@@ -1,7 +1,7 @@
 (ns publicator.web.requests.post.create-test
   (:require
    [clojure.test :as t]
-   [publicator.utils.fixtures :as utils.fixtures]
+   [publicator.utils.test.instrument :as instrument]
    [ring.util.http-predicates :as http-predicates]
    [ring.mock.request :as mock.request]
    [publicator.web.handler :as handler]
@@ -9,7 +9,7 @@
    [publicator.use-cases.test.factories :as factories]
    [clojure.spec.alpha :as s]))
 
-(t/use-fixtures :once utils.fixtures/instrument)
+(t/use-fixtures :once instrument/fixture)
 
 (t/deftest form
   (let [handler        (handler/build)

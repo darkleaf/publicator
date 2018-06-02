@@ -2,14 +2,14 @@
   (:require
    [publicator.domain.aggregates.post :as sut]
    [publicator.domain.test.fixtures :as fixtures]
-   [publicator.utils.fixtures :as utils.fixtures]
+   [publicator.utils.test.instrument :as instrument]
    [publicator.domain.test.factories :as factories]
    [publicator.domain.abstractions.aggregate :as aggregate]
    [clojure.spec.alpha :as s]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fixtures/fakes)
-(t/use-fixtures :once utils.fixtures/instrument)
+(t/use-fixtures :once instrument/fixture)
 
 (t/deftest build
   (let [params {:title "John Doe"
