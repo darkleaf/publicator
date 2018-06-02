@@ -2,11 +2,11 @@
   (:require
    [clojure.test :as t]
    [publicator.web.presenters.layout :as sut]
-   [publicator.use-cases.test.fixtures :as test.fixtures]
+   [publicator.use-cases.test.fakes :as fakes]
    [publicator.use-cases.test.factories :as factories]
    [publicator.use-cases.services.user-session :as user-session]))
 
-(t/use-fixtures :each test.fixtures/fakes)
+(t/use-fixtures :each fakes/fixture)
 
 (t/deftest logged-in
   (let [user (factories/create-user)

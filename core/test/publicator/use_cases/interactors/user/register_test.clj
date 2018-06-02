@@ -4,12 +4,12 @@
    [publicator.use-cases.services.user-session :as user-session]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.use-cases.abstractions.user-queries :as user-q]
-   [publicator.use-cases.test.fixtures :as fixtures]
+   [publicator.use-cases.test.fakes :as fakes]
    [publicator.utils.test.instrument :as instrument]
    [publicator.use-cases.test.factories :as factories]
    [clojure.test :as t]))
 
-(t/use-fixtures :each fixtures/fakes)
+(t/use-fixtures :each fakes/fixture)
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest process
