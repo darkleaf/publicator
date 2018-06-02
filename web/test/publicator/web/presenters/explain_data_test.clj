@@ -1,6 +1,5 @@
 (ns publicator.web.presenters.explain-data-test
   (:require
-   [publicator.utils.test.instrument]
    [clojure.test :as t]
    [clojure.spec.alpha :as s]
    [publicator.web.presenters.explain-data :as sut]))

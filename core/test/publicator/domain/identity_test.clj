@@ -1,10 +1,12 @@
 (ns publicator.domain.identity-test
   (:require
-   [publicator.utils.test.instrument]
    [publicator.domain.identity :as sut]
    [publicator.domain.abstractions.aggregate :as aggregate]
+   [publicator.utils.fixtures :as utils.fixtures]
    [clojure.spec.alpha :as s]
    [clojure.test :as t]))
+
+(t/use-fixtures :once utils.fixtures/instrument)
 
 (defrecord Aggregate [id property]
   aggregate/Aggregate

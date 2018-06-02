@@ -1,5 +1,4 @@
-{:deps {robert/hooke           {:mvn/version "1.3.0"}
-        org.clojure/test.check {:mvn/version "0.9.0"}
+{:deps {org.clojure/test.check {:mvn/version "0.9.0"}
         orchestra              {:mvn/version "2017.11.12-1"}
         darkleaf/either        {:git/url "https://github.com/darkleaf/either.git"
                                 :sha     "d7aa1934718722d3aefc064969c9250c690acfac"}}
