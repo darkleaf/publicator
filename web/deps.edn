@@ -10,7 +10,7 @@
         com.cognitect/transit-clj  {:mvn/version "0.8.309"}
         phrase                     {:mvn/version "0.3-alpha3"}}
 
- :paths   ["src" "resources"]
+ :paths   ["src"]
  :aliases {:dev   {:extra-paths ["dev" "test"]}
            :cider {:extra-deps {darkleaf/cider-tools-desp
                                 {:git/url "https://github.com/darkleaf/cider-tools-deps.git"
