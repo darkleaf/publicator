@@ -1,5 +1,6 @@
 (ns publicator.web.presenters.layout-test
   (:require
+   [publicator.utils.test.instrument]
    [clojure.test :as t]
    [publicator.web.presenters.layout :as sut]
    [publicator.use-cases.test.fixtures :as test.fixtures]

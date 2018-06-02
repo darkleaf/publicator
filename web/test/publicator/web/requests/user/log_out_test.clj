@@ -1,14 +1,12 @@
 (ns publicator.web.requests.user.log-out-test
   (:require
+   [publicator.utils.test.instrument]
    [clojure.test :as t]
-   [publicator.utils.fixtures :as utils.fixtures]
    [ring.util.http-predicates :as http-predicates]
    [ring.mock.request :as mock.request]
    [publicator.web.handler :as handler]
    [publicator.use-cases.interactors.user.log-out :as interactor]
    [publicator.use-cases.test.factories :as factories]))
-
-(t/use-fixtures :once utils.fixtures/instrument)
 
 (t/deftest handler
   (let [handler (handler/build)

@@ -1,17 +1,16 @@
 (ns publicator.use-cases.interactors.post.update-test
   (:require
+   [publicator.utils.test.instrument]
    [publicator.use-cases.interactors.post.update :as sut]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.use-cases.services.user-session :as user-session]
    [publicator.domain.services.user-posts :as user-posts]
    [publicator.use-cases.test.fixtures :as fixtures]
-   [publicator.utils.fixtures :as utils.fixtures]
    [publicator.use-cases.test.factories :as factories]
    [clojure.spec.alpha :as s]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fixtures/fakes)
-(t/use-fixtures :once utils.fixtures/instrument)
 
 (t/deftest process
   (let [user       (factories/create-user)

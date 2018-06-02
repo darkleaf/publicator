@@ -1,15 +1,13 @@
 (ns publicator.web.requests.user.log-in-test
   (:require
+   [publicator.utils.test.instrument]
    [clojure.test :as t]
-   [publicator.utils.fixtures :as utils.fixtures]
    [ring.util.http-predicates :as http-predicates]
    [ring.mock.request :as mock.request]
    [publicator.web.handler :as handler]
    [publicator.use-cases.interactors.user.log-in :as interactor]
    [publicator.use-cases.test.factories :as factories]
    [clojure.spec.alpha :as s]))
-
-(t/use-fixtures :once utils.fixtures/instrument)
 
 (t/deftest form
   (let [handler        (handler/build)
