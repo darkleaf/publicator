@@ -12,3 +12,9 @@ services:
       - "GITLIBS=${PWD}/.gitlibs"
     volumes:
       - ".:${PWD}:cached"
+    links:
+      - db
+  db:
+    image: postgres:10.4-alpine
+    environment:
+      - POSTGRES_PASSWORD=password

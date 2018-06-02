@@ -1,0 +1,22 @@
+{:deps {publicator.core                           {:local/root "../core"}
+        com.stuartsierra/component                {:mvn/version "0.3.2"}
+        org.flywaydb/flyway-core                  {:mvn/version "5.0.7"}
+        funcool/clojure.jdbc                      {:mvn/version "0.9.0"}
+        com.layerware/hugsql-core                 {:mvn/version "0.4.8"}
+        com.layerware/hugsql-adapter-clojure-jdbc {:mvn/version "0.4.8"}
+        org.postgresql/postgresql                 {:mvn/version "42.2.2"}
+        com.mchange/c3p0                          {:mvn/version "0.9.5.2"}}
+
+ :paths   ["src" "resources"]
+ :aliases {:dev   {:extra-paths ["test"]}
+           :cider {:extra-deps {darkleaf/cider-tools-desp
+                                {:git/url "https://github.com/darkleaf/cider-tools-deps.git"
+                                 :sha     "3e6e5ce5cc7a9b9c99e43fb54c7280f8933c85da"}}
+                   :main-opts  ["-m" "darkleaf.cider-tools-deps"
+                                "port" "4444" "host" "0.0.0.0"]}
+           :repl  {:extra-deps {darkleaf/repl-tools-deps
+                                {:git/url "https://github.com/darkleaf/repl-tools-deps.git"
+                                 :sha     "04e128ca67785e4eb7ccaecfdaffa3054442358c"}}
+                   :main-opts  ["-m" "darkleaf.repl-tools-deps"]}}
+
+ :mvn/local-repo "../.m2"}
