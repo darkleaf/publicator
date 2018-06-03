@@ -5,8 +5,6 @@
    [com.stuartsierra.component :as component]
    [jdbc.core :as jdbc]))
 
-(declare ^:dynamic *data-source*)
-
 (defn- build-system [database]
   (component/system-map
    :data-source (data-source/build {:jdbc-url (str "jdbc:postgresql://db/" database)
@@ -15,6 +13,17 @@
    :migration (component/using (migration/build)
                                [:data-source])))
 
+(defn- with-system [database f]
+  (let [system (build-system database)
+        system (component/start system)]
+    (try
+      (f system)
+      (finally
+        (component/stop system)))))
+
+;; Жирно на каждый тест держать коннект к базе.
+;; Хорошо бы иметь глобальный тредпул,
+;; но тогда нужно заморачиваться с правильным code reload.
 (let [counter (atom 0)]
   (defn- with-test-database [f]
     (let [spec     "postgresql://postgres:password@db/postgres"
@@ -27,13 +36,7 @@
           (finally
             (jdbc/execute conn (str "drop database " database))))))))
 
-(defn- with-system [database f]
-  (let [system (build-system database)
-        system (component/start system)]
-    (try
-      (f system)
-      (finally
-        (component/stop system)))))
+(declare ^:dynamic *data-source*)
 
 (defn fixture [t]
   (with-test-database
