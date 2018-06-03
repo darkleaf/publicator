@@ -24,6 +24,8 @@
           (swap! ext/reverse-merge selected)
           (select-keys ids))))
 
+  ;; todo: проверять, чтобы с тем же id еще раз не создали
+  ;; можно на уровне spec сделать
   (create [_ state]
     (let [id     (aggregate/id state)
           istate (identity/build state)]

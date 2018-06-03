@@ -26,7 +26,7 @@
     (t/is (some? test))
     (t/is (some? (storage/tx-get-one id)))))
 
-(t/deftest swap
+(t/deftest change
   (let [test (storage/tx-create (->Test 0))
         id   (aggregate/id test)
         _    (storage/tx-alter id update :counter inc)
