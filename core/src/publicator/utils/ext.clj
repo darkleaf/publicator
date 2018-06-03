@@ -8,5 +8,10 @@
    (fn [acc k v] (assoc acc k (f v)))
    {} m))
 
+(defn map-keys [f m]
+  (reduce-kv
+   (fn [acc k v] (assoc acc (f k) v))
+   {} m))
+
 (defn reverse-merge [m1 m2]
   (merge m2 m1))
