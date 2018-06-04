@@ -4,6 +4,9 @@ CREATE TABLE "test-entity" (
   "counter" integer
 );
 
+-- :name- drop-test-entity-table :! :raw
+DROP TABLE "test-entity"
+
 -- :name- test-entity-insert :!
 INSERT INTO "test-entity" VALUES :tuple*:vals;
 

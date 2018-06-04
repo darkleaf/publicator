@@ -56,11 +56,17 @@
 (defn- test-table [t]
   (with-open [conn (jdbc/connection db/*data-source*)]
     (create-test-entity-table conn)
-    (t)))
+    (try
+      (t)
+      (finally
+        (drop-test-entity-table conn)))))
+
+(t/use-fixtures :once
+  instrument/fixture
+  db/once-fixture)
 
 (t/use-fixtures :each
-  instrument/fixture
-  db/fixture
+  db/each-fixture
   test-table
   setup)
 

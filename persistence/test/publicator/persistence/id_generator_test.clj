@@ -12,7 +12,10 @@
 
 (t/use-fixtures :once
   instrument/fixture
-  db/fixture
+  db/once-fixture)
+
+(t/use-fixtures :each
+  db/each-fixture
   setup)
 
 (t/deftest generate

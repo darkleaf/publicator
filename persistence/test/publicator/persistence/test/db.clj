@@ -3,45 +3,48 @@
    [publicator.persistence.components.data-source :as data-source]
    [publicator.persistence.components.migration :as migration]
    [com.stuartsierra.component :as component]
-   [jdbc.core :as jdbc]))
+   [jdbc.core :as jdbc]
+   [hugsql.core :as hugsql]
+   [hugsql.adapter.clojure-jdbc :as cj-adapter]))
 
-(defn- build-system [database]
+(hugsql/def-db-fns "publicator/persistence/test/db.sql"
+  {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)
+   :quoting :ansi})
+
+(defn- build-system []
   (component/system-map
-   :data-source (data-source/build {:jdbc-url (str "jdbc:postgresql://db/" database)
+   :data-source (data-source/build {:jdbc-url (str "jdbc:postgresql://db/test")
                                     :user "postgres"
                                     :password "password"})
    :migration (component/using (migration/build)
                                [:data-source])))
 
-(defn- with-system [database f]
-  (let [system (build-system database)
+(defn- with-system [f]
+  (let [system (build-system)
         system (component/start system)]
     (try
       (f system)
       (finally
         (component/stop system)))))
 
-;; Жирно на каждый тест держать коннект к базе.
-;; Хорошо бы иметь глобальный тредпул,
-;; но тогда нужно заморачиваться с правильным code reload.
-(let [counter (atom 0)]
-  (defn- with-test-database [f]
-    (let [spec     "postgresql://postgres:password@db/postgres"
-          [num _]  (swap-vals! counter inc)
-          database (str "test_" num)]
-      (with-open [conn (jdbc/connection spec)]
-        (jdbc/execute conn (str "create database " database))
-        (try
-          (f database)
-          (finally
-            (jdbc/execute conn (str "drop database " database))))))))
+(defn- create-test-db []
+  (with-open [conn (jdbc/connection "postgresql://postgres:password@db/")]
+    (when (nil? (jdbc/fetch-one conn "select 1 from pg_database where datname = 'test'"))
+      (jdbc/execute conn "create database test"))))
 
 (declare ^:dynamic *data-source*)
 
-(defn fixture [t]
-  (with-test-database
-    (fn [database]
-      (with-system database
-        (fn [system]
-          (binding [*data-source* (-> system :data-source :val)]
-            (t)))))))
+(defn once-fixture [t]
+  (create-test-db)
+  (with-system
+    (fn [system]
+      (let [data-source (-> system :data-source :val)]
+        (binding [*data-source* data-source]
+          (t))))))
+
+(defn each-fixture [t]
+  (try
+    (t)
+    (finally
+      (with-open [conn (jdbc/connection *data-source*)]
+        (truncate-all conn)))))
