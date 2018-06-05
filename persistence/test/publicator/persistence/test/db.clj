@@ -20,12 +20,12 @@
                                [:data-source])))
 
 (defn- with-system [f]
-  (let [system (build-system)
-        system (component/start system)]
+  (let [system (atom (build-system))]
     (try
-      (f system)
+      (swap! system component/start)
+      (f @system)
       (finally
-        (component/stop system)))))
+        (swap! system component/stop)))))
 
 (defn- create-test-db []
   (with-open [conn (jdbc/connection "postgresql://postgres:password@db/")]
