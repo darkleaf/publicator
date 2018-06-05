@@ -26,11 +26,11 @@
 (defn- get-version [row]
   (-> row :version .getValue))
 
-(defn- row->pair [row]
+(defn- row->state [row]
   (let [version (get-version row)
         row     (dissoc row :version)
         state   (map->TestEntity row)]
-    [state version]))
+    {:state state, :version version}))
 
 (defn- lock-row->map [row]
   (let [id      (:id row)
@@ -41,7 +41,7 @@
               (-lock [_ conn ids]
                 (map lock-row->map (test-entity-locks conn {:ids ids})))
               (-select [_ conn ids]
-                (map row->pair (test-entity-select conn {:ids ids})))
+                (map row->state (test-entity-select conn {:ids ids})))
               (-insert [_ conn states]
                 (test-entity-insert conn {:vals (map vals states)}))
               (-delete [_ conn ids]

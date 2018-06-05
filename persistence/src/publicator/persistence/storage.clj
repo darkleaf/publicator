@@ -46,7 +46,7 @@
             selected       (->> mappers
                                 (vals)
                                 (mapcat #(select % conn ids-for-select))
-                                (map (fn [[state version]]
+                                (map (fn [{:keys [state version]}]
                                        (let [istate (identity/build state)]
                                          (alter-meta! istate assoc
                                                       ::version version
