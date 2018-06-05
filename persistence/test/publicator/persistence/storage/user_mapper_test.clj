@@ -1,4 +1,4 @@
-(ns publicator.persistence.storage.post-mapper-test
+(ns publicator.persistence.storage.user-mapper-test
   (:require
    [clojure.test :as t]
    [publicator.utils.test.instrument :as instrument]
@@ -8,7 +8,7 @@
    [publicator.persistence.storage :as persistence.storage]
    [publicator.persistence.test.db :as db]
    [publicator.use-cases.abstractions.storage :as storage]
-   [publicator.persistence.storage.post-mapper :as sut]))
+   [publicator.persistence.storage.user-mapper :as sut]))
 
 (defn- setup [t]
   (with-bindings (merge
@@ -26,14 +26,14 @@
   setup)
 
 (t/deftest create
-  (let [entity (factories/create-post)]
+  (let [entity (factories/create-user {:posts-ids [1 2 3]})]
     (t/is (some? entity))
     (t/is (= entity
              (storage/tx-get-one (:id entity))))))
 
 (t/deftest change
-  (let [entity (factories/create-post)
-        title  "new title"
-        _      (storage/tx-alter (:id entity) assoc :title title)
+  (let [entity (factories/create-user)
+        login  "new_login"
+        _      (storage/tx-alter (:id entity) assoc :login login)
         entity (storage/tx-get-one (:id entity))]
-    (t/is (= title (:title entity)))))
+    (t/is (= login (:login entity)))))

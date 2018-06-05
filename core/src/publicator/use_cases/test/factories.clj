@@ -11,7 +11,6 @@
    (storage/tx-create
     (factories/build-user params))))
 
-
 (defn create-post
   ([] (create-post {}))
   ([params]
