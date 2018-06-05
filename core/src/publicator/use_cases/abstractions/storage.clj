@@ -7,23 +7,24 @@
    [publicator.utils.ext :as ext]))
 
 (defprotocol Storage
-  (wrap-tx [this body]))
+  (-wrap-tx [this body]))
 
 (defprotocol Transaction
-  (get-many [t ids])
-  (create [t state]))
+  (-get-many [t ids])
+  (-create [t state]))
 
 (s/fdef get-many
   :args (s/cat :tx any?
                :ids (s/coll-of ::id-generator/id :distinct true))
-  :ret (s/map-of ::id-generator/id ::identity/identity)
-  :fn (fn identity-map? [{:keys [args ret]}]
-        (= ret (apply get-many args))))
+  :ret (s/map-of ::id-generator/id ::identity/identity))
 
 (s/fdef create
   :args (s/cat :tx any?
                :state ::aggregate/aggregate)
   :ret ::identity/identity)
+
+(defn get-many [t ids] (-get-many t ids))
+(defn create   [t state] (-create t state))
 
 (declare ^:dynamic *storage*)
 
@@ -31,7 +32,7 @@
   "Note that body forms may be called multiple times,
    and thus should be free of side effects."
   [tx-name & body-forms-free-of-side-effects]
-  `(wrap-tx *storage*
+  `(-wrap-tx *storage*
             (fn [~tx-name]
               ~@body-forms-free-of-side-effects)))
 

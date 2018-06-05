@@ -56,7 +56,7 @@
 
 (defrecord Transaction [data-source mappers identity-map]
   storage/Transaction
-  (get-many [this ids]
+  (-get-many [this ids]
     (with-open [conn (jdbc/connection data-source)]
       (let [ids-for-select (remove #(contains? @identity-map %) ids)
             selected       (->> mappers
@@ -82,7 +82,7 @@
             (swap! ext/reverse-merge selected)
             (select-keys ids)))))
 
-  (create [this state]
+  (-create [this state]
     (let [id     (aggregate/id state)
           istate (identity/build state)]
       (swap! identity-map assoc id istate)
@@ -156,7 +156,7 @@
 
 (deftype Storage [data-source mappers opts]
   storage/Storage
-  (wrap-tx [this body]
+  (-wrap-tx [this body]
     (let [soft-timeout (get opts :soft-timeout-ms 500)]
       (loop [stop-after (+ (timestamp) soft-timeout)]
         (let [tx       (build-tx data-source mappers)

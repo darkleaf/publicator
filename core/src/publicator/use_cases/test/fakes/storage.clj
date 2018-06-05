@@ -7,7 +7,7 @@
 
 (deftype Transaction [data identity-map]
   storage/Transaction
-  (get-many [_ ids]
+  (-get-many [_ ids]
     (let [ids-for-select (remove #(contains? @identity-map %) ids)
           selected       (->> ids-for-select
                               (select-keys data)
@@ -26,7 +26,7 @@
 
   ;; todo: проверять, чтобы с тем же id еще раз не создали
   ;; можно на уровне spec сделать
-  (create [_ state]
+  (-create [_ state]
     (let [id     (aggregate/id state)
           istate (identity/build state)]
       (swap! identity-map assoc id istate)
@@ -34,7 +34,7 @@
 
 (deftype Storage [db]
   storage/Storage
-  (wrap-tx [_ body]
+  (-wrap-tx [_ body]
     (loop []
       (let [data         @db
             identity-map (atom {})
