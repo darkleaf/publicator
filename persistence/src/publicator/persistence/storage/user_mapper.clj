@@ -14,7 +14,7 @@
 (defn- sql->version [raw]
   (.getValue raw))
 
-(defn- sql->aggretate [raw]
+(defn- sql->aggregate [raw]
   (-> raw
       (update :posts-ids #(-> % .getArray vec))
       (update :created-at #(.toInstant %))
@@ -27,7 +27,7 @@
       (vals)))
 
 (defn- row->versioned-aggregate [row]
-  {:aggregate (-> row (dissoc :version) sql->aggretate)
+  {:aggregate (-> row (dissoc :version) sql->aggregate)
    :version   (-> row (get :version) sql->version)})
 
 (defn- row->versioned-id [{:keys [id version]}]
