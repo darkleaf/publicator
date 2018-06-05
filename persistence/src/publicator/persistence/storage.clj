@@ -101,24 +101,19 @@
          (not= @identity initial))))
 
 (defn- lock-all [conn mappers identities]
-  (let [ids      (->> identities
-                      (vals)
-                      (filter need-delete?)
-                      (map deref)
-                      (map aggregate/id))
-        versions (->> mappers
-                      (vals)
-                      (mapcat #(lock % conn ids))
-                      (group-by :id)
-                      (ext/map-vals #(-> % first :version)))]
-    (every?
-     #(let [initial (->> %
-                         (get identities)
-                         (meta)
-                         ::version)
-            current (get versions %)]
-        (= initial current))
-     ids)))
+  (let [ids             (->> identities
+                             (vals)
+                             (filter need-delete?)
+                             (map deref)
+                             (map aggregate/id))
+        db-versions     (->> mappers
+                             (vals)
+                             (mapcat #(lock % conn ids))
+                             (group-by :id)
+                             (ext/map-vals #(-> % first :version)))
+        memory-versions (->> (select-keys identities ids)
+                             (ext/map-vals #(-> % meta ::version)))]
+    (= db-versions memory-versions)))
 
 (defn- delete-all [conn mappers identities]
   (let [groups (->> identities
