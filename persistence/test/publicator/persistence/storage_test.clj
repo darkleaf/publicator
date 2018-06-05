@@ -23,27 +23,30 @@
 (hugsql/def-db-fns "publicator/persistence/storage_test.sql"
   {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
 
-(defn- get-version [row]
-  (-> row :version .getValue))
+(defn- sql->version [raw]
+  (.getValue raw))
 
-(defn- row->state [row]
-  (let [version (get-version row)
-        row     (dissoc row :version)
-        state   (map->TestEntity row)]
-    {:state state, :version version}))
+(defn- sql->aggretate [raw]
+  (map->TestEntity raw))
 
-(defn- lock-row->map [row]
-  (let [id      (:id row)
-        version (get-version row)]
-    {:id id, :version version}))
+(defn- aggregate->sql [aggregate]
+  (vals aggregate))
+
+(defn- row->versioned-aggregate [row]
+  {:aggregate (-> row (dissoc :version) sql->aggretate)
+   :version   (-> row (get :version) sql->version)})
+
+(defn- row->versioned-id [{:keys [id version]}]
+  {:id      id
+   :version (sql->version version)})
 
 (def mapper (reify sut/Mapper
               (-lock [_ conn ids]
-                (map lock-row->map (test-entity-locks conn {:ids ids})))
+                (map row->versioned-id (test-entity-locks conn {:ids ids})))
               (-select [_ conn ids]
-                (map row->state (test-entity-select conn {:ids ids})))
+                (map row->versioned-aggregate (test-entity-select conn {:ids ids})))
               (-insert [_ conn states]
-                (test-entity-insert conn {:vals (map vals states)}))
+                (test-entity-insert conn {:vals (map aggregate->sql states)}))
               (-delete [_ conn ids]
                 (test-entity-delete conn {:ids ids}))))
 

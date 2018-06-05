@@ -3,6 +3,7 @@
    [jdbc.core :as jdbc]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.domain.abstractions.aggregate :as aggregate]
+   [publicator.domain.abstractions.id-generator :as id-generator]
    [publicator.domain.identity :as identity]
    [publicator.utils.ext :as ext]
    [clojure.spec.alpha :as s])
@@ -10,35 +11,50 @@
    [java.util.concurrent TimeoutException]
    [java.time Instant]))
 
+(s/def ::version some?)
+(s/def ::versioned-id (s/keys :req-un [::id-generator/id ::version]))
+(s/def ::versioned-aggregate (s/keys :req-un [::aggregate/aggregate ::version]))
+
+;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 (defprotocol Mapper
-  (-lock [this conn ids])
+  (-lock   [this conn ids])
   (-select [this conn ids])
-  (-insert [this conn states])
+  (-insert [this conn aggregates])
   (-delete [this conn ids]))
 
 (s/def ::mapper #(satisfies? Mapper %))
 
-(defn lock [this conn ids]
-  (if (empty? ids)
-    []
-    (-lock this conn ids)))
+(s/fdef lock
+  :args (s/cat :this ::mapper, :conn any?, :ids (s/coll-of ::id-generator/id))
+  :ret (s/coll-of ::versioned-id))
 
-(defn select [this conn ids]
-  (if (empty? ids)
-    []
-    (-select this conn ids)))
+(s/fdef select
+  :args (s/cat :this ::mapper, :conn any?, :ids (s/coll-of ::id-generator/id))
+  :ret (s/coll-of ::versioned-aggregate))
 
-(defn insert [this conn states]
-  (if (empty? states)
-    nil
-    (-insert this conn states)))
+(s/fdef insert
+  :args (s/cat :this ::mapper, :conn any?, :aggregates (s/coll-of ::aggregate/aggregate))
+  :ret any?)
 
-(defn delete [this conn ids]
-  (if (empty? ids)
-    nil
-    (-delete this conn ids)))
+(s/fdef delete
+  :args (s/cat :this ::mapper, :conn any?, :ids (s/coll-of ::id-generator/id))
+  :ret any?)
 
-(deftype Transaction [data-source mappers identity-map]
+(defn- default-for-empty [f default]
+  (fn [this conn coll]
+    (if (empty? coll)
+      default
+      (f this conn coll))))
+
+(def lock   (default-for-empty -lock   []))
+(def select (default-for-empty -select []))
+(def insert (default-for-empty -insert nil))
+(def delete (default-for-empty -delete nil))
+
+;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(defrecord Transaction [data-source mappers identity-map]
   storage/Transaction
   (get-many [this ids]
     (with-open [conn (jdbc/connection data-source)]
@@ -46,12 +62,12 @@
             selected       (->> mappers
                                 (vals)
                                 (mapcat #(select % conn ids-for-select))
-                                (map (fn [{:keys [state version]}]
-                                       (let [istate (identity/build state)]
-                                         (alter-meta! istate assoc
+                                (map (fn [{:keys [aggregate version]}]
+                                       (let [iaggregate (identity/build aggregate)]
+                                         (alter-meta! iaggregate assoc
                                                       ::version version
-                                                      ::initial state)
-                                         istate)))
+                                                      ::initial aggregate)
+                                         iaggregate)))
                                 (group-by #(-> % deref aggregate/id))
                                 (ext/map-vals first))]
         ;; Здесь принципиально использование reverse-merge,
@@ -122,12 +138,12 @@
                     (map deref)
                     (group-by class)
                     (ext/map-keys #(get mappers %)))]
-    (doseq [[manager states] groups]
-      (insert manager conn states))))
+    (doseq [[manager aggregates] groups]
+      (insert manager conn aggregates))))
 
 (defn- commit [tx mappers]
-  (let [data-source (.-data-source tx)
-        identities  @(.-identity-map tx)]
+  (let [data-source (:data-source tx)
+        identities  @(:identity-map tx)]
     (with-open [conn (jdbc/connection data-source)]
       (jdbc/atomic conn
                    (when (lock-all conn mappers identities)
