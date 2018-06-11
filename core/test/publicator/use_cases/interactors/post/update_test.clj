@@ -17,7 +17,7 @@
   (let [user       (factories/create-user)
         _          (user-session/log-in! user)
         post       (factories/create-post)
-        _          (storage/tx-alter (:id user) user-posts/add-post post)
+        _          (storage/tx-alter user user-posts/add-post post)
         params     (factories/gen ::sut/params)
         [tag post] (sut/process (:id post)  params)]
     (t/testing "success"
@@ -63,7 +63,7 @@
   (let [user    (factories/create-user)
         _       (user-session/log-in! user)
         post    (factories/create-post)
-        _       (storage/tx-alter (:id user) user-posts/add-post post)
+        _       (storage/tx-alter user user-posts/add-post post)
         [tag _] (sut/initial-params (:id post))]
     (t/testing "success"
       (t/is (=  ::sut/initial-params tag)))))

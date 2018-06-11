@@ -15,7 +15,7 @@
 (t/deftest process
   (let [user (factories/create-user)
         post (factories/create-post)
-        _    (storage/tx-alter (:id user) user-posts/add-post post)]
+        _    (storage/tx-alter user user-posts/add-post post)]
     (t/testing "guest"
       (let [[tag post] (sut/process (:id post))]
         (t/is (= ::sut/processed tag))

@@ -16,7 +16,7 @@
   (let [user         (factories/create-user)
         post         (factories/create-post)
         another-post (factories/create-post)
-        _            (storage/tx-alter (:id user) user-posts/add-post post)]
+        _            (storage/tx-alter user user-posts/add-post post)]
     (t/testing "guest"
       (let [[tag posts] (sut/process)]
         (t/testing "success"

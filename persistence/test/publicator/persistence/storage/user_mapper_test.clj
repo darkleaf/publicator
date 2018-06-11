@@ -34,6 +34,6 @@
 (t/deftest change
   (let [entity (factories/create-user)
         login  "new_login"
-        _      (storage/tx-alter (:id entity) assoc :login login)
+        _      (storage/tx-alter entity assoc :login login)
         entity (storage/tx-get-one (:id entity))]
     (t/is (= login (:login entity)))))

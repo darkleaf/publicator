@@ -29,7 +29,7 @@
 (t/deftest change
   (let [test (storage/tx-create (->Test 0))
         id   (aggregate/id test)
-        _    (storage/tx-alter id update :counter inc)
+        _    (storage/tx-alter test update :counter inc)
         test (storage/tx-get-one id)]
     (t/is (= 1 (:counter test)))))
 
@@ -58,7 +58,7 @@
   (let [test (storage/tx-create (->Test 0))
         id   (aggregate/id test)
         n    10
-        _    (->> (repeatedly #(future (storage/tx-alter id update :counter inc)))
+        _    (->> (repeatedly #(future (storage/tx-alter test update :counter inc)))
                   (take n)
                   (doall)
                   (map deref)

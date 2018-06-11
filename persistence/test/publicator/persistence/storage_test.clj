@@ -79,7 +79,7 @@
 
 (t/deftest change
   (let [entity (storage/tx-create (build-test-entity))
-        _      (storage/tx-alter (:id entity) update :counter inc)
+        _      (storage/tx-alter entity update :counter inc)
         entity (storage/tx-get-one (:id entity))]
     (t/is (= 1 (:counter entity)))))
 
@@ -107,7 +107,7 @@
   (let [test (storage/tx-create (build-test-entity))
         id   (aggregate/id test)
         n    10
-        _    (->> (repeatedly #(future (storage/tx-alter id update :counter inc)))
+        _    (->> (repeatedly #(future (storage/tx-alter test update :counter inc)))
                   (take n)
                   (doall)
                   (map deref)

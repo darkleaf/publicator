@@ -78,13 +78,13 @@
 
 
 (s/fdef tx-alter
-  :args (s/cat :id ::id-generator/id
+  :args (s/cat :state ::aggregate/aggregate
                :f fn?
                :args (s/* any?))
   :ret (s/nilable ::aggregate/aggregate))
 
-(defn tx-alter [id f & args]
+(defn tx-alter [state f & args]
   (with-tx t
-    (when-let [x (get-one t id)]
+    (when-let [x (get-one t (aggregate/id state))]
       (dosync
        (apply alter x f args)))))

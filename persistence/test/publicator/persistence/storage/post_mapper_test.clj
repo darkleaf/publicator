@@ -34,6 +34,6 @@
 (t/deftest change
   (let [entity (factories/create-post)
         title  "new title"
-        _      (storage/tx-alter (:id entity) assoc :title title)
+        _      (storage/tx-alter entity assoc :title title)
         entity (storage/tx-get-one (:id entity))]
     (t/is (= title (:title entity)))))
