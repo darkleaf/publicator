@@ -28,5 +28,5 @@
                               #"Aggregate class was changed."
                               (dosync (alter iagg map->OtherAggregate))))
       (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
-                              #"Aggregate was invalid. "
+                              #"Aggregate was invalid."
                               (dosync (alter iagg assoc :property nil)))))))
