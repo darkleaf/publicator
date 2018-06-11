@@ -85,7 +85,9 @@
   (-create [this state]
     (let [id     (aggregate/id state)
           istate (identity/build state)]
-      (swap! identity-map assoc id istate)
+      (swap! identity-map (fn [map]
+                            {:pre [(not (contains? map id))]}
+                            (assoc map id istate)))
       istate)))
 
 (defn- build-tx [data-source mappers]
