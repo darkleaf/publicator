@@ -10,6 +10,7 @@ services:
       - "4445:4445" # http
     environment:
       - "GITLIBS=${PWD}/.gitlibs"
+      - "CLJ_CONFIG=${PWD}/docker-clojure"
     volumes:
       - ".:${PWD}:cached"
     links:
