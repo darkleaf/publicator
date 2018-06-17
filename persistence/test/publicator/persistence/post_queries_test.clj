@@ -57,3 +57,7 @@
         item (post-q/get-by-id id)]
     (t/is (= (post-with-user post user)
              item))))
+
+(t/deftest get-by-id-not-found
+  (let [item (post-q/get-by-id 42)]
+    (t/is (nil? item))))

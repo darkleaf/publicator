@@ -28,7 +28,11 @@
   db/each-fixture
   setup)
 
-(t/deftest get-list-found
+(t/deftest get-found
   (let [user (factories/create-user)
         item  (user-q/get-by-login (:login user))]
     (t/is (= user item))))
+
+(t/deftest get-not-found
+  (let [item  (user-q/get-by-login "some_login")]
+    (t/is (nil? item))))

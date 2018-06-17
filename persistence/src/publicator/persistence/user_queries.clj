@@ -10,10 +10,11 @@
   {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
 
 (defn- sql->user [raw]
-  (-> raw
-      (update :posts-ids #(-> % .getArray vec))
-      (update :created-at #(.toInstant %))
-      (user/map->User)))
+  (when raw
+    (-> raw
+        (update :posts-ids #(-> % .getArray vec))
+        (update :created-at #(.toInstant %))
+        (user/map->User))))
 
 (deftype GetByLogin [data-source]
   user-q/GetByLogin

@@ -11,13 +11,14 @@
   {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
 
 (defn- sql->post [raw]
-  (let [id        (:user-id raw)
-        full-name (:user-full-name raw)]
-    (-> raw
-        (dissoc :user-id :user-full-name)
-        (assoc ::user/id id, ::user/full-name full-name)
-        (update :created-at #(.toInstant %))
-        (post/map->Post))))
+  (when raw
+    (let [id        (:user-id raw)
+          full-name (:user-full-name raw)]
+      (-> raw
+          (dissoc :user-id :user-full-name)
+          (assoc ::user/id id, ::user/full-name full-name)
+          (update :created-at #(.toInstant %))
+          (post/map->Post)))))
 
 (deftype GetList [data-source]
   post-q/GetList
