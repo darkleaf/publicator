@@ -9,21 +9,21 @@
     (with-bindings binding-map
       (handler req))))
 
-(defrecord Jetty [config server binding-map]
+(defrecord Jetty [config binding-map val]
   component/Lifecycle
   (start [this]
-    (if server
+    (if val
       this
-      (assoc this :server
+      (assoc this :val
              (jetty/run-jetty
               (-> (handler/build config)
                   (wrap-binding (:val binding-map)))
               (assoc config :join? false)))))
   (stop [this]
-    (if server
+    (if val
       (do
-        (.stop server)
-        (assoc this :server nil))
+        (.stop val)
+        (assoc this :val nil))
       this)))
 
 (defn build [config]

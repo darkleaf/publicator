@@ -7,10 +7,13 @@ services:
     command: "true"
     ports:
       - "4444:4444" # nrepl
-      - "4445:4445" # http
+      - "4445:4445" # http (web)
+      - "4446:4446" # http (main)
     environment:
       - "GITLIBS=${PWD}/.gitlibs"
       - "CLJ_CONFIG=${PWD}/docker-clojure"
+      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
+      - PORT=4446
     volumes:
       - ".:${PWD}:cached"
     links:

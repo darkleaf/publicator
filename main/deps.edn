@@ -1,0 +1,6 @@
+{:deps {publicator.web         {:local/root "../web"}
+        publicator.persistence {:local/root "../persistence"}
+        publicator.crypto      {:local/root "../crypto"}
+        spootnik/signal        {:mvn/version "0.2.2"}}
+
+ :aliases {:start {:main-opts ["-m" "publicator.main.core"]}}}
