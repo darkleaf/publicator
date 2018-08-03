@@ -14,8 +14,9 @@
 
 (defn handler [{:keys [transit-params route-params]}]
   (let [id     (-> route-params :id Integer.)
-        result (interactor/process id transit-params)]
-    (base/handle nil result)))
+        result (interactor/process id transit-params)
+        ctx    {:id id}]
+    (base/handle ctx result)))
 
 (defmethod base/handle ::interactor/initial-params [ctx [_ params]]
   (let [cfg  {:url    (url-helpers/path-for :post.update/handler {:id (-> ctx :id str)})
