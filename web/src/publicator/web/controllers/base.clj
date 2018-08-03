@@ -24,7 +24,7 @@
        (http-response/ok)
        (http-response/content-type "text/html"))))
 
-(defn form [form]
+(defn render-form [form]
   (-> form
       form-renderer/render
       http-response/ok

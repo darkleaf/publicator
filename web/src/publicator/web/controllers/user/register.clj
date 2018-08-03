@@ -16,7 +16,7 @@
 
 (defmethod base/handle ::interactor/initial-params [_ [_ params]]
   (let [form (form/build params)]
-    (base/form form)))
+    (base/render-form form)))
 
 (defmethod base/handle ::interactor/processed [_ _]
   (base/redirect-form (url-helpers/path-for :pages/root)))

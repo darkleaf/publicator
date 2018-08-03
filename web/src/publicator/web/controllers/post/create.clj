@@ -18,7 +18,7 @@
   (let [cfg  {:url    (url-helpers/path-for :post.create/handler)
               :method :post}
         form (form/build cfg params)]
-    (base/form form)))
+    (base/render-form form)))
 
 (defmethod base/handle ::interactor/processed [_ _]
   (base/redirect-form (url-helpers/path-for :pages/root)))
