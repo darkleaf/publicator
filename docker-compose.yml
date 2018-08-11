@@ -1,5 +1,9 @@
 version: '3'
 
+volumes:
+  m2:
+  gitlibs:
+
 services:
   app:
     image: clojure:tools-deps-alpine
@@ -10,12 +14,13 @@ services:
       - "4445:4445" # http (web)
       - "4446:4446" # http (main)
     environment:
-      - "GITLIBS=${PWD}/.gitlibs"
       - "CLJ_CONFIG=${PWD}/docker-clojure"
       - DATABASE_URL=postgres://postgres:password@db:5432/postgres
       - PORT=4446
     volumes:
       - ".:${PWD}:cached"
+      - m2:/root/.m2
+      - gitlibs:/root/.gitlibs
     links:
       - db
   db:
