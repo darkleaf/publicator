@@ -3,6 +3,7 @@
    [sibiro.extras]
    [ring.middleware.params :as ring.params]
    [ring.middleware.keyword-params :as ring.keyword-params]
+   [ring.middleware.anti-forgery :as ring.anti-forgery]
    [ring.util.request :as ring.request]
    [publicator.web.routing :as routing]
    [publicator.web.middlewares.layout :as layout]
@@ -25,6 +26,7 @@
    (-> routing/routes
        sibiro.extras/make-handler
        layout/wrap
+       ring.anti-forgery/wrap-anti-forgery
        (session/wrap (:session config {}))
        wrap-transit-params
        ring.keyword-params/wrap-keyword-params
