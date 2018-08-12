@@ -1,18 +1,14 @@
 version: 2
 jobs:
   build:
-    # working_directory: ~/circleci-demo-ruby-rails
-
     docker:
       - image: clojure:tools-deps-alpine
         environment:
-          CLJ_CONFIG=/root/project/docker-clojure
-
-      # - image: circleci/postgres:9.6.2-alpine
-      #   environment:
-      #     POSTGRES_USER: root
-      #     POSTGRES_DB: circle-test_test
-
+          CLJ_CONFIG: /root/project/docker-clojure
+          TEST_DATABASE_URL: postgres://postgres:password@localhost:5432/postgres
+      - image: postgres:10.4-alpine
+        environment:
+          POSTGRES_PASSWORD: password
     steps:
       - checkout
       - restore_cache:
@@ -27,13 +23,11 @@ jobs:
           command: |
             cd web
             clojure -Adev:run-tests
-
       - run:
           name: Persistence
           command: |
             cd persistence
-            false
-
+            clojure -Adev:run-tests
       - save_cache:
           key: deps
           paths:
