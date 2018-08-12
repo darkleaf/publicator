@@ -13,7 +13,7 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest form
-  (let [handler        (handler/build)
+  (let [handler        (handler/build {:test? true})
         req            (mock.request/request :get "/posts/1/edit")
         called?        (atom false)
         initial-params (fn [id]
@@ -26,7 +26,7 @@
     (t/is (http-predicates/ok? resp))))
 
 (t/deftest handler
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         params  (factories/gen ::interactor/params)
         req     (-> (mock.request/request :post "/posts/1/edit")
                     (assoc :transit-params params))
@@ -45,7 +45,7 @@
  [test-name interactor-resp predicate]
 
  (t/deftest test-name
-   (let [handler        (handler/build)
+   (let [handler        (handler/build {:test? true})
          req            (mock.request/request :get "/posts/1/edit")
          initial-params (fn [_] interactor-resp)
          resp           (binding [interactor/*initial-params* initial-params]
@@ -68,7 +68,7 @@
  [test-name interactor-resp predicate]
 
  (t/deftest test-name
-   (let [handler (handler/build)
+   (let [handler (handler/build {:test? true})
          req     (mock.request/request :post "/posts/1/edit")
          process (fn [_ _] interactor-resp)
          resp    (binding [interactor/*process* process]

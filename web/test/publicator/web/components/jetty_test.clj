@@ -11,7 +11,7 @@
   (fn [t]
     (let [system (component/system-map
                   :binding-map {:val {}}
-                  :jetty (component/using (sut/build {:port port})
+                  :jetty (component/using (sut/build {:port port, :test? true})
                                           [:binding-map]))
           system (component/start system)]
       (try

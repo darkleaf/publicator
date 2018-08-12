@@ -11,7 +11,7 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest handler
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :get "/posts/1")
         called? (atom false)
         process (fn [id]
@@ -24,7 +24,7 @@
     (t/is (http-predicates/ok? resp))))
 
 (t/deftest handler-not-found
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :get "/posts/1")
         called? (atom false)
         process (fn [id]

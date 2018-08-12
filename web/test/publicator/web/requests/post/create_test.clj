@@ -12,7 +12,7 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest form
-  (let [handler        (handler/build)
+  (let [handler        (handler/build {:test? true})
         req            (mock.request/request :get "/new-post")
         called?        (atom false)
         initial-params (fn []
@@ -24,7 +24,7 @@
     (t/is (http-predicates/ok? resp))))
 
 (t/deftest handler
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         params  (factories/gen ::interactor/params)
         req     (-> (mock.request/request :post "/new-post")
                     (assoc :transit-params params))
@@ -39,7 +39,7 @@
     (t/is (http-predicates/created? resp))))
 
 (t/deftest form-logged-out
-  (let [handler        (handler/build)
+  (let [handler        (handler/build {:test? true})
         req            (mock.request/request :get "/new-post")
         called?        (atom false)
         initial-params (fn []
@@ -51,7 +51,7 @@
     (t/is (http-predicates/forbidden? resp))))
 
 (t/deftest handler-logged-out
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :post "/new-post")
         called? (atom false)
         process (fn [_]
@@ -63,7 +63,7 @@
     (t/is (http-predicates/forbidden? resp))))
 
 (t/deftest handler-invalid-params
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :post "/new-post")
         called? (atom false)
         process (fn [_]

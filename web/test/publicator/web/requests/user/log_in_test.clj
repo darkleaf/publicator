@@ -12,7 +12,7 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest form
-  (let [handler        (handler/build)
+  (let [handler        (handler/build {:test? true})
         req            (mock.request/request :get "/log-in")
         called?        (atom false)
         initial-params (fn []
@@ -24,7 +24,7 @@
     (t/is (http-predicates/ok? resp))))
 
 (t/deftest handler
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         params  (factories/gen ::interactor/params)
         req     (-> (mock.request/request :post "/log-in")
                     (assoc :transit-params params))
@@ -39,7 +39,7 @@
     (t/is (http-predicates/created? resp))))
 
 (t/deftest form-already-logged-in
-  (let [handler        (handler/build)
+  (let [handler        (handler/build {:test? true})
         req            (mock.request/request :get "/log-in")
         called?        (atom false)
         initial-params (fn []
@@ -51,7 +51,7 @@
     (t/is (http-predicates/forbidden? resp))))
 
 (t/deftest handler-already-logged-in
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :post "/log-in")
         called? (atom false)
         process (fn [_]
@@ -63,7 +63,7 @@
     (t/is (http-predicates/forbidden? resp))))
 
 (t/deftest handler-invalid-params
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :post "/log-in")
         called? (atom false)
         process (fn [_]
@@ -75,7 +75,7 @@
     (t/is (http-predicates/unprocessable-entity? resp))))
 
 (t/deftest handler-authentication-failed
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :post "/log-in")
         called? (atom false)
         process (fn [_]

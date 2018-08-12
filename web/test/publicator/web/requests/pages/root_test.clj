@@ -9,7 +9,7 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest root
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :get "/")
         resp    (handler req)]
     (t/is (http-predicates/ok? resp))))

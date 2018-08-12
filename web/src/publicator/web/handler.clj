@@ -23,11 +23,12 @@
 (defn build
   ([] (build {}))
   ([config]
-   (-> routing/routes
-       sibiro.extras/make-handler
-       layout/wrap
-       ring.anti-forgery/wrap-anti-forgery
-       (session/wrap (:session config {}))
-       wrap-transit-params
-       ring.keyword-params/wrap-keyword-params
-       ring.params/wrap-params)))
+   (let [handler (sibiro.extras/make-handler routing/routes)
+         test?   (:test? config)]
+     (cond-> handler
+       true        layout/wrap
+       (not test?) ring.anti-forgery/wrap-anti-forgery
+       true        (session/wrap (:session config {}))
+       true        wrap-transit-params
+       true        ring.keyword-params/wrap-keyword-params
+       true        ring.params/wrap-params))))
