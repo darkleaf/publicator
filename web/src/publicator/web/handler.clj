@@ -3,6 +3,7 @@
    [sibiro.extras]
    [ring.middleware.params :as ring.params]
    [ring.middleware.keyword-params :as ring.keyword-params]
+   [ring.middleware.anti-forgery :as ring.anti-forgery]
    [ring.util.request :as ring.request]
    [publicator.web.routing :as routing]
    [publicator.web.middlewares.layout :as layout]
@@ -22,10 +23,12 @@
 (defn build
   ([] (build {}))
   ([config]
-   (-> routing/routes
-       sibiro.extras/make-handler
-       layout/wrap
-       (session/wrap (:session config {}))
-       wrap-transit-params
-       ring.keyword-params/wrap-keyword-params
-       ring.params/wrap-params)))
+   (let [handler (sibiro.extras/make-handler routing/routes)
+         test?   (:test? config)]
+     (cond-> handler
+       true        layout/wrap
+       (not test?) ring.anti-forgery/wrap-anti-forgery
+       true        (session/wrap (:session config {}))
+       true        wrap-transit-params
+       true        ring.keyword-params/wrap-keyword-params
+       true        ring.params/wrap-params))))

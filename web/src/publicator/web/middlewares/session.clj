@@ -14,7 +14,7 @@
           resp    (binding [session/*session* (Session. storage)]
                     (handler req))
           resp    (assoc resp :session/key (:session/key req))
-          resp    (assoc resp :session @storage)]
+          resp    (update resp :session merge @storage)]
       resp)))
 
 (defn wrap [handler options]

@@ -11,7 +11,7 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest handler
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :post "/log-out")
         called? (atom false)
         process (fn []
@@ -23,7 +23,7 @@
     (t/is (http-predicates/redirection? resp))))
 
 (t/deftest handler-already-logged-out
-  (let [handler (handler/build)
+  (let [handler (handler/build {:test? true})
         req     (mock.request/request :post "/log-out")
         called? (atom false)
         process (fn []
