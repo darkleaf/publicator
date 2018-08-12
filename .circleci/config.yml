@@ -1,0 +1,41 @@
+version: 2
+jobs:
+  build:
+    # working_directory: ~/circleci-demo-ruby-rails
+
+    docker:
+      - image: clojure:tools-deps-alpine
+        environment:
+          CLJ_CONFIG=/root/project/docker-clojure
+
+      # - image: circleci/postgres:9.6.2-alpine
+      #   environment:
+      #     POSTGRES_USER: root
+      #     POSTGRES_DB: circle-test_test
+
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps
+      - run:
+          name: Core
+          command: |
+            cd core
+            clojure -Adev:run-tests
+      - run:
+          name: Web
+          command: |
+            cd web
+            clojure -Adev:run-tests
+
+      - run:
+          name: Persistence
+          command: |
+            cd persistence
+            false
+
+      - save_cache:
+          key: deps
+          paths:
+            - /root/.m2
+            - /root/.gitlibs
