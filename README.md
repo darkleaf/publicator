@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/darkleaf/publicator/tree/master.svg?style=svg)](https://circleci.com/gh/darkleaf/publicator/tree/master)
+
 # Demo
 
 https://darkleaf-publicator2.herokuapp.com/
