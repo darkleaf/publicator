@@ -2,6 +2,7 @@
   (:require
    [publicator.persistence.components.data-source :as data-source]
    [publicator.persistence.components.migration :as migration]
+   [publicator.persistence.utils.env :as env]
    [com.stuartsierra.component :as component]
    [jdbc.core :as jdbc]
    [hugsql.core :as hugsql]
@@ -13,9 +14,7 @@
 
 (defn- build-system []
   (component/system-map
-   :data-source (data-source/build {:jdbc-url (str "jdbc:postgresql://db/test")
-                                    :user "postgres"
-                                    :password "password"})
+   :data-source (data-source/build (env/data-source-opts "TEST_DATABASE_URL"))
    :migration (component/using (migration/build)
                                [:data-source])))
 
@@ -27,15 +26,9 @@
       (finally
         (swap! system component/stop)))))
 
-(defn- create-test-db []
-  (with-open [conn (jdbc/connection "postgresql://postgres:password@db/")]
-    (when (nil? (jdbc/fetch-one conn "select 1 from pg_database where datname = 'test'"))
-      (jdbc/execute conn "create database test"))))
-
 (declare ^:dynamic *data-source*)
 
 (defn once-fixture [t]
-  (create-test-db)
   (with-system
     (fn [system]
       (let [data-source (-> system :data-source :val)]

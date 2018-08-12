@@ -16,6 +16,7 @@ services:
     environment:
       - "CLJ_CONFIG=${PWD}/docker-clojure"
       - DATABASE_URL=postgres://postgres:password@db:5432/postgres
+      - TEST_DATABASE_URL=postgres://postgres:password@test-db:5432/postgres
       - PORT=4446
     volumes:
       - ".:${PWD}:cached"
@@ -23,7 +24,10 @@ services:
       - gitlibs:/root/.gitlibs
     links:
       - db
-  db:
+      - test-db
+  db: &db
     image: postgres:10.4-alpine
     environment:
       - POSTGRES_PASSWORD=password
+  test-db:
+    <<: *db

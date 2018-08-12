@@ -5,15 +5,8 @@
    [publicator.web.components.jetty :as jetty]
    [publicator.persistence.components.data-source :as data-source]
    [publicator.persistence.components.migration :as migration]
+   [publicator.persistence.utils.env :as env]
    [publicator.main.binding-map :as binding-map]))
-
-(defn data-source-opts []
-  (let [database-url                   (System/getenv "DATABASE_URL")
-        pattern                        #"postgres://(\S+):(\S+)@(\S+):(\S+)/(\S+)"
-        [_ user password host port path] (re-matches pattern  database-url)]
-    {:jdbc-url (str "jdbc:postgresql://" host ":" port "/" path)
-     :user     user
-     :password password}))
 
 (defn http-opts []
   {:host "0.0.0.0"
@@ -23,7 +16,7 @@
 
 (defn -main [& _]
   (let [system (component/system-map
-                :data-source (data-source/build (data-source-opts))
+                :data-source (data-source/build (env/data-source-opts "DATABASE_URL"))
                 :migration (component/using (migration/build) [:data-source])
                 :binding-map (component/using (binding-map/build) [:data-source])
                 :jetty (component/using (jetty/build (http-opts)) [:binding-map]))
