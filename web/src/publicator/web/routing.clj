@@ -1,6 +1,7 @@
 (ns publicator.web.routing
   (:require
-   [sibiro.core :as sibiro]
+   [sibiro.core]
+   [sibiro.extras]
    [clojure.set :as set]
    [publicator.web.controllers.pages.root :as pages.root]
    [publicator.web.controllers.user.log-in :as user.log-in]
@@ -9,11 +10,12 @@
    [publicator.web.controllers.post.list :as post.list]
    [publicator.web.controllers.post.show :as post.show]
    [publicator.web.controllers.post.create :as post.create]
-   [publicator.web.controllers.post.update :as post.update]
-   [publicator.web.url-helpers :as url-helpers]))
+   [publicator.web.controllers.post.update :as post.update]))
+
+;; todo: auto load, clojure tools namespace
 
 (def routes
-  (sibiro/compile-routes
+  (sibiro.core/compile-routes
    (set/union
     pages.root/routes
     user.log-in/routes
@@ -24,4 +26,10 @@
     post.create/routes
     post.update/routes)))
 
-(alter-var-root #'url-helpers/routes (constantly routes))
+(def handler (sibiro.extras/make-handler routes))
+
+(defn uri-for [& args]
+  (apply sibiro.core/uri-for routes args))
+
+(defn path-for [& args]
+  (apply sibiro.core/path-for routes args))
