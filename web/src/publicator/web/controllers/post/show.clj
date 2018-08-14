@@ -2,9 +2,9 @@
   (:require
    [publicator.use-cases.interactors.post.show :as interactor]))
 
-(defn handler [{:keys [route-params]}]
+(defn process [{:keys [route-params]}]
   (let [id (-> route-params :id Integer.)]
     [interactor/process id]))
 
 (def routes
-  #{[:get "/posts/:id{\\d+}" #'handler :post.show/handler]})
+  #{[:get "/posts/:id{\\d+}" #'process :post.show/process]})
