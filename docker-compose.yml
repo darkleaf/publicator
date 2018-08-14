@@ -14,7 +14,7 @@ services:
       - "4445:4445" # http (web)
       - "4446:4446" # http (main)
     environment:
-      - "CLJ_CONFIG=${PWD}/docker-clojure"
+      - "CLJ_CONFIG=${PWD}/.docker-clojure"
       - DATABASE_URL=postgres://postgres:password@db:5432/postgres
       - TEST_DATABASE_URL=postgres://postgres:password@test-db:5432/postgres
       - PORT=4446
