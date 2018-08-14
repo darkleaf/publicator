@@ -46,10 +46,12 @@
 (s/def ::processed (s/tuple #{::processed} ::post/post))
 
 (s/fdef initial-params
+  :args empty?
   :ret (s/or :ok  ::initial-params
              :err ::logged-out))
 
 (s/fdef process
+  :args (s/cat :params any?)
   :ret (s/or :ok  ::processed
              :err ::logged-out
              :err ::invalid-params))
