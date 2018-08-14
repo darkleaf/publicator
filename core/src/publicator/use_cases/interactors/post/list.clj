@@ -5,12 +5,11 @@
    [publicator.domain.services.user-posts :as user-posts]
    [clojure.spec.alpha :as s]))
 
-(defn ^:dynamic *process* []
+(defn process []
   (let [user  (user-session/user)
         posts (->> (post-q/get-list)
                    (map #(assoc % ::can-edit? (user-posts/author? user %))))]
     [::processed posts]))
-
 
 (s/def ::can-edit? boolean?)
 (s/def ::post (s/merge ::post-q/post
@@ -20,6 +19,3 @@
 
 (s/fdef process
   :ret (s/or :ok ::processed))
-
-(defn process []
-  (*process*))

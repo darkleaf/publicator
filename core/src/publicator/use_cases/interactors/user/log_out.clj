@@ -10,7 +10,7 @@
     (e/right)
     (e/left [::already-logged-out])))
 
-(defn ^:dynamic *process* []
+(defn process []
   @(e/let= [ok (check-logged-in=)]
      (user-session/log-out!)
      [::processed]))
@@ -21,6 +21,3 @@
 (s/fdef process
   :ret (s/or :ok  ::processed
              :err ::already-logged-out))
-
-(defn process []
-  (*process*))

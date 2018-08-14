@@ -28,18 +28,17 @@
   (let [iuser (user-session/iuser t)]
     (dosync (alter iuser user-posts/add-post @ipost))))
 
-(defn ^:dynamic *initial-params* []
+(defn initial-params []
   @(e/let= [ok (check-logged-in=)]
      [::initial-params {}]))
 
-(defn ^:dynamic *process* [params]
+(defn process [params]
   (storage/with-tx t
     @(e/let= [ok (check-logged-in=)
               ok (check-params= params)
               ipost (create-post t params)]
        (set-authorship t ipost)
        [::processed @ipost])))
-
 
 (s/def ::logged-out (s/tuple #{::logged-out}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))
@@ -54,9 +53,3 @@
   :ret (s/or :ok  ::processed
              :err ::logged-out
              :err ::invalid-params))
-
-(defn initial-params []
-  (*initial-params*))
-
-(defn process [params]
-  (*process* params))

@@ -29,11 +29,11 @@
     (e/left [::invalid-params exp])
     (e/right)))
 
-(defn ^:dynamic *initial-params* []
+(defn initial-params []
   @(e/let= [ok (check-logged-out=)]
      [::initial-params {}]))
 
-(defn ^:dynamic *process* [params]
+(defn process [params]
   @(e/let= [ok   (check-logged-out=)
             ok   (check-params= params)
             user (find-user= params)
@@ -57,9 +57,3 @@
              :err ::already-logged-in
              :err ::authentication-failed
              :err ::invalid-params))
-
-(defn inital-params []
-  (*initial-params*))
-
-(defn process [params]
-  (*process* params))

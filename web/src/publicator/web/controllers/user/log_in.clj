@@ -7,7 +7,7 @@
    [publicator.web.url-helpers :as url-helpers]))
 
 (defn form [req]
-  (let [result (interactor/inital-params)]
+  (let [result (interactor/initial-params)]
     (base/handle nil result)))
 
 (defn handler [{:keys [transit-params]}]
