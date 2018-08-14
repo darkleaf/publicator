@@ -51,7 +51,7 @@
              :err ::logged-out))
 
 (s/fdef process
-  :args (s/cat :params any?)
+  :args (s/cat :params map?)
   :ret (s/or :ok  ::processed
              :err ::logged-out
              :err ::invalid-params))
