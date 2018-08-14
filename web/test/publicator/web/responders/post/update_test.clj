@@ -5,25 +5,16 @@
    [publicator.web.responders.base :as base]
    [publicator.use-cases.test.factories :as factories]
    [publicator.use-cases.interactors.post.update :as interactor]
+   [publicator.web.responders.shared-testing :as shared-testing]
    [ring.util.http-predicates :as http-predicates]
    [clojure.test :as t]
-   [clojure.spec.alpha :as s]
-   [clojure.set :as set]))
+   [clojure.spec.alpha :as s]))
 
 (t/use-fixtures :once instrument/fixture)
 
-(defn is-all-types-implemented [sym]
-  (let [[_ & pairs] (-> sym s/get-spec :ret s/describe)
-        specs       (keep-indexed
-                     (fn [idx item] (if (odd? idx) item))
-                     pairs)
-        implemented (-> base/->resp methods keys)]
-    (doseq [spec specs]
-      (t/is (some #(isa? spec %) implemented) (str spec " not implemented")))))
-
 (t/deftest all-implemented
-  (is-all-types-implemented `interactor/initial-params)
-  (is-all-types-implemented `interactor/process))
+  (shared-testing/all-responders-are-implemented `interactor/initial-params)
+  (shared-testing/all-responders-are-implemented `interactor/process))
 
 (t/deftest initial-params
   (let [result (factories/gen ::interactor/initial-params)
