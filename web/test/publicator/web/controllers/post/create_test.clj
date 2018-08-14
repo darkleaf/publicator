@@ -26,8 +26,8 @@
 
 (t/deftest process
   (let [params          (factories/gen ::interactor/params)
-        req             (-> (mock.request/request :post "/new-post"))
-
+        req             (-> (mock.request/request :post "/new-post")
+                            (assoc :transit-params params))
         [action & args] (handler req)
         args-spec       (-> `interactor/process s/get-spec :args)]
     (t/is (= interactor/process action))
