@@ -12,7 +12,11 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps
+          key:
+            deps
+            {{ checksum "core/deps.edn" }}
+            {{ checksum "web/deps.edn" }}
+            {{ checksum "persistence/deps.edn" }}
       - run:
           name: Core
           command: |
@@ -29,7 +33,11 @@ jobs:
             cd persistence
             clojure -Adev:run-tests
       - save_cache:
-          key: deps
+          key:
+            deps
+            {{ checksum "core/deps.edn" }}
+            {{ checksum "web/deps.edn" }}
+            {{ checksum "persistence/deps.edn" }}
           paths:
             - /root/.m2
             - /root/.gitlibs
