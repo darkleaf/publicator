@@ -1,8 +1,8 @@
-(ns publicator.web.controllers.post.create-test
+(ns publicator.web.controllers.post.list-test
   (:require
    [publicator.utils.test.instrument :as instrument]
-   [publicator.web.controllers.post.create :as sut]
-   [publicator.use-cases.interactors.post.create :as interactor]
+   [publicator.web.controllers.post.list :as sut]
+   [publicator.use-cases.interactors.post.list :as interactor]
    [publicator.use-cases.test.factories :as factories]
    [ring.mock.request :as mock.request]
    [clojure.test :as t]
@@ -17,17 +17,8 @@
       sibiro.core/compile-routes
       sibiro.extras/make-handler))
 
-(t/deftest initial-params
-  (let [req             (mock.request/request :get "/new-post")
-        [action & args] (handler req)
-        args-spec       (-> `interactor/initial-params s/get-spec :args)]
-    (t/is (= interactor/initial-params action))
-    (t/is (nil? (s/explain-data args-spec args)))))
-
 (t/deftest process
-  (let [params          (factories/gen ::interactor/params)
-        req             (-> (mock.request/request :post "/new-post"))
-
+  (let [req             (-> (mock.request/request :get "/posts"))
         [action & args] (handler req)
         args-spec       (-> `interactor/process s/get-spec :args)]
     (t/is (= interactor/process action))

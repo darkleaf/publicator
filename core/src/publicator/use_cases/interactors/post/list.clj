@@ -18,4 +18,5 @@
 (s/def ::processed (s/tuple #{::processed} ::posts))
 
 (s/fdef process
+  :args empty?
   :ret (s/or :ok ::processed))
