@@ -28,6 +28,10 @@
   (let [iuser (user-session/iuser t)]
     (dosync (alter iuser user-posts/add-post @ipost))))
 
+(defn authorize []
+  @(e/let= [ok (check-logged-in=)]
+     [::authorized]))
+
 (defn initial-params []
   @(e/let= [ok (check-logged-in=)]
      [::initial-params {}]))
@@ -40,10 +44,17 @@
        (set-authorship t ipost)
        [::processed @ipost])))
 
+
 (s/def ::logged-out (s/tuple #{::logged-out}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))
 (s/def ::initial-params (s/tuple #{::initial-params} map?))
 (s/def ::processed (s/tuple #{::processed} ::post/post))
+(s/def ::authorized (s/tuple #{::authorized}))
+
+(s/fdef authorize
+  :args empty?
+  :ret (s/or :ok  ::authorized
+             :err ::logged-out))
 
 (s/fdef initial-params
   :args empty?
