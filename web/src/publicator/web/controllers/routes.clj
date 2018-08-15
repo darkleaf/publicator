@@ -1,14 +1,13 @@
 (ns publicator.web.controllers.routes
   (:require
    [clojure.set :as set]
-   [clojure.tools.namespace.find :as ctn.find])
-  (:import
-   [java.io File FilenameFilter]))
+   [clojure.tools.namespace.find :as ctn.find]
+   [clojure.java.io :as io]))
 
 (defn- subdirs [dir]
-  (->> (File. dir)
+  (->> (io/file dir)
        .list
-       (map #(File. dir %))
+       (map #(io/file dir %))
        (filter #(.isDirectory %))))
 
 (def routes

@@ -1,13 +1,12 @@
 (ns publicator.web.responders.all
   (:require
-   [clojure.tools.namespace.find :as ctn.find])
-  (:import
-   [java.io File FilenameFilter]))
+   [clojure.tools.namespace.find :as ctn.find]
+   [clojure.java.io :as io]))
 
 (defn- subdirs [dir]
-  (->> (File. dir)
+  (->> (io/file dir)
        .list
-       (map #(File. dir %))
+       (map #(io/file dir %))
        (filter #(.isDirectory %))))
 
 (let [dirs       (subdirs "src/publicator/web/responders")
