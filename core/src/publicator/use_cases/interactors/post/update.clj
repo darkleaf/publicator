@@ -38,7 +38,7 @@
 (defn- post->params [post]
   (select-keys post [:title :content]))
 
-(defn ^:dynamic *initial-params* [id]
+(defn initial-params [id]
   (storage/with-tx t
     @(e/let= [ok     (check-logged-in=)
               ipost  (get-ipost= t id)
@@ -46,7 +46,7 @@
               params (post->params @ipost)]
        [::initial-params params])))
 
-(defn ^:dynamic *process* [id params]
+(defn process [id params]
   (storage/with-tx t
     @(e/let= [ok    (check-logged-in=)
               ok    (check-params= params)
@@ -77,9 +77,3 @@
              :err ::not-authorized
              :err ::not-found
              :err ::invalid-params))
-
-(defn initial-params [id]
-  (*initial-params* id))
-
-(defn process [id params]
-  (*process* id params))

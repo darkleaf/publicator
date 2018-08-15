@@ -1,10 +1,10 @@
 (ns publicator.web.forms.user.register
   (:require
-   [publicator.web.url-helpers :as url-helpers]))
+   [publicator.web.routing :as routing]))
 
 (defn description []
   {:widget :submit, :name "Зарегистрироваться"
-   :url (url-helpers/path-for :user.register/handler), :method :post, :nested
+   :url (routing/path-for :user.register/process), :method :post, :nested
    {:widget :group, :nested
     [:login {:widget :input, :label "Логин"}
      :full-name {:widget :input, :label "Полное имя"}

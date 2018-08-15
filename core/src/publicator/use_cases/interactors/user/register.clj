@@ -30,11 +30,11 @@
 (defn- create-user [params]
   (storage/tx-create (user/build params)))
 
-(defn ^:dynamic *initial-params* []
+(defn initial-params []
   @(e/let= [ok (check-logged-out=)]
      [::initial-params {}]))
 
-(defn ^:dynamic *process* [params]
+(defn process [params]
   @(e/let= [ok   (check-logged-out=)
             ok   (check-params= params)
             ok   (check-not-registered= params)
@@ -49,6 +49,7 @@
 (s/def ::processed (s/tuple #{::processed} ::user/user))
 
 (s/fdef initial-params
+  :args empty?
   :ret (s/or :ok  ::initial-params
              :err ::already-logged-in))
 
@@ -58,9 +59,3 @@
              :err ::already-logged-in
              :err ::invalid-params
              :err ::already-registered))
-
-(defn initial-params []
-  (*initial-params*))
-
-(defn process [params]
-  (*process* params))

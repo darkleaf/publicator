@@ -1,10 +1,10 @@
-(ns publicator.web.controllers.pages.root
-  (:require
-   [ring.util.http-response :as http-response]
-   [publicator.web.controllers.base :as base]))
+(ns publicator.web.controllers.pages.root)
+
+(defn- interactor []
+  [:pages/root])
 
 (defn show [req]
-  (base/render "pages/root" {}))
+  [interactor])
 
 (def routes
   #{[:get "/" #'show :pages/root]})

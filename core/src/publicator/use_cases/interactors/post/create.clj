@@ -28,11 +28,15 @@
   (let [iuser (user-session/iuser t)]
     (dosync (alter iuser user-posts/add-post @ipost))))
 
-(defn ^:dynamic *initial-params* []
+(defn authorize []
+  @(e/let= [ok (check-logged-in=)]
+     [::authorized]))
+
+(defn initial-params []
   @(e/let= [ok (check-logged-in=)]
      [::initial-params {}]))
 
-(defn ^:dynamic *process* [params]
+(defn process [params]
   (storage/with-tx t
     @(e/let= [ok (check-logged-in=)
               ok (check-params= params)
@@ -45,18 +49,20 @@
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))
 (s/def ::initial-params (s/tuple #{::initial-params} map?))
 (s/def ::processed (s/tuple #{::processed} ::post/post))
+(s/def ::authorized (s/tuple #{::authorized}))
+
+(s/fdef authorize
+  :args empty?
+  :ret (s/or :ok  ::authorized
+             :err ::logged-out))
 
 (s/fdef initial-params
+  :args empty?
   :ret (s/or :ok  ::initial-params
              :err ::logged-out))
 
 (s/fdef process
+  :args (s/cat :params map?)
   :ret (s/or :ok  ::processed
              :err ::logged-out
              :err ::invalid-params))
-
-(defn initial-params []
-  (*initial-params*))
-
-(defn process [params]
-  (*process* params))

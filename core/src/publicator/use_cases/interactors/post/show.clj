@@ -12,7 +12,7 @@
     (e/right post)
     (e/left [::not-found])))
 
-(defn ^:dynamic *process* [id]
+(defn process [id]
   @(e/let= [user (user-session/user)
             post (get-by-id= id)
             post (assoc post ::can-edit? (user-posts/author? user post))]
@@ -29,6 +29,3 @@
   :args (s/cat :id ::post/id)
   :ret (s/or :ok  ::processed
              :err ::not-found))
-
-(defn process [id]
-  (*process* id))

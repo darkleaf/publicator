@@ -17,7 +17,7 @@
           resp    (update resp :session merge @storage)]
       resp)))
 
-(defn wrap [handler options]
+(defn wrap-session [handler options]
   (-> handler
       wrap-binding
       (ring.session/wrap-session options)))

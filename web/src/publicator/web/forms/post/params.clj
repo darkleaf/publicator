@@ -1,6 +1,4 @@
-(ns publicator.web.forms.post.params
-  (:require
-   [publicator.web.url-helpers :as url-helpers]))
+(ns publicator.web.forms.post.params)
 
 (defn description [{:keys [url method]}]
   {:widget :submit, :name "Готово"

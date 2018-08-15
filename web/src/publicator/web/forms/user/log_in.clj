@@ -1,10 +1,10 @@
 (ns publicator.web.forms.user.log-in
   (:require
-   [publicator.web.url-helpers :as url-helpers]))
+   [publicator.web.routing :as routing]))
 
 (defn description []
   {:widget :submit, :name "Войти",
-   :url (url-helpers/path-for :user.log-in/handler), :method :post, :nested
+   :url (routing/path-for :user.log-in/process), :method :post, :nested
    {:widget :group, :nested
     [:login {:widget :input, :label "Логин"}
      :password {:widget :input, :label "Пароль", :type "password"}]}})
