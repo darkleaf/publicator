@@ -3,7 +3,7 @@
    [publicator.web.template :as template]
    [publicator.web.presenters.layout :as presenters.layout]))
 
-(defn wrap [handler]
+(defn wrap-layout [handler]
   (fn [req]
     (let [resp (handler req)
           type (get-in resp [:headers "Content-Type"])

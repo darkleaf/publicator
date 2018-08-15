@@ -7,7 +7,6 @@
    [publicator.web.middlewares.layout :as layout]
    [publicator.web.middlewares.session :as session]
    [publicator.web.middlewares.transit-params :as tranist-params]
-   [publicator.web.transit :as t]
    [publicator.web.middlewares.responder :as responder]))
 
 (defn build
@@ -16,9 +15,9 @@
    (let [handler (sibiro.extras/make-handler routing/routes)]
      (-> routing/handler
          responder/wrap-reponder
-         layout/wrap
+         layout/wrap-layout
          ring.anti-forgery/wrap-anti-forgery
-         (session/wrap (:session config {}))
+         (session/wrap-session (:session config {}))
          tranist-params/wrap-transit-params
          ring.keyword-params/wrap-keyword-params
          ring.params/wrap-params))))
