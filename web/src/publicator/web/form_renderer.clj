@@ -1,6 +1,7 @@
 (ns publicator.web.form-renderer
   (:require
+   [cljstache.core :as mustache]
    [publicator.web.transit :as transit]))
 
 (defn render [form]
-  (str "<div data-form-ujs='" (transit/write form)  "'/>"))
+  (mustache/render "<div data-form-ujs=\"{{ data }}\" />", {:data (transit/write form)}))
