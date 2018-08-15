@@ -47,7 +47,8 @@
 (s/def ::initial-params (s/tuple #{::initial-params} map?))
 (s/def ::processed (s/tuple #{::processed}))
 
-(s/fdef inital-params
+(s/fdef initial-params
+  :args empty?
   :ret (s/or :ok  ::initial-params
              :err ::already-logged-in))
 

@@ -49,6 +49,7 @@
 (s/def ::processed (s/tuple #{::processed} ::user/user))
 
 (s/fdef initial-params
+  :args empty?
   :ret (s/or :ok  ::initial-params
              :err ::already-logged-in))
 
