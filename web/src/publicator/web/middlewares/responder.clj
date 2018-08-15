@@ -5,6 +5,9 @@
 
 (defn wrap-reponder [handler]
   (fn [req]
-    (let [[interactor & args] (handler req)
-          result              (apply interactor args)]
-      (responders.base/->resp result args))))
+    (let [resp (handler req)]
+      (if (vector? resp)
+        (let [[interactor & args] resp
+              result              (apply interactor args)]
+          (responders.base/->resp result args))
+        resp))))
