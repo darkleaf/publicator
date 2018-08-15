@@ -8,4 +8,4 @@ WORKDIR /app/main
 
 RUN clojure -e "(prn :install)"
 
-CMD clojure -Astart
+CMD clojure -Astart -J-Xmx300m -J-Xss512k
