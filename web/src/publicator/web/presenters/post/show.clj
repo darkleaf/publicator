@@ -1,7 +1,6 @@
 (ns publicator.web.presenters.post.show
   (:require
-   [publicator.domain.aggregates.user :as user]
-   [publicator.web.url-helpers :as url-helpers]))
+   [publicator.domain.aggregates.user :as user]))
 
 (defn processed [post]
   {:title          (:title post)
