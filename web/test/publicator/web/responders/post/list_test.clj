@@ -2,7 +2,7 @@
   (:require
    [publicator.utils.test.instrument :as instrument]
    [publicator.web.responders.post.list :as sut]
-   [publicator.web.responders.base :as base]
+   [publicator.web.responders.base :as responders.base]
    [publicator.use-cases.test.factories :as factories]
    [publicator.use-cases.interactors.post.list :as interactor]
    [publicator.use-cases.test.fakes :as fakes]
@@ -19,5 +19,5 @@
 (t/deftest processed
   (let [result (factories/gen ::interactor/processed)
         args   []
-        resp   (base/->resp result args)]
+        resp   (responders.base/result->resp result args)]
     (t/is (http-predicates/ok? resp))))

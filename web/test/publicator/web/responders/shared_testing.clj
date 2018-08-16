@@ -1,6 +1,6 @@
 (ns publicator.web.responders.shared-testing
   (:require
-   [publicator.web.responders.base :as base]
+   [publicator.web.responders.base :as responders.base]
    [clojure.spec.alpha :as s]
    [clojure.test :as t]))
 
@@ -10,7 +10,7 @@
           specs       (keep-indexed
                        (fn [idx item] (if (odd? idx) item))
                        pairs)
-          implemented (-> base/->resp methods keys)]
+          implemented (-> responders.base/result->resp methods keys)]
       (doseq [spec specs]
         (t/testing spec
           (t/is (some #(isa? spec %) implemented) "not implemented"))))))
