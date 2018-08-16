@@ -2,7 +2,7 @@
   (:require
    [publicator.use-cases.interactors.post.show :as interactor]
    [publicator.web.responders.base :as base]
-   [publicator.web.responders.responses :as responses]
+   [publicator.web.responses :as responses]
    [publicator.web.presenters.post.show :as presenter]))
 
 (defmethod base/->resp ::interactor/processed [[_ posts] _]

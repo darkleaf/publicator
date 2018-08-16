@@ -2,7 +2,7 @@
   (:require
    [publicator.use-cases.interactors.post.update :as interactor]
    [publicator.web.responders.base :as base]
-   [publicator.web.responders.responses :as responses]
+   [publicator.web.responses :as responses]
    [publicator.web.forms.post.params :as form]
    [publicator.web.routing :as routing]))
 

@@ -1,4 +1,4 @@
-(ns publicator.web.responders.responses
+(ns publicator.web.responses
   (:require
    [publicator.web.template :as template]
    [publicator.web.form-renderer :as form-renderer]

@@ -1,6 +1,6 @@
 (ns publicator.web.responders.base
   (:require
-   [publicator.web.responders.responses :as responses]
+   [publicator.web.responses :as responses]
    [publicator.web.presenters.explain-data :as explain-data]
    [publicator.web.routing :as routing]))
 
