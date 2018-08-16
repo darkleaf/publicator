@@ -1,10 +1,9 @@
-(ns publicator.web.controllers.pages.root)
+(ns publicator.web.controllers.pages.root
+  (:require
+   [publicator.web.responders.responses :as responses]))
 
-(defn- interactor []
-  [:pages/root])
-
-(defn show [req]
-  [interactor])
+(defn show [_]
+  (responses/render-page "pages/root" {}))
 
 (def routes
   #{[:get "/" #'show :pages/root]})

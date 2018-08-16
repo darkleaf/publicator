@@ -2,7 +2,6 @@
   (:require
    [publicator.web.responders.base :as responders.base]
 
-   [publicator.web.responders.pages.root]
    [publicator.web.responders.user.log-in]
    [publicator.web.responders.user.log-out]
    [publicator.web.responders.user.register]

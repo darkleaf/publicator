@@ -1,8 +1,9 @@
-(ns publicator.web.controllers.post.show-test
+(ns publicator.web.controllers.pages.root-test
   (:require
    [publicator.utils.test.instrument :as instrument]
    [publicator.web.controllers.pages.root :as sut]
    [ring.mock.request :as mock.request]
+   [ring.util.http-predicates :as http-predicates]
    [clojure.test :as t]
    [sibiro.core]
    [sibiro.extras]))
@@ -15,7 +16,6 @@
       sibiro.extras/make-handler))
 
 (t/deftest process
-  (let [req             (-> (mock.request/request :get "/"))
-        [action & args] (handler req)]
-    (t/is (fn? action))
-    (t/is (empty? args))))
+  (let [req  (mock.request/request :get "/")
+        resp (handler req)]
+    (t/is (http-predicates/ok? resp))))
