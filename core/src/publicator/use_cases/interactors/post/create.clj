@@ -52,12 +52,12 @@
 (s/def ::authorized (s/tuple #{::authorized}))
 
 (s/fdef authorize
-  :args empty?
+  :args nil?
   :ret (s/or :ok  ::authorized
              :err ::logged-out))
 
 (s/fdef initial-params
-  :args empty?
+  :args nil?
   :ret (s/or :ok  ::initial-params
              :err ::logged-out))
 

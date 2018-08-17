@@ -19,6 +19,6 @@
 (s/def ::processed (s/tuple #{::processed}))
 
 (s/fdef process
-  :args empty?
+  :args nil?
   :ret (s/or :ok  ::processed
              :err ::already-logged-out))

@@ -48,7 +48,7 @@
 (s/def ::processed (s/tuple #{::processed}))
 
 (s/fdef initial-params
-  :args empty?
+  :args nil?
   :ret (s/or :ok  ::initial-params
              :err ::already-logged-in))
 
