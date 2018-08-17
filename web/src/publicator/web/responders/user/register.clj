@@ -7,7 +7,7 @@
    [publicator.web.forms.user.register :as form]
    [publicator.web.routing :as routing]))
 
-(defmethod responders.base/result->resp ::interactor/initial-params [[_ params] _]
+(defmethod responders.base/result->resp ::interactor/initial-params [[_ params]]
   (let [form (form/build params)]
     (responses/render-form form)))
 

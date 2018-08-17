@@ -6,11 +6,11 @@
    [publicator.web.forms.user.log-in :as form]
    [publicator.web.routing :as routing]))
 
-(defmethod responders.base/result->resp ::interactor/initial-params [[_ params] _]
+(defmethod responders.base/result->resp ::interactor/initial-params [[_ params]]
   (let [form (form/build params)]
     (responses/render-form form)))
 
-(defmethod responders.base/result->resp ::interactor/authentication-failed [_ _]
+(defmethod responders.base/result->resp ::interactor/authentication-failed [_]
   (-> (form/authentication-failed-error)
       responses/render-errors))
 

@@ -18,6 +18,5 @@
 
 (t/deftest initial-params
   (let [result (factories/gen ::interactor/initial-params)
-        args   [1]
-        resp   (responders.base/result->resp result args)]
+        resp   (responders.base/result->resp result)]
     (t/is (http-predicates/ok? resp))))

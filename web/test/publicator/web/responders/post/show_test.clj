@@ -16,6 +16,5 @@
 
 (t/deftest processed
   (let [result (factories/gen ::interactor/processed)
-        args   []
-        resp   (responders.base/result->resp result args)]
+        resp   (responders.base/result->resp result)]
     (t/is (http-predicates/ok? resp))))

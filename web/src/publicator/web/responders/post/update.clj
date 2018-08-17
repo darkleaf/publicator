@@ -6,8 +6,8 @@
    [publicator.web.forms.post.params :as form]
    [publicator.web.routing :as routing]))
 
-(defmethod responders.base/result->resp ::interactor/initial-params [[_ params] [id]]
-  (let [cfg  {:url    (routing/path-for :post.update/process {:id (str id)})
+(defmethod responders.base/result->resp ::interactor/initial-params [[_ post params]]
+  (let [cfg  {:url    (routing/path-for :post.update/process {:id (-> post :id str)})
               :method :post}
         form (form/build cfg params)]
     (responses/render-form form)))

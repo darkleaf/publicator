@@ -18,12 +18,10 @@
 
 (t/deftest initial-params
   (let [result (factories/gen ::interactor/initial-params)
-        args   []
-        resp   (responders.base/result->resp result args)]
+        resp   (responders.base/result->resp result)]
     (t/is (http-predicates/ok? resp))))
 
 (t/deftest invalid-params
   (let [result [::interactor/invalid-params (s/explain-data ::interactor/params {})]
-        args   []
-        resp   (responders.base/result->resp result args)]
+        resp   (responders.base/result->resp result)]
     (t/is (http-predicates/unprocessable-entity? resp))))

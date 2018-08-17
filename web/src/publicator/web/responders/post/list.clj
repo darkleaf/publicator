@@ -5,6 +5,6 @@
    [publicator.web.responses :as responses]
    [publicator.web.presenters.post.list :as presenter]))
 
-(defmethod responders.base/result->resp ::interactor/processed [[_ posts] _]
+(defmethod responders.base/result->resp ::interactor/processed [[_ posts]]
   (let [model (presenter/processed posts)]
     (responses/render-page "post/list" model)))
