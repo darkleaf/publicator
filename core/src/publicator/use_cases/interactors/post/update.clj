@@ -44,7 +44,7 @@
               ipost  (get-ipost= t id)
               ok     (check-authorization= t @ipost)
               params (post->params @ipost)]
-       [::initial-params params])))
+       [::initial-params @ipost params])))
 
 (defn process [id params]
   (storage/with-tx t
@@ -59,7 +59,7 @@
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))
 (s/def ::not-found (s/tuple #{::not-found}))
 (s/def ::not-authorized (s/tuple #{::not-authorized}))
-(s/def ::initial-params (s/tuple #{::initial-params} map?))
+(s/def ::initial-params (s/tuple #{::initial-params} ::post/post map?))
 (s/def ::processed (s/tuple #{::processed} ::post/post))
 
 (s/fdef initial-params

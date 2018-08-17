@@ -42,11 +42,11 @@
       (t/is (= ::sut/not-authorized tag)))))
 
 (t/deftest invalid-params
-  (let [user    (factories/create-user)
-        _       (user-session/log-in! user)
-        post    (factories/create-post)
-        params  {}
-        [tag _] (sut/process (:id post) params)]
+  (let [user   (factories/create-user)
+        _      (user-session/log-in! user)
+        post   (factories/create-post)
+        params {}
+        [tag]  (sut/process (:id post) params)]
     (t/testing "error"
       (t/is (= ::sut/invalid-params tag)))))
 
@@ -60,10 +60,10 @@
       (t/is (= ::sut/not-found tag)))))
 
 (t/deftest initial-params
-  (let [user    (factories/create-user)
-        _       (user-session/log-in! user)
-        post    (factories/create-post)
-        _       (storage/tx-alter user user-posts/add-post post)
-        [tag _] (sut/initial-params (:id post))]
+  (let [user  (factories/create-user)
+        _     (user-session/log-in! user)
+        post  (factories/create-post)
+        _     (storage/tx-alter user user-posts/add-post post)
+        [tag] (sut/initial-params (:id post))]
     (t/testing "success"
       (t/is (=  ::sut/initial-params tag)))))
