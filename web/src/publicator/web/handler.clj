@@ -8,15 +8,17 @@
    [publicator.web.middlewares.layout :as layout]
    [publicator.web.middlewares.session :as session]
    [publicator.web.middlewares.transit-params :as tranist-params]
-   [publicator.web.middlewares.responder :as responder]))
+   [publicator.web.middlewares.responder :as responder]
+   [publicator.web.middlewares.bindings :as bindings]))
 
-(def handler
+(defn build [binding-map]
   (-> routing/handler
 
       responder/wrap-reponder
       layout/wrap-layout
       session/wrap-session
       tranist-params/wrap-transit-params
+      (bindings/wrap-bindings binding-map)
 
       ring.anti-forgery/wrap-anti-forgery
       ring.session/wrap-session
