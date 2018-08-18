@@ -1,23 +1,16 @@
 (ns publicator.web.components.jetty
   (:require
    [com.stuartsierra.component :as component]
-   [ring.adapter.jetty :as jetty]
-   [publicator.web.handler :as handler]))
+   [ring.adapter.jetty :as jetty]))
 
-(defn- wrap-binding [handler binding-map]
-  (fn [req]
-    (with-bindings binding-map
-      (handler req))))
-
-(defrecord Jetty [config binding-map val]
+(defrecord Jetty [config handler val]
   component/Lifecycle
   (start [this]
     (if val
       this
       (assoc this :val
              (jetty/run-jetty
-              (-> (handler/build config)
-                  (wrap-binding (:val binding-map)))
+              (:val handler)
               (assoc config :join? false)))))
   (stop [this]
     (if val

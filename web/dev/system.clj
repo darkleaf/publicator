@@ -1,13 +1,23 @@
-(ns publicator.web.dev.system
+(ns system
   (:require
    [com.stuartsierra.component :as component]
    [publicator.web.components.jetty :as jetty]
+   [publicator.web.handler :as handler]
    [publicator.use-cases.test.factories :as factories]
    [publicator.use-cases.test.fakes.storage :as storage]
    [publicator.use-cases.test.fakes.user-queries :as user-q]
    [publicator.use-cases.test.fakes.post-queries :as post-q]
    [publicator.domain.test.fakes.id-generator :as id-generator]
    [publicator.domain.test.fakes.password-hasher :as password-hasher]))
+
+(defrecord Handler [binding-map val]
+  component/Lifecycle
+  (start [this]
+    (assoc this :val
+           (fn [req]
+             (with-bindings (:val binding-map)
+               (handler/handler req)))))
+  (stop [this] this))
 
 (defrecord BindingMap [val]
   component/Lifecycle
@@ -44,5 +54,7 @@
    :binding-map (->BindingMap nil)
    :seed (component/using (->Seed nil)
                           [:binding-map])
+   :handler (component/using (->Handler nil nil)
+                             [:binding-map])
    :jetty (component/using (jetty/build {:port 4445})
-                           [:binding-map])))
+                           [:binding-map :handler])))

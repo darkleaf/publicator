@@ -1,6 +1,5 @@
 (ns publicator.web.middlewares.session
   (:require
-   [ring.middleware.session :as ring.session]
    [publicator.use-cases.abstractions.session :as session]))
 
 (deftype Session [storage]
@@ -8,16 +7,12 @@
   (-get [_ k] (get @storage k))
   (-set! [_ k v] (swap! storage assoc k v)))
 
-(defn- wrap-binding [handler]
+(defn wrap-session [handler]
   (fn [req]
-    (let [storage (atom (:session req))
+    (let [storage (atom (get-in req [:session ::storage]))
           resp    (binding [session/*session* (Session. storage)]
-                    (handler req))
-          resp    (assoc resp :session/key (:session/key req))
-          resp    (update resp :session merge @storage)]
-      resp)))
-
-(defn wrap-session [handler options]
-  (-> handler
-      wrap-binding
-      (ring.session/wrap-session options)))
+                    (handler req))]
+      (-> resp
+          (assoc :session/key (:session/key req))
+          (assoc :session (:session req))
+          (assoc-in [:session ::storage] @storage)))))

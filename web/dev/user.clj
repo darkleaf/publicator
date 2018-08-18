@@ -1,7 +1,7 @@
 (ns user
   (:require
    [com.stuartsierra.component :as component]
-   [publicator.web.dev.system :as system]))
+   [system]))
 
 (def system (system/build))
 

@@ -1,5 +1,6 @@
 (ns publicator.web.handler
   (:require
+   [ring.middleware.session :as ring.session]
    [ring.middleware.params :as ring.params]
    [ring.middleware.keyword-params :as ring.keyword-params]
    [ring.middleware.anti-forgery :as ring.anti-forgery]
@@ -9,15 +10,15 @@
    [publicator.web.middlewares.transit-params :as tranist-params]
    [publicator.web.middlewares.responder :as responder]))
 
-(defn build
-  ([] (build {}))
-  ([config]
-   (let [handler (sibiro.extras/make-handler routing/routes)]
-     (-> routing/handler
-         responder/wrap-reponder
-         layout/wrap-layout
-         ring.anti-forgery/wrap-anti-forgery
-         (session/wrap-session (:session config {}))
-         tranist-params/wrap-transit-params
-         ring.keyword-params/wrap-keyword-params
-         ring.params/wrap-params))))
+(def handler
+  (-> routing/handler
+
+      responder/wrap-reponder
+      layout/wrap-layout
+      session/wrap-session
+      tranist-params/wrap-transit-params
+
+      ring.anti-forgery/wrap-anti-forgery
+      ring.session/wrap-session
+      ring.keyword-params/wrap-keyword-params
+      ring.params/wrap-params))
