@@ -39,7 +39,7 @@
 
 (t/deftest get-list-found
   (let [post (factories/create-post)
-        user (factories/create-user {:posts-ids [(:id post)]})
+        user (factories/create-user {:posts-ids #{(:id post)}})
         res  (post-q/get-list)
         item (first res)]
     (t/is (= 1 (count res)))
@@ -53,7 +53,7 @@
 (t/deftest get-by-id
   (let [post (factories/create-post)
         id   (:id post)
-        user (factories/create-user {:posts-ids [id]})
+        user (factories/create-user {:posts-ids #{id}})
         item (post-q/get-by-id id)]
     (t/is (= (post-with-user post user)
              item))))

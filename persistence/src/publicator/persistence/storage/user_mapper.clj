@@ -16,7 +16,7 @@
 
 (defn- sql->aggregate [raw]
   (-> raw
-      (update :posts-ids #(-> % .getArray vec))
+      (update :posts-ids #(-> % .getArray set))
       (update :created-at #(.toInstant %))
       (user/map->User)))
 
