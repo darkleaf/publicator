@@ -18,7 +18,7 @@
         user       (factories/create-user {:posts-ids #{post-id}})
         _          (user-session/log-in! user)
         params     (factories/gen ::sut/params)
-        [tag post] (sut/process (:id post)  params)]
+        [tag post] (sut/process post-id  params)]
     (t/testing "success"
       (t/is (= ::sut/processed tag)))
     (t/testing "updated"
@@ -41,11 +41,12 @@
       (t/is (= ::sut/not-authorized tag)))))
 
 (t/deftest invalid-params
-  (let [user   (factories/create-user)
-        _      (user-session/log-in! user)
-        post   (factories/create-post)
-        params {}
-        [tag]  (sut/process (:id post) params)]
+  (let [post    (factories/create-post)
+        post-id (:id post)
+        user    (factories/create-user {:posts-ids #{post-id}})
+        _       (user-session/log-in! user)
+        params  {}
+        [tag]   (sut/process post-id params)]
     (t/testing "error"
       (t/is (= ::sut/invalid-params tag)))))
 

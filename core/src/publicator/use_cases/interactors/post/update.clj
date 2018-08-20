@@ -10,26 +10,20 @@
 
 (s/def ::params (utils.spec/only-keys :req-un [::post/title ::post/content]))
 
-(defn- check-logged-in= []
-  (if (user-session/logged-in?)
-    (e/right)
-    (e/left [::logged-out])))
+(defn- check-authorization= [t id]
+  (e/let= [iuser (user-session/iuser t)
+           ok    (if (nil? iuser)
+                   (e/left [::logged-out]))
+           ipost (storage/get-one t id)
+           ok    (if (nil? ipost)
+                   (e/left [::not-found]))
+           ok    (if-not (contains? (:posts-ids @iuser) id)
+                   (e/left [::not-authorized]))]
+    [::authorized]))
 
 (defn- check-params= [params]
   (if-some [ed (s/explain-data ::params params)]
-    (e/left [::invalid-params ed])
-    (e/right)))
-
-(defn- check-authorization= [t post]
-  (let [iuser (user-session/iuser t)]
-    (if (contains? (:posts-ids @iuser) (:id post))
-      (e/right)
-      (e/left [::not-authorized]))))
-
-(defn- get-ipost= [t id]
-  (if-some [ipost (storage/get-one t id)]
-    (e/right ipost)
-    (e/left [::not-found])))
+    (e/left [::invalid-params ed])))
 
 (defn- update-post [ipost params]
   (dosync (alter ipost merge params)))
@@ -39,20 +33,25 @@
 
 (defn initial-params [id]
   (storage/with-tx t
-    @(e/let= [ok     (check-logged-in=)
-              ipost  (get-ipost= t id)
-              ok     (check-authorization= t @ipost)
+    @(e/let= [ok     (check-authorization= t id)
+              ipost  (storage/get-one t id)
               params (post->params @ipost)]
        [::initial-params @ipost params])))
 
 (defn process [id params]
   (storage/with-tx t
-    @(e/let= [ok    (check-logged-in=)
+    @(e/let= [ok    (check-authorization= t id)
               ok    (check-params= params)
-              ipost (get-ipost= t id)
-              ok    (check-authorization= t @ipost)]
+              ipost (storage/get-one t id)]
        (update-post ipost params)
        [::processed @ipost])))
+
+(defn authorize [ids]
+  (storage/with-tx t
+    (storage/preload t ids)
+    (->> ids
+         (map #(check-authorization= t %))
+         (map deref))))
 
 (s/def ::logged-out (s/tuple #{::logged-out}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))
@@ -60,6 +59,7 @@
 (s/def ::not-authorized (s/tuple #{::not-authorized}))
 (s/def ::initial-params (s/tuple #{::initial-params} ::post/post map?))
 (s/def ::processed (s/tuple #{::processed} ::post/post))
+(s/def ::authorized (s/tuple #{::authorized}))
 
 (s/fdef initial-params
   :args (s/cat :id ::post/id)
@@ -76,3 +76,10 @@
              :err ::not-authorized
              :err ::not-found
              :err ::invalid-params))
+
+(s/fdef authorize
+  :args (s/cat :ids (s/coll-of ::post/id))
+  :ret (s/coll-of (s/or :ok  ::authorized
+                        :err ::logged-out
+                        :err ::not-found
+                        :err ::not-authorized)))

@@ -9,10 +9,10 @@
 
 (s/def ::params (utils.spec/only-keys :req-un [::user/login ::user/password]))
 
-(defn- check-logged-out= []
-  (if (user-session/logged-out?)
-    (e/right)
-    (e/left [::already-logged-in])))
+(defn- check-authorization= []
+  (if (user-session/logged-in?)
+    (e/left [::already-logged-in])
+    (e/right [::authorized])))
 
 (defn- find-user= [params]
   (if-let [user (user-q/get-by-login (:login params))]
@@ -30,22 +30,26 @@
     (e/right)))
 
 (defn initial-params []
-  @(e/let= [ok (check-logged-out=)]
+  @(e/let= [ok (check-authorization=)]
      [::initial-params {}]))
 
 (defn process [params]
-  @(e/let= [ok   (check-logged-out=)
+  @(e/let= [ok   (check-authorization=)
             ok   (check-params= params)
             user (find-user= params)
             ok   (check-authentication= user params)]
      (user-session/log-in! user)
      [::processed]))
 
+(defn authorize []
+  @(check-authorization=))
+
 (s/def ::already-logged-in (s/tuple #{::already-logged-in}))
 (s/def ::authentication-failed (s/tuple #{::authentication-failed}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))
 (s/def ::initial-params (s/tuple #{::initial-params} map?))
 (s/def ::processed (s/tuple #{::processed}))
+(s/def ::authorized (s/tuple #{::authorized}))
 
 (s/fdef initial-params
   :args nil?
@@ -58,3 +62,8 @@
              :err ::already-logged-in
              :err ::authentication-failed
              :err ::invalid-params))
+
+(s/fdef authorize
+  :args nil?
+  :ret (s/or :ok  ::authorized
+             :err ::already-logged-in))

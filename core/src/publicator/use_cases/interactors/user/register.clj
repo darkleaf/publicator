@@ -12,41 +12,43 @@
                                                ::user/full-name
                                                ::user/password]))
 
-(defn- check-logged-out= []
-  (if (user-session/logged-out?)
-    (e/right)
-    (e/left [::already-logged-in])))
+(defn- check-authorization= []
+  (if (user-session/logged-in?)
+    (e/left [::already-logged-in])
+    (e/right [::authorized])))
 
 (defn- check-params= [params]
   (if-let [exp (s/explain-data ::params params)]
-    (e/left [::invalid-params exp])
-    (e/right)))
+    (e/left [::invalid-params exp])))
 
 (defn- check-not-registered= [params]
   (if (user-q/get-by-login (:login params))
-    (e/left [::already-registered])
-    (e/right)))
+    (e/left [::already-registered])))
 
 (defn- create-user [params]
   (storage/tx-create (user/build params)))
 
 (defn initial-params []
-  @(e/let= [ok (check-logged-out=)]
+  @(e/let= [ok (check-authorization=)]
      [::initial-params {}]))
 
 (defn process [params]
-  @(e/let= [ok   (check-logged-out=)
+  @(e/let= [ok   (check-authorization=)
             ok   (check-params= params)
             ok   (check-not-registered= params)
             user (create-user params)]
      (user-session/log-in! user)
      [::processed user]))
 
+(defn authorize []
+  @(check-authorization=))
+
 (s/def ::already-logged-in (s/tuple #{::already-logged-in}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))
 (s/def ::already-registered (s/tuple #{::already-registered}))
 (s/def ::initial-params (s/tuple #{::initial-params} map?))
 (s/def ::processed (s/tuple #{::processed} ::user/user))
+(s/def ::authorized (s/tuple #{::authorized}))
 
 (s/fdef initial-params
   :args nil?
@@ -59,3 +61,8 @@
              :err ::already-logged-in
              :err ::invalid-params
              :err ::already-registered))
+
+(s/fdef authorize
+  :args nil?
+  :ret (s/or :ok  ::authorized
+             :err ::already-logged-in))
