@@ -3,7 +3,6 @@
    [publicator.use-cases.interactors.post.create :as sut]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.use-cases.services.user-session :as user-session]
-   [publicator.domain.services.user-posts :as user-posts]
    [publicator.use-cases.test.fakes :as fakes]
    [publicator.utils.test.instrument :as instrument]
    [publicator.use-cases.test.factories :as factories]
@@ -21,7 +20,7 @@
     (t/testing "success"
       (t/is (= ::sut/processed tag)))
     (t/testing "update user"
-      (t/is (user-posts/author? user post)))))
+      (t/is (contains? (:posts-ids user) (:id post))))))
 
 (t/deftest logged-out
   (let [params (factories/gen ::sut/params)

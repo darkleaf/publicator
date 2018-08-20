@@ -3,7 +3,6 @@
    [publicator.use-cases.interactors.post.update :as sut]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.use-cases.services.user-session :as user-session]
-   [publicator.domain.services.user-posts :as user-posts]
    [publicator.use-cases.test.fakes :as fakes]
    [publicator.utils.test.instrument :as instrument]
    [publicator.use-cases.test.factories :as factories]
@@ -14,10 +13,10 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest process
-  (let [user       (factories/create-user)
+  (let [post       (factories/create-post)
+        post-id    (:id post)
+        user       (factories/create-user {:posts-ids #{post-id}})
         _          (user-session/log-in! user)
-        post       (factories/create-post)
-        _          (storage/tx-alter user user-posts/add-post post)
         params     (factories/gen ::sut/params)
         [tag post] (sut/process (:id post)  params)]
     (t/testing "success"
@@ -60,10 +59,10 @@
       (t/is (= ::sut/not-found tag)))))
 
 (t/deftest initial-params
-  (let [user  (factories/create-user)
-        _     (user-session/log-in! user)
-        post  (factories/create-post)
-        _     (storage/tx-alter user user-posts/add-post post)
-        [tag] (sut/initial-params (:id post))]
+  (let [post    (factories/create-post)
+        post-id (:id post)
+        user    (factories/create-user {:posts-ids #{post-id}})
+        _       (user-session/log-in! user)
+        [tag]   (sut/initial-params (:id post))]
     (t/testing "success"
       (t/is (=  ::sut/initial-params tag)))))

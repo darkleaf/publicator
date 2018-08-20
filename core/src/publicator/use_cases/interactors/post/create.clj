@@ -3,7 +3,6 @@
    [publicator.use-cases.services.user-session :as user-session]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.domain.aggregates.post :as post]
-   [publicator.domain.services.user-posts :as user-posts]
    [publicator.domain.identity :as identity]
    [clojure.spec.alpha :as s]
    [publicator.utils.spec :as utils.spec]
@@ -26,7 +25,7 @@
 
 (defn- set-authorship [t ipost]
   (let [iuser (user-session/iuser t)]
-    (dosync (alter iuser user-posts/add-post @ipost))))
+    (dosync (alter iuser update :posts-ids conj (:id @ipost)))))
 
 (defn authorize []
   @(e/let= [ok (check-logged-in=)]

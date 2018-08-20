@@ -3,7 +3,6 @@
    [publicator.domain.aggregates.post :as post]
    [publicator.domain.identity :as identity]
    [publicator.use-cases.services.user-session :as user-session]
-   [publicator.domain.services.user-posts :as user-posts]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.utils.spec :as utils.spec]
    [darkleaf.either :as e]
@@ -23,7 +22,7 @@
 
 (defn- check-authorization= [t post]
   (let [iuser (user-session/iuser t)]
-    (if (user-posts/author? @iuser post)
+    (if (contains? (:posts-ids @iuser) (:id post))
       (e/right)
       (e/left [::not-authorized]))))
 
