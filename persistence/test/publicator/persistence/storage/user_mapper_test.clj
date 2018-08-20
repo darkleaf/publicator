@@ -26,7 +26,7 @@
   setup)
 
 (t/deftest create
-  (let [entity (factories/create-user {:posts-ids [1 2 3]})]
+  (let [entity (factories/create-user {:posts-ids #{1 2 3}})]
     (t/is (some? entity))
     (t/is (= entity
              (storage/tx-get-one (:id entity))))))

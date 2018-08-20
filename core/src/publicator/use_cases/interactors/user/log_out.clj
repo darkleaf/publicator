@@ -5,20 +5,29 @@
    [darkleaf.either :as e]
    [clojure.spec.alpha :as s]))
 
-(defn- check-logged-in= []
-  (if (user-session/logged-in?)
-    (e/right)
-    (e/left [::already-logged-out])))
+(defn- check-authorization= []
+  (if (user-session/logged-out?)
+    (e/left [::already-logged-out])
+    (e/right [::authorized])))
 
 (defn process []
-  @(e/let= [ok (check-logged-in=)]
+  @(e/let= [ok (check-authorization=)]
      (user-session/log-out!)
      [::processed]))
 
+(defn authorize []
+  @(check-authorization=))
+
 (s/def ::already-logged-out (s/tuple #{::already-logged-out}))
 (s/def ::processed (s/tuple #{::processed}))
+(s/def ::authorized (s/tuple #{::authorized}))
 
 (s/fdef process
   :args nil?
   :ret (s/or :ok  ::processed
+             :err ::already-logged-out))
+
+(s/fdef authorize
+  :args nil?
+  :ret (s/or :ok  ::authorized
              :err ::already-logged-out))

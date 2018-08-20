@@ -11,9 +11,11 @@
 
 (s/def ::post (s/merge ::post/post
                        (s/keys :req [::user/id ::user/full-name])))
+(s/def ::posts (s/coll-of ::post))
 
 (s/fdef get-list
-        :ret (s/coll-of ::post))
+  :args nil?
+  :ret ::posts)
 
 (defn get-list []
   (-get-list *get-list*))

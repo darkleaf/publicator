@@ -11,7 +11,7 @@
 (s/def ::full-name (s/and string? #(re-matches #".{2,255}" %)))
 (s/def ::password (s/and string? #(re-matches #".{8,255}" %)))
 (s/def ::password-digest ::password-hasher/encrypted)
-(s/def ::posts-ids (s/coll-of ::id-generator/id :kind vector? :distinct true))
+(s/def ::posts-ids (s/coll-of ::id-generator/id :kind set?))
 (s/def ::created-at inst?)
 
 (s/def ::user (s/keys :req-un [::id ::login ::full-name ::password-digest ::posts-ids
@@ -30,7 +30,7 @@
   :ret ::user)
 
 (defn build [{:keys [login full-name password posts-ids]
-              :or   {posts-ids []}}]
+              :or   {posts-ids #{}}}]
   (map->User {:id              (id-generator/generate)
               :login           login
               :full-name       full-name

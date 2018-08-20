@@ -3,7 +3,6 @@
    [publicator.use-cases.services.user-session :as user-session]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.domain.aggregates.post :as post]
-   [publicator.domain.services.user-posts :as user-posts]
    [publicator.domain.identity :as identity]
    [clojure.spec.alpha :as s]
    [publicator.utils.spec :as utils.spec]
@@ -11,39 +10,36 @@
 
 (s/def ::params (utils.spec/only-keys :req-un [::post/title ::post/content]))
 
-(defn- check-logged-in= []
-  (if (user-session/logged-in?)
-    (e/right)
-    (e/left [::logged-out])))
+(defn- check-authorization= []
+  (if (user-session/logged-out?)
+    (e/left [::logged-out])
+    (e/right [::authorized])))
 
 (defn- check-params= [params]
   (if-let [ed (s/explain-data ::params params)]
-    (e/left [::invalid-params ed])
-    (e/right)))
+    (e/left [::invalid-params ed])))
 
 (defn- create-post [t params]
   (storage/create t (post/build params)))
 
 (defn- set-authorship [t ipost]
   (let [iuser (user-session/iuser t)]
-    (dosync (alter iuser user-posts/add-post @ipost))))
-
-(defn authorize []
-  @(e/let= [ok (check-logged-in=)]
-     [::authorized]))
+    (dosync (alter iuser update :posts-ids conj (:id @ipost)))))
 
 (defn initial-params []
-  @(e/let= [ok (check-logged-in=)]
+  @(e/let= [ok (check-authorization=)]
      [::initial-params {}]))
 
 (defn process [params]
   (storage/with-tx t
-    @(e/let= [ok (check-logged-in=)
-              ok (check-params= params)
+    @(e/let= [ok    (check-authorization=)
+              ok    (check-params= params)
               ipost (create-post t params)]
        (set-authorship t ipost)
        [::processed @ipost])))
 
+(defn authorize []
+  @(check-authorization=))
 
 (s/def ::logged-out (s/tuple #{::logged-out}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))

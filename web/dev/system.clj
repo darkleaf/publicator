@@ -30,12 +30,12 @@
             user1 (factories/create-user {:login "user1"
                                           :password "12345678"
                                           :full-name "User1"
-                                          :posts-ids [(:id post1)]})
+                                          :posts-ids #{(:id post1)}})
             post2 (factories/create-post)
             user2 (factories/create-user {:login "user2"
                                           :password "12345678"
                                           :full-name "User2"
-                                          :posts-ids [(:id post2)]})]))
+                                          :posts-ids #{(:id post2)}})]))
     this)
   (stop [this]
     this))

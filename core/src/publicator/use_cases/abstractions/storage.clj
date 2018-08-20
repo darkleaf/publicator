@@ -45,6 +45,7 @@
   (let [res (get-many t [id])]
     (get res id)))
 
+(def preload get-many)
 
 (s/fdef tx-get-one
   :args (s/cat :id ::id-generator/id)

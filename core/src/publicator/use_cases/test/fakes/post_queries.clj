@@ -2,14 +2,13 @@
   (:require
    [publicator.use-cases.abstractions.post-queries :as post-q]
    [publicator.domain.aggregates.post :as post]
-   [publicator.domain.aggregates.user :as user]
-   [publicator.domain.services.user-posts :as user-posts]))
+   [publicator.domain.aggregates.user :as user]))
 
 (defn- author-for-post [db post]
   (->> @db
        (vals)
        (filter user/user?)
-       (filter #(user-posts/author? % post))
+       (filter #(contains? (:posts-ids %) (:id post)))
        (first)))
 
 (defn- assoc-user-fields [post user]
