@@ -19,7 +19,7 @@ services:
       - TEST_DATABASE_URL=postgres://postgres:password@test-db:5432/postgres
       - PORT=4446
     volumes:
-      - ".:${PWD}:cached"
+      - ".:${PWD}:cached" # cached - MacOS option
       - m2:/root/.m2
       - gitlibs:/root/.gitlibs
     links:
