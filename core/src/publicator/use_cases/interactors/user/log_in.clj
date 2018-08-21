@@ -30,19 +30,22 @@
     (e/right)))
 
 (defn initial-params []
-  @(e/let= [ok (check-authorization=)]
-     [::initial-params {}]))
+  (e/extract
+   (e/let= [ok (check-authorization=)]
+     [::initial-params {}])))
 
 (defn process [params]
-  @(e/let= [ok   (check-authorization=)
+  (e/extract
+   (e/let= [ok   (check-authorization=)
             ok   (check-params= params)
             user (find-user= params)
             ok   (check-authentication= user params)]
      (user-session/log-in! user)
-     [::processed]))
+     [::processed])))
 
 (defn authorize []
-  @(check-authorization=))
+  (e/extract
+   (check-authorization=)))
 
 (s/def ::already-logged-in (s/tuple #{::already-logged-in}))
 (s/def ::authentication-failed (s/tuple #{::authentication-failed}))

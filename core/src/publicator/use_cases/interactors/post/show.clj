@@ -12,9 +12,10 @@
     (e/left [::not-found])))
 
 (defn process [id]
-  @(e/let= [user (user-session/user)
+  (e/extract
+   (e/let= [user (user-session/user)
             post (get-by-id= id)]
-     [::processed post]))
+     [::processed post])))
 
 (s/def ::not-found (s/tuple #{::not-found}))
 (s/def ::processed (s/tuple #{::processed} ::post-q/post))

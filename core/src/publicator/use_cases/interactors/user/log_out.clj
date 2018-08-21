@@ -11,12 +11,14 @@
     (e/right [::authorized])))
 
 (defn process []
-  @(e/let= [ok (check-authorization=)]
+  (e/extract
+   (e/let= [ok (check-authorization=)]
      (user-session/log-out!)
-     [::processed]))
+     [::processed])))
 
 (defn authorize []
-  @(check-authorization=))
+  (e/extract
+   (check-authorization=)))
 
 (s/def ::already-logged-out (s/tuple #{::already-logged-out}))
 (s/def ::processed (s/tuple #{::processed}))

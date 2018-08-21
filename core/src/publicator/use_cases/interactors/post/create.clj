@@ -27,19 +27,22 @@
     (dosync (alter iuser update :posts-ids conj (:id @ipost)))))
 
 (defn initial-params []
-  @(e/let= [ok (check-authorization=)]
-     [::initial-params {}]))
+  (e/extract
+   (e/let= [ok (check-authorization=)]
+     [::initial-params {}])))
 
 (defn process [params]
   (storage/with-tx t
-    @(e/let= [ok    (check-authorization=)
+    (e/extract
+     (e/let= [ok    (check-authorization=)
               ok    (check-params= params)
               ipost (create-post t params)]
        (set-authorship t ipost)
-       [::processed @ipost])))
+       [::processed @ipost]))))
 
 (defn authorize []
-  @(check-authorization=))
+  (e/extract
+   (check-authorization=)))
 
 (s/def ::logged-out (s/tuple #{::logged-out}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))

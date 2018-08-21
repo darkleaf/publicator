@@ -33,25 +33,27 @@
 
 (defn initial-params [id]
   (storage/with-tx t
-    @(e/let= [ok     (check-authorization= t id)
+    (e/extract
+     (e/let= [ok     (check-authorization= t id)
               ipost  (storage/get-one t id)
               params (post->params @ipost)]
-       [::initial-params @ipost params])))
+       [::initial-params @ipost params]))))
 
 (defn process [id params]
   (storage/with-tx t
-    @(e/let= [ok    (check-authorization= t id)
+    (e/extract
+     (e/let= [ok    (check-authorization= t id)
               ok    (check-params= params)
               ipost (storage/get-one t id)]
        (update-post ipost params)
-       [::processed @ipost])))
+       [::processed @ipost]))))
 
 (defn authorize [ids]
   (storage/with-tx t
     (storage/preload t ids)
     (->> ids
          (map #(check-authorization= t %))
-         (map deref))))
+         (map e/extract))))
 
 (s/def ::logged-out (s/tuple #{::logged-out}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))

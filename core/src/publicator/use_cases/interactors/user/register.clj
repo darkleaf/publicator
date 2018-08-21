@@ -29,19 +29,22 @@
   (storage/tx-create (user/build params)))
 
 (defn initial-params []
-  @(e/let= [ok (check-authorization=)]
-     [::initial-params {}]))
+  (e/extract
+   (e/let= [ok (check-authorization=)]
+     [::initial-params {}])))
 
 (defn process [params]
-  @(e/let= [ok   (check-authorization=)
+  (e/extract
+   (e/let= [ok   (check-authorization=)
             ok   (check-params= params)
             ok   (check-not-registered= params)
             user (create-user params)]
      (user-session/log-in! user)
-     [::processed user]))
+     [::processed user])))
 
 (defn authorize []
-  @(check-authorization=))
+  (e/extract
+   (check-authorization=)))
 
 (s/def ::already-logged-in (s/tuple #{::already-logged-in}))
 (s/def ::invalid-params (s/tuple #{::invalid-params} map?))
