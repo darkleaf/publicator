@@ -51,10 +51,10 @@
       (t/is (= ::sut/invalid-params tag)))))
 
 (t/deftest not-found
-  (let [user     (factories/create-user)
+  (let [wrong-id 42
+        user     (factories/create-user {:posts-ids #{wrong-id}})
         _        (user-session/log-in! user)
         params   (factories/gen ::sut/params)
-        wrong-id (inc (:id user))
         [tag]    (sut/process wrong-id params)]
     (t/testing "error"
       (t/is (= ::sut/not-found tag)))))

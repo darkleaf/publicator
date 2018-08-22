@@ -11,15 +11,16 @@
 (s/def ::params (utils.spec/only-keys :req-un [::post/title ::post/content]))
 
 (defn- check-authorization= [t id]
-  (e/let= [iuser (user-session/iuser t)
-           ok    (if (nil? iuser)
-                   (e/left [::logged-out]))
-           ipost (storage/get-one t id)
-           ok    (if (nil? ipost)
-                   (e/left [::not-found]))
-           ok    (if-not (contains? (:posts-ids @iuser) id)
-                   (e/left [::not-authorized]))]
-    [::authorized]))
+  (let [iuser (user-session/iuser t)]
+    (cond
+      (nil? iuser)                             (e/left [::logged-out])
+      (not (contains? (:posts-ids @iuser) id)) (e/left [::not-authorized])
+      :else                                    (e/right [::authorized]))))
+
+(defn- find-post= [t id]
+  (if-some [ipost (storage/get-one t id)]
+    (e/right ipost)
+    (e/left [::not-found])))
 
 (defn- check-params= [params]
   (if-some [ed (s/explain-data ::params params)]
@@ -35,7 +36,7 @@
   (storage/with-tx t
     (e/extract
      (e/let= [ok     (check-authorization= t id)
-              ipost  (storage/get-one t id)
+              ipost  (find-post= t id)
               params (post->params @ipost)]
        [::initial-params @ipost params]))))
 
@@ -44,13 +45,12 @@
     (e/extract
      (e/let= [ok    (check-authorization= t id)
               ok    (check-params= params)
-              ipost (storage/get-one t id)]
+              ipost (find-post= t id)]
        (update-post ipost params)
        [::processed @ipost]))))
 
 (defn authorize [ids]
   (storage/with-tx t
-    (storage/preload t ids)
     (->> ids
          (map #(check-authorization= t %))
          (map e/extract))))
