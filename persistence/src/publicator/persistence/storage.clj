@@ -154,15 +154,19 @@
 (deftype Storage [data-source mappers opts]
   storage/Storage
   (-wrap-tx [this body]
-    (let [soft-timeout (get opts :soft-timeout-ms 500)]
-      (loop [stop-after (+ (timestamp) soft-timeout)]
+    (let [soft-timeout (get opts :soft-timeout-ms 500)
+          stop-after   (+ (timestamp) soft-timeout)]
+      (loop [attempt 0]
         (let [tx       (build-tx data-source mappers)
               res      (body tx)
               success? (commit tx mappers)]
           (cond
             success?                   res
-            (< (timestamp) stop-after) (recur stop-after)
-            :else                      (throw (TimeoutException. "Can't retry transaction"))))))))
+            (< (timestamp) stop-after) (recur (inc attempt))
+            :else                      (throw (TimeoutException.
+                                               (str "Can't run transaction after "
+                                                    attempt " attempts")))))))))
+
 
 
 (s/fdef binding-map
