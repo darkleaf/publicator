@@ -1,7 +1,7 @@
 (ns publicator.persistence.post-queries-test
   (:require
    [clojure.test :as t]
-   [publicator.utils.test.instrument :as instument]
+   [publicator.utils.test.instrument :as instrument]
    [publicator.use-cases.test.factories :as factories]
    [publicator.domain.test.fakes.password-hasher :as fakes.password-hasher]
    [publicator.domain.test.fakes.id-generator :as fakes.id-generator]
@@ -25,7 +25,7 @@
     (t)))
 
 (t/use-fixtures :once
-  instument/fixture
+  instrument/fixture
   db/once-fixture)
 
 (t/use-fixtures :each
