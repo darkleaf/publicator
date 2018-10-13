@@ -1,5 +1,6 @@
 (ns publicator.persistence.storage-test
   (:require
+   [publicator.persistence.types]
    [publicator.utils.test.instrument :as instrument]
    [clojure.test :as t]
    [hugsql.core :as hugsql]
@@ -23,26 +24,16 @@
 (hugsql/def-db-fns "publicator/persistence/storage_test.sql"
   {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
 
-(defn- sql->version [raw]
-  (.getValue raw))
-
-(defn- sql->aggretate [raw]
-  (map->TestEntity raw))
-
 (defn- aggregate->sql [aggregate]
   (vals aggregate))
 
 (defn- row->versioned-aggregate [row]
-  {:aggregate (-> row (dissoc :version) sql->aggretate)
-   :version   (-> row (get :version) sql->version)})
-
-(defn- row->versioned-id [{:keys [id version]}]
-  {:id      id
-   :version (sql->version version)})
+  {:aggregate (-> row (dissoc :version) map->TestEntity)
+   :version   (-> row (get :version))})
 
 (def mapper (reify sut/Mapper
               (-lock [_ conn ids]
-                (map row->versioned-id (test-entity-locks conn {:ids ids})))
+                (test-entity-locks conn {:ids ids}))
               (-select [_ conn ids]
                 (map row->versioned-aggregate (test-entity-select conn {:ids ids})))
               (-insert [_ conn states]
