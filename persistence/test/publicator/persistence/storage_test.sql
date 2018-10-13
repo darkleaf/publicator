@@ -5,7 +5,7 @@ CREATE TABLE "test-entity" (
 );
 
 -- :name- drop-test-entity-table :! :raw
-DROP TABLE "test-entity"
+DROP TABLE IF EXISTS "test-entity"
 
 -- :name- test-entity-insert :!
 INSERT INTO "test-entity" VALUES :tuple*:vals;
