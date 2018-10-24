@@ -14,3 +14,12 @@ https://darkleaf-publicator2.herokuapp.com/
 + `cd main`
 + `clojure -Astart`
 + http://localhost:4446/
+
+# Heroku deploy
+
++ `docker-compose run  --rm --service-ports app sh`
++ `cd main`
++ `clojure -Auberjar`, выполняется долго из-за docker
++ выйти в из docker
++ `cd main`
++ `heroku deploy:jar main.jar`

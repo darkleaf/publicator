@@ -3,4 +3,8 @@
         publicator.crypto      {:local/root "../crypto"}
         spootnik/signal        {:mvn/version "0.2.2"}}
 
- :aliases {:start {:main-opts ["-m" "publicator.main.core"]}}}
+ :aliases {:start   {:main-opts ["-m" "publicator.main.core"]}
+           :uberjar {:main-opts ["-m" "hf.depstar.uberjar" "main.jar"]
+                     :extra-deps
+                     {com.healthfinch/depstar {:git/url "https://github.com/healthfinch/depstar.git"
+                                               :sha     "4aa7b35189693feebc7d7e4a180b8af0326c9164"}}}}}

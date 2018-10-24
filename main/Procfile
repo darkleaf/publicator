@@ -1,0 +1,1 @@
+web: java -cp main.jar clojure.main -m publicator.main.core
