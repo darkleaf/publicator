@@ -7,7 +7,10 @@
    [publicator.persistence.components.data-source :as data-source]
    [publicator.persistence.components.migration :as migration]
    [publicator.persistence.utils.env :as env]
-   [publicator.main.binding-map :as binding-map]))
+   [publicator.main.binding-map :as binding-map]
+
+   [publicator.persistence.init]
+   [publicator.web.init]))
 
 (defn http-opts []
   {:host "0.0.0.0"

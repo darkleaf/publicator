@@ -1,16 +1,13 @@
 (ns publicator.persistence.post-queries
   (:require
-   [publicator.persistence.types]
    [hugsql.core :as hugsql]
-   [hugsql.adapter.clojure-jdbc :as cj-adapter]
    [jdbc.core :as jdbc]
    [publicator.use-cases.abstractions.post-queries :as post-q]
    [publicator.domain.aggregates.post :as post]
    [publicator.domain.aggregates.user :as user]
    [clojure.set :as set]))
 
-(hugsql/def-db-fns "publicator/persistence/post_queries.sql"
-  {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
+(hugsql/def-db-fns "publicator/persistence/post_queries.sql")
 
 (defn- sql->post [row]
   (-> row
