@@ -4,9 +4,7 @@
    [publicator.web.routing :as routing]
    [ring.mock.request :as mock.request]
    [ring.util.http-predicates :as http-predicates]
-   [clojure.test :as t]
-   [sibiro.core]
-   [sibiro.extras]))
+   [clojure.test :as t]))
 
 (t/use-fixtures :once instrument/fixture)
 

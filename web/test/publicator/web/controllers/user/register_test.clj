@@ -6,9 +6,7 @@
    [publicator.use-cases.test.factories :as factories]
    [ring.mock.request :as mock.request]
    [clojure.test :as t]
-   [clojure.spec.alpha :as s]
-   [sibiro.core]
-   [sibiro.extras]))
+   [clojure.spec.alpha :as s]))
 
 (t/use-fixtures :once instrument/fixture)
 
