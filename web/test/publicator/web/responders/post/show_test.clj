@@ -1,7 +1,6 @@
 (ns publicator.web.responders.post.show-test
   (:require
    [publicator.utils.test.instrument :as instrument]
-   [publicator.web.responders.post.show :as sut]
    [publicator.web.responders.base :as responders.base]
    [publicator.use-cases.test.factories :as factories]
    [publicator.use-cases.interactors.post.show :as interactor]

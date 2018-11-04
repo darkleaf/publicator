@@ -1,7 +1,6 @@
 (ns publicator.web.responders.user.log-in-test
   (:require
    [publicator.utils.test.instrument :as instrument]
-   [publicator.web.responders.user.log-in :as sut]
    [publicator.web.responders.base :as responders.base]
    [publicator.use-cases.test.factories :as factories]
    [publicator.use-cases.interactors.user.log-in :as interactor]

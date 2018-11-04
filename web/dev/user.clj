@@ -1,5 +1,6 @@
 (ns user
   (:require
+   [publicator.web.init]
    [com.stuartsierra.component :as component]
    [system]))
 

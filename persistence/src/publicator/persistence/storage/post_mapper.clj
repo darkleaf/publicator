@@ -1,15 +1,12 @@
 (ns publicator.persistence.storage.post-mapper
   (:require
-   [publicator.persistence.types]
    [hugsql.core :as hugsql]
-   [hugsql.adapter.clojure-jdbc :as cj-adapter]
    [publicator.domain.aggregates.post :as post]
    [publicator.persistence.storage :as persistence.storage])
   (:import
    [publicator.domain.aggregates.post Post]))
 
-(hugsql/def-db-fns "publicator/persistence/storage/post_mapper.sql"
-  {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
+(hugsql/def-db-fns "publicator/persistence/storage/post_mapper.sql")
 
 (defn- row->versioned-aggregate [row]
   {:aggregate (-> row (dissoc :version) post/map->Post)

@@ -1,7 +1,6 @@
 (ns publicator.web.responders.user.register-test
   (:require
    [publicator.utils.test.instrument :as instrument]
-   [publicator.web.responders.user.register :as sut]
    [publicator.web.responders.base :as responders.base]
    [publicator.use-cases.test.factories :as factories]
    [publicator.use-cases.interactors.user.register :as interactor]
