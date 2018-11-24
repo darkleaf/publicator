@@ -14,3 +14,6 @@
   {:initial-data initial-params
    :errors       {}
    :description  (description)})
+
+(defn already-registered-error []
+  {:form-ujs/error "Уже зарегистрирован"})

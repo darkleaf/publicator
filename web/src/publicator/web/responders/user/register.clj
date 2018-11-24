@@ -11,7 +11,10 @@
   (let [form (form/build params)]
     (responses/render-form form)))
 
+(defmethod responders.base/result->resp ::interactor/already-registered [_]
+  (-> (form/already-registered-error)
+      responses/render-errors))
+
 (derive ::interactor/processed ::responders.base/redirect-to-root)
 (derive ::interactor/invalid-params ::responders.base/invalid-params)
 (derive ::interactor/already-logged-in ::responders.base/forbidden)
-(derive ::interactor/already-registered ::responders.base/forbidden)
