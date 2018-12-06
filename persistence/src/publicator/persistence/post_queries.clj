@@ -3,17 +3,12 @@
    [hugsql.core :as hugsql]
    [jdbc.core :as jdbc]
    [publicator.use-cases.abstractions.post-queries :as post-q]
-   [publicator.domain.aggregates.post :as post]
-   [publicator.domain.aggregates.user :as user]
-   [clojure.set :as set]))
+   [publicator.domain.aggregates.post :as post]))
 
 (hugsql/def-db-fns "publicator/persistence/post_queries.sql")
 
 (defn- sql->post [row]
-  (-> row
-      (set/rename-keys {:user-id        ::user/id
-                        :user-full-name ::user/full-name})
-      (post/map->Post)))
+  (post/map->Post row))
 
 (deftype GetList [data-source]
   post-q/GetList
