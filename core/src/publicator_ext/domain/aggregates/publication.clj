@@ -40,9 +40,9 @@
                        :publication.translation/lang        {:db/unique :db.unique/identity}
                        :publication.translation/tags        {:db/cardinality :db.cardinality/many}})
 
-(defn prepare-initial-params [params]
-  (merge {:publication/state :active}
-         params))
+(def ^:const +initial-params+ {:publication/state :active})
+(def ^:const +translation-initial-params+ {:publication.translation/state       :draft
+                                           :publication.translation/publication :root})
 
 (defn append-errors [errors]
   (-> errors

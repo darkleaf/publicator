@@ -18,11 +18,17 @@
                              {:gallery/image-urls {:db/cardinality :db.cardinality/many}}))
 
 (defn build [params]
-  (let [params (-> params
-                   publication/prepare-initial-params
-                   (assoc :aggregate/id (id-generator/generate :publication)
-                          :entity/type  :entity.type/gallery))]
+  (let [params (merge publication/+initial-params+
+                      params
+                      {:aggregate/id (id-generator/generate :publication)
+                       :entity/type  :entity.type/gallery})]
     (aggregate/build +schema+ params)))
+
+(defn add-translation [gallery params]
+  (let [params (merge publication/+translation-initial-params+
+                      params
+                      {:entity/type :entity.type/gallery.translation})]
+    (aggregate/update gallery [params])))
 
 (defmethod aggregate/errors :entity.type/gallery [article]
   (-> (errors/build article)

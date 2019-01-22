@@ -12,18 +12,16 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest build
-  (let [params {:publication/state       :active
-                :publication/related-ids [1 2 3]
-                :publication/stream-id   1
-                :article/image-url       "some url"
-
-                :publication.translation/_publication
-                [{:entity/type                          :entity.type/article.translation
-                  :publication.translation/state        :published
-                  :publication.translation/lang         :en
-                  :publication.translation/title        "some text"
-                  :publication.translation/summary      "some text"
-                  :publication.translation/published-at (instant/now)
-                  :article.translation/content          "some text"}]}
-        article (sut/build params)]
+  (let [params             {:publication/state       :active
+                            :publication/related-ids [1 2 3]
+                            :publication/stream-id   1
+                            :article/image-url       "some url"}
+        translation-params {:publication.translation/state        :published
+                            :publication.translation/lang         :en
+                            :publication.translation/title        "some text"
+                            :publication.translation/summary      "some text"
+                            :publication.translation/published-at (instant/now)
+                            :article.translation/content          "some text"}
+        article            (-> (sut/build params)
+                               (sut/add-translation translation-params))]
     (t/is (some? article))))

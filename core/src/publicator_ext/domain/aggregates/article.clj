@@ -18,12 +18,20 @@
 
 (def ^:const +schema+ (merge publication/+schema+))
 
+;; можно написать спеку на функцию `build`,
+;; но лучше дождаться `s/schema` и `s/select`
 (defn build [params]
-  (let [params (-> params
-                   publication/prepare-initial-params
-                   (assoc :aggregate/id (id-generator/generate :publication)
-                          :entity/type  :entity.type/article))]
+  (let [params (merge publication/+initial-params+
+                      params
+                      {:aggregate/id (id-generator/generate :publication)
+                       :entity/type  :entity.type/article})]
     (aggregate/build +schema+ params)))
+
+(defn add-translation [article params]
+  (let [params (merge publication/+translation-initial-params+
+                      params
+                      {:entity/type :entity.type/article.translation})]
+    (aggregate/update article [params])))
 
 (defmethod aggregate/errors :entity.type/article [article]
   (-> (errors/build article)
