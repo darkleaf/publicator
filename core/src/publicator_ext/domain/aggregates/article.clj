@@ -8,12 +8,12 @@
 
 (s/def :article/image-url string?)
 (s/def :entity.type/article
-  (s/merge :entity.type/publication
+  (s/merge ::publication/publication
            (s/keys :opt [:article/image-url])))
 
 (s/def :article.translation/content string?)
 (s/def :entity.type/article.translation
-  (s/merge :entity.type/publication.translation
+  (s/merge ::publication/translation
            (s/keys :opt [:article.translation/content])))
 
 (def ^:const +schema+ (merge publication/+schema+))

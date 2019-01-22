@@ -8,11 +8,11 @@
 
 (s/def :gallery/image-urls (s/coll-of string?))
 (s/def :entity.type/gallery
-  (s/merge :entity.type/publication
+  (s/merge ::publication/publication
            (s/keys :opt [:article/image-urls])))
 
 (s/def :entity.type/gallery.translation
-  (s/merge :entity.type/publication.translation))
+  (s/merge ::publication/translation))
 
 (def ^:const +schema+ (merge publication/+schema+
                              {:gallery/image-urls {:db/cardinality :db.cardinality/many}}))

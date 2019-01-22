@@ -19,13 +19,13 @@
 (s/def :publication.translation/published-at inst?)
 (s/def :publication.translation/state +translation-states+)
 
-(s/def :entity.type/publication
+(s/def ::publication
   (s/merge :aggregate/root
            (s/keys :req [:publication/state]
                    :opt [:publication/related-ids
                          :publication/stream-id])))
 
-(s/def :entity.type/publication.translation
+(s/def ::translation
   (s/merge :aggregate/entity
            (s/keys :req [:publication.translation/publication
                          :publication.translation/lang
