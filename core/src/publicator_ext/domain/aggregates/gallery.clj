@@ -1,0 +1,35 @@
+(ns publicator-ext.domain.aggregates.gallery
+  (:require
+   [publicator-ext.domain.abstractions.aggregate :as aggregate]
+   [publicator-ext.domain.abstractions.id-generator :as id-generator]
+   [publicator-ext.domain.aggregates.publication :as publication]
+   [publicator-ext.domain.errors :as errors]
+   [clojure.spec.alpha :as s]))
+
+(s/def :gallery/image-urls (s/coll-of string?))
+(s/def :entity.type/gallery
+  (s/merge :entity.type/publication
+           (s/keys :opt [:article/image-urls])))
+
+(s/def :entity.type/gallery.translation
+  (s/merge :entity.type/publication.translation))
+
+(def ^:const +schema+ (merge publication/+schema+
+                             {:gallery/image-urls {:db/cardinality :db.cardinality/many}}))
+
+(defn build [params]
+  (let [params (-> params
+                   publication/prepare-initial-params
+                   (assoc :aggregate/id (id-generator/generate :publication)
+                          :entity/type  :entity.type/gallery))]
+    (aggregate/build +schema+ params)))
+
+(defmethod aggregate/errors :entity.type/gallery [article]
+  (-> (errors/build article)
+      (publication/append-errors)
+      (errors/attributes '[[?e :db/ident :root]
+                           [?e :publication/state :active]
+                           [?translation :publication.translation/publication ?e]
+                           [?translation :publication.translation/state :published]]
+                         [[:gallery/image-urls not-empty {:type :must-be-filled}]])
+      (errors/extract)))
