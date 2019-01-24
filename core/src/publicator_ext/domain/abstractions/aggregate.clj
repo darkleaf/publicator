@@ -55,18 +55,6 @@
       (throw (ex-info "Invalid aggregate entities" {:type         ::invalid-entities
                                                     :explain-data eds})))))
 
-(defn- check-identity-preservation! [current previous]
-  (if (not= (type current)
-            (type previous))
-    (throw (ex-info "Aggregate type was changed" {:type     ::type-was-changed
-                                                  :current  current
-                                                  :previous previous})))
-  (if (not= (id current)
-            (id previous))
-    (throw (ex-info "Aggregage id was changed" {:type ::id-was-changed
-                                                :current  current
-                                                :previous previous}))))
-
 (defn build
   ([params]
    (build {} params))
@@ -90,6 +78,5 @@
                       (d/db-with [[:db/add :root :aggregate/updated-at (instant/now)]]))]
     (doto aggregate
       check-root!
-      (check-identity-preservation! previous)
       check-entities!
       check-errors!)))
