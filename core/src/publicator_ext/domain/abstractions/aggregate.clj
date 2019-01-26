@@ -1,82 +1,54 @@
 (ns publicator-ext.domain.abstractions.aggregate
-  (:refer-clojure :exclude [type update])
   (:require
    [publicator-ext.domain.abstractions.instant :as instant]
-   [datascript.core :as d]
-   [clojure.spec.alpha :as s]))
+   [publicator-ext.domain.util.validation :as validation]
+   [datascript.core :as d]))
 
-(s/def :entity/type keyword?)
-(s/def :aggregate/id pos-int?)
-(s/def :aggregate/created-at inst?)
-(s/def :aggregate/updated-at inst?)
+(defmulti schema identity)
+(defmethod schema :default [_] {})
 
-(s/def :aggregate/entity (s/keys :req [:entity/type]))
-(s/def :aggregate/root (s/keys :req [:entity/type :aggregate/id
-                                     :aggregate/created-at :aggregate/updated-at]))
+(defmulti validator (fn [chain] (-> chain validation/aggregate type)))
+(defmethod validator :default [chain] chain)
 
-(def ^:const +schema+ {:aggregate/id {:db/unique :db.unique/identity}})
-
-(defn root [aggregate]
-  (d/entity aggregate :root))
-
-(defn id [aggregate]
-  (-> aggregate root :aggregate/id))
-
-(defn type [aggregate]
-  (-> aggregate root :entity/type))
-
-(defmulti errors type)
-(defmethod errors :default [_])
+(defn- common-validator [chain]
+  (validation/attributes chain
+                         '[[(entity ?e)
+                            [?e :db/ident :root]]]
+                         [[:req :aggregate/id pos-int?]
+                          [:req :aggregate/created-at inst?]
+                          [:req :aggregate/updated-at inst?]]))
 
 (defn- check-errors! [aggregate]
-  (let [errs (errors aggregate)]
+  (let [errs (-> (validation/begin aggregate)
+                 (common-validator)
+                 (validator)
+                 (validation/complete))]
     (if (not-empty errs)
       (throw (ex-info "Aggregate has errors" {:type   ::has-errors
                                               :errors errs})))))
 
-(defn- check-root! [aggregate]
-  (let [root (d/pull aggregate '[*] :root)
-        ed   (s/explain-data :aggregate/root root)]
-    (if (some? ed)
-      (throw (ex-info "Invalid aggregate root" {:type         ::invalid-root
-                                                :explain-data ed})))))
+(defn root [aggregate]
+  (d/entity aggregate :root))
 
-(defn- check-entities! [aggregate]
-  (let [entities (->> aggregate
-                      (d/q '{:find  [(pull ?e [*])]
-                             :where [[?e _ _]]})
-                      (map first))
-        eds      (->> entities
-                      (map #(s/explain-data (s/and :aggregate/entity
-                                                   (:entity/type %))
-                                            %))
-                      (remove nil?))]
-    (if (not-empty eds)
-      (throw (ex-info "Invalid aggregate entities" {:type         ::invalid-entities
-                                                    :explain-data eds})))))
+(defn allocate [type id]
+  (let [s (merge (schema type)
+                 {:aggregate/id {:db/unique :db.unique/identity}})]
+    (-> (d/empty-db s)
+        (d/db-with [{:db/ident     :root
+                     :aggregate/id id}])
+        (with-meta {:type type}))))
 
-(defn build
-  ([params]
-   (build {} params))
-  ([schema params]
-   (let [schema    (merge schema +schema+)
-         tx-item   (merge params
-                          {:db/ident             :root
-                           :aggregate/created-at (instant/now)
-                           :aggregate/updated-at (instant/now)})
-         aggregate (-> (d/empty-db schema)
-                       (d/db-with [tx-item]))]
+(defn build [type id tx-data]
+   (let [aggregate (-> (allocate type id)
+                       (d/db-with [[:db/add :root :aggregate/created-at (instant/now)]
+                                   [:db/add :root :aggregate/updated-at (instant/now)]])
+                       (d/db-with tx-data))]
      (doto aggregate
-       check-root!
-       check-entities!
-       check-errors!))))
+       check-errors!)))
 
-(defn update [aggregate tx-data]
-  (let [previous  aggregate
-        aggregate (-> aggregate
+(defn change [aggregate tx-data]
+  (let [aggregate (-> aggregate
                       (d/db-with tx-data)
                       (d/db-with [[:db/add :root :aggregate/updated-at (instant/now)]]))]
     (doto aggregate
-      check-root!
-      check-entities!
       check-errors!)))

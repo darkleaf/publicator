@@ -1,39 +1,44 @@
 (ns publicator-ext.domain.abstractions.aggregate-test
   (:require
    [publicator-ext.domain.abstractions.aggregate :as sut]
+   [publicator-ext.domain.util.validation :as validation]
    [publicator-ext.utils.test.instrument :as instrument]
-   [clojure.test :as t]
-   [clojure.spec.alpha :as s]))
+   [clojure.test :as t]))
 
 (t/use-fixtures :once instrument/fixture)
 
-(s/def ::key keyword?)
-(s/def ::root (s/keys :req [::key]))
+(defmethod sut/schema ::aggregate [_]
+  {:inner/base {:db/valueType :db.type/ref}})
 
-(s/def ::inner-key keyword?)
-(s/def ::inner-entity (s/keys :req [::inner-key]))
+(defmethod sut/validator ::aggregate [chain]
+  (-> chain
+      (validation/attributes '[[(entity ?e)
+                                [?e :db/ident :root]]]
+                             [[:req :root/key keyword?]])
+      (validation/attributes '[[(entity ?e)
+                                [?e :inner/base :root]]]
+                             [[:req :inner/key keyword?]])))
 
-(def ^:const +schema+ {:inner/base {:db/valueType :db.type/ref}})
 
-(t/deftest build-aggregate
+(t/deftest build
   (let [id        1
-        aggregate (sut/build +schema+ {:aggregate/id id
-                                       :entity/type  ::root
-                                       ::key         :val
-                                       :inner/_base  [{::inner-key  :inner-val
-                                                       :entity/type ::inner-entity}]})]
-    (t/testing "root"
-      (t/is (= :inner-val (-> aggregate sut/root :inner/_base first ::inner-key))))
+        aggregate (sut/build ::aggregate id
+                             [{:db/ident :root
+                               :root/key :val}
+                              {:inner/base :root
+                               :inner/key  :inner-val}])]
     (t/testing "id"
-      (t/is (= id (sut/id aggregate))))
+      (t/is (= id (-> aggregate sut/root :aggregate/id))))
     (t/testing "type"
-      (t/is (= ::root (sut/type aggregate))))))
+      (t/is (= ::aggregate (type aggregate))))
+    (t/testing "root"
+      (t/is (= :inner-val (-> aggregate sut/root :inner/_base first :inner/key))))))
 
-(t/deftest update-aggregate
-  (let [aggregate (sut/build +schema+ {:aggregate/id 1
-                                       :entity/type  ::root
-                                       ::key         :val
-                                       :inner/_base  [{::inner-key  :inner-val
-                                                       :entity/type ::inner-entity}]})
-        aggregate (sut/update aggregate [[:db/add :root ::key :new-val]])]
-    (t/is (= :new-val (-> aggregate sut/root ::key)))))
+;; (t/deftest change
+;;   (let [aggregate (sut/build +schema+ {:aggregate/id 1
+;;                                        :entity/type  ::root
+;;                                        ::key         :val
+;;                                        :inner/_base  [{::inner-key  :inner-val
+;;                                                        :entity/type ::inner-entity}]})
+;;         aggregate (sut/update aggregate [[:db/add :root ::key :new-val]])]
+;;     (t/is (= :new-val (-> aggregate sut/root ::key)))))
