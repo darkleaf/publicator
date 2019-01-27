@@ -29,14 +29,19 @@
                       (assoc :type ::required)))]
     (update chain :errors d/db-with tx-data)))
 
+(defn- apply-predicate [pred value args]
+  (try
+    (apply pred value args)
+    (catch java.lang.RuntimeException _ false)))
+
 (defn- attribute-predicate [chain rules checks]
   (let [agg     (:aggregate chain)
         errors  (d/q '{:find  [?e ?a ?v ?pred ?args]
-                       :in    [$ % [[_ ?a ?pred ?args]]]
+                       :in    [$ % apply [[_ ?a ?pred ?args]]]
                        :where [(entity ?e)
                                [?e ?a ?v]
-                               (not [(clojure.core/apply ?pred ?v ?args)])]}
-                     agg rules checks)
+                               (not [(apply ?pred ?v ?args)])]}
+                     agg rules apply-predicate checks)
         tx-data (for [error errors]
                   (-> (zipmap [:entity :attribute :value :predicate :args] error)
                       (assoc :type ::predicate)))]

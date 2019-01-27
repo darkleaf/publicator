@@ -26,6 +26,8 @@
     (t/testing "errors"
       (let [aggregate (-> (d/empty-db)
                           (d/db-with [{:db/id      1
-                                       :attr/other :some-val}]))
+                                       :attr/other :some-val
+                                       :attr/int "ff"}]))
             errors    (validator aggregate)]
+        ;; todo: better checks
         (t/is (not-empty errors))))))
