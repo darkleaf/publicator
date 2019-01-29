@@ -22,7 +22,7 @@
   (let [errs (-> (validation/begin aggregate)
                  (common-validator)
                  (validator)
-                 (validation/complete))]
+                 (validation/end))]
     (if (not-empty errs)
       (throw (ex-info "Aggregate has errors" {:type   ::has-errors
                                               :errors errs})))))
