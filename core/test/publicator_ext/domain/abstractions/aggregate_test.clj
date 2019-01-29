@@ -34,11 +34,11 @@
     (t/testing "root"
       (t/is (= :inner-val (-> aggregate sut/root :inner/_base first :inner/key))))))
 
-;; (t/deftest change
-;;   (let [aggregate (sut/build +schema+ {:aggregate/id 1
-;;                                        :entity/type  ::root
-;;                                        ::key         :val
-;;                                        :inner/_base  [{::inner-key  :inner-val
-;;                                                        :entity/type ::inner-entity}]})
-;;         aggregate (sut/update aggregate [[:db/add :root ::key :new-val]])]
-;;     (t/is (= :new-val (-> aggregate sut/root ::key)))))
+(t/deftest change
+  (let [aggregate (sut/build ::aggregate 1
+                             [{:db/ident :root
+                               :root/key :val}
+                              {:inner/base :root
+                               :inner/key  :inner-val}])
+        aggregate (sut/change aggregate [[:db/add :root :root/key :new-val]])]
+    (t/is (= :new-val (-> aggregate sut/root :root/key)))))
