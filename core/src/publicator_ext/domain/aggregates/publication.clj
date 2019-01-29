@@ -1,54 +1,37 @@
 (ns publicator-ext.domain.aggregates.publication
   (:require
    [publicator-ext.domain.abstractions.aggregate :as aggregate]
-   [publicator-ext.domain.errors :as errors]
-   [publicator-ext.domain.languages :as langs]
-   [clojure.spec.alpha :as s]))
+   [publicator-ext.domain.util.validation :as validation]
+   [publicator-ext.domain.languages :as langs]))
 
 (def ^:const +states+ #{:active :archived})
 (def ^:const +translation-states+ #{:draft :published})
 
-(s/def :publication/state +states+)
-(s/def :publication/related-ids (s/coll-of :aggregate/id))
-(s/def :publication/stream-id :aggregate/id)
 
-(s/def :publication.translation/lang langs/+languages+)
-(s/def :publication.translation/title string?)
-(s/def :publication.translation/summary string?)
-(s/def :publication.translation/tags (s/coll-of string?))
-(s/def :publication.translation/published-at inst?)
-(s/def :publication.translation/state +translation-states+)
-
-(s/def ::publication
-  (s/merge :aggregate/root
-           (s/keys :req [:publication/state]
-                   :opt [:publication/related-ids
-                         :publication/stream-id])))
-
-(s/def ::translation
-  (s/merge :aggregate/entity
-           (s/keys :req [:publication.translation/publication
-                         :publication.translation/lang
-                         :publication.translation/state]
-                   :opt [:publication.translation/title
-                         :publication.translation/summary
-                         :publication.translation/tags
-                         :publication.translation/published-at])))
+(defn validator [chain]
+  (-> chain
+      (validation/attributes '[[(entity ?e)
+                                [?e :db/ident :root]]]
+                             [[:req :publication/state +states+]
+                              [:opt :publication/related-ids pos-int?] ;;todo
+                              [:opt :publication/stream-id pos-int?]])
+      (validation/attributes '[[(entity ?e)
+                                [?e :publication.traslation/publication :root]]]
+                             [[:req :publication.translation/lang langs/+languages+]
+                              [:req :publication.translation/state +translation-states+]
+                              [:opt :publication.translation/title string?]
+                              [:opt :publication.translation/summary string?]
+                              [:opt :publication.translation/tags string?]
+                              [:opt :publication.translation/published-at inst?]])
+      (validation/attributes '[[(entity ?e)
+                                [?e :publication.translation/publication :root]
+                                [?e :publication.translation/state :published]
+                                [:root :publication/state :active]]]
+                             [[:req :publication.translation/title not-empty]
+                              [:req :publication.translation/summary not-empty]
+                              [:req :publication.translation/published-at some?]])))
 
 (def ^:const +schema+ {:publication/related-ids             {:db/cardinality :db.cardinality/many}
                        :publication.translation/publication {:db/valueType :db.type/ref}
                        :publication.translation/lang        {:db/unique :db.unique/identity}
                        :publication.translation/tags        {:db/cardinality :db.cardinality/many}})
-
-(def ^:const +initial-params+ {:publication/state :active})
-(def ^:const +translation-initial-params+ {:publication.translation/state       :draft
-                                           :publication.translation/publication :root})
-
-(defn append-errors [errors]
-  (-> errors
-      (errors/attributes '[[?e :publication.translation/state :published]
-                           [?e :publication.translation/publication ?root]
-                           [?root :publication/state :active]]
-                         [[:publication.translation/title        not-empty {:type :must-be-filled}]
-                          [:publication.translation/summary      not-empty {:type :must-be-filled}]
-                          [:publication.translation/published-at some?     {:type :must-be-filled}]])))
