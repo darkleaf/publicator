@@ -15,6 +15,12 @@
                                         [[:req :attr/keyword keyword?]
                                          [:req :attr/int int?]
                                          [:req :attr/int < 10]])
+                        ;; check doubles
+                        (sut/attributes '[[(entity ?e)
+                                           [?e _ _]]]
+                                        [[:req :attr/keyword keyword?]
+                                         [:req :attr/int int?]
+                                         [:req :attr/int < 10]])
                         (sut/complete)))]
     (t/testing "no errors"
       (let [aggregate (-> (d/empty-db)
@@ -27,7 +33,7 @@
       (let [aggregate (-> (d/empty-db)
                           (d/db-with [{:db/id      1
                                        :attr/other :some-val
-                                       :attr/int "ff"}]))
+                                       :attr/int   100}]))
             errors    (validator aggregate)]
         ;; todo: better checks
         (t/is (not-empty errors))))))
