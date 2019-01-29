@@ -12,12 +12,9 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest build
-  (let [params {:user/login    "john"
-                :user/password "12345678"}
-        user   (sut/build params)]
+  (let [tx-data [{:db/ident             :root
+                  :user/login           "john"
+                  :user/password-digest "12345678"
+                  :user/state           :active}]
+        user    (sut/build tx-data)]
     (t/is (some? user))))
-
-;; (t/deftest authenticated?
-;;   (let [password (factories/gen ::sut/password)
-;;         user (factories/build-user {:password password})]
-;;     (t/is (sut/authenticated? user password))))

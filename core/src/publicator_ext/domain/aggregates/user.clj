@@ -3,20 +3,20 @@
    [publicator-ext.domain.abstractions.id-generator :as id-generator]
    [publicator-ext.domain.abstractions.instant :as instant]
    [publicator-ext.domain.abstractions.aggregate :as aggregate]
-   [clojure.spec.alpha :as s]))
+   [publicator-ext.domain.util.validation :as validation]))
 
 (def ^:const +states+ #{:active :deleted})
 
-(s/def :user/login (s/and string? #(re-matches #"\w{3,255}" %)))
-(s/def :user/password-digest ::password-hasher/encrypted)
-(s/def :users/state +states+)
+(defmethod aggregate/validator :user [chain]
+  (-> chain
+      (validation/attributes '[[(entity ?e)
+                                [?e :db/ident :root]]]
+                             [[:req :user/login string?]
+                              [:req :user/login not-empty]
+                              [:req :user/password-digest string?]
+                              [:req :user/password-digest not-empty]
+                              [:req :user/state +states+]])))
 
-(s/def :entity.type/user
-  (s/merge :aggregate/root
-           (s/keys :req [:user/state :user/login :user/password-digest])))
-
-(defn build [params]
-  (aggregate/build (merge {:user/state :active}
-                          params
-                          {:aggregate/id (id-generator/generate :user)
-                           :entity/type  :entity.type/user})))
+(defn build [tx-data]
+  (let [id (id-generator/generate :user)]
+    (aggregate/build :user id tx-data)))
