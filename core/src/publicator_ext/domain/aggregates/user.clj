@@ -5,7 +5,7 @@
    [publicator-ext.domain.abstractions.aggregate :as aggregate]
    [publicator-ext.domain.util.validation :as validation]))
 
-(def ^:const +states+ #{:active :deleted})
+(def ^:const +states+ #{:active :archived})
 
 (defmethod aggregate/validator :user [chain]
   (-> chain

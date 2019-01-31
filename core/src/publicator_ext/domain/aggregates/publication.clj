@@ -7,7 +7,6 @@
 (def ^:const +states+ #{:active :archived})
 (def ^:const +translation-states+ #{:draft :published})
 
-
 (defn validator [chain]
   (-> chain
       (validation/attributes '[[(entity ?e)

@@ -5,7 +5,7 @@
    [publicator-ext.domain.util.validation :as validation]
    [publicator-ext.domain.languages :as langs]))
 
-(def ^:const +states+ #{:active :deleted})
+(def ^:const +states+ #{:active :archived})
 
 (defmethod aggregate/schema :stream [_]
   {:stream.translation/stream {:db/valueType :db.type/ref}
@@ -19,11 +19,8 @@
       (validation/attributes '[[(entity ?e)
                                 [?e :stream.translation/stream :root]]]
                              [[:req :stream.translation/lang langs/+languages+]
-                              [:opt :stream.translation/name string?]])
-      (validation/attributes '[[(entity ?e)
-                                [?e :stream.translation/stream :root]
-                                [:root :stream/state :active]]]
-                             [[:req :stream.translation/name not-empty]])))
+                              [:opt :stream.translation/name string?]
+                              [:req :stream.translation/name not-empty]])))
 
 (defn build [tx-data]
   (let [id (id-generator/generate :stream)]
