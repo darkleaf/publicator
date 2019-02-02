@@ -19,7 +19,7 @@
       (validation/attributes '[[(entity ?e)
                                 [?e :stream.translation/stream :root]]]
                              [[:req :stream.translation/lang langs/+languages+]
-                              [:opt :stream.translation/name string?]
+                              [:req :stream.translation/name string?]
                               [:req :stream.translation/name not-empty]])))
 
 (defn build [tx-data]
