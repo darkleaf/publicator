@@ -1,7 +1,6 @@
 (ns publicator-ext.domain.util.validation
   (:require
-   [datascript.core :as d]
-   [backtick :as bt]))
+   [datascript.core :as d]))
 
 (defn begin [aggregate]
   {:aggregate aggregate
