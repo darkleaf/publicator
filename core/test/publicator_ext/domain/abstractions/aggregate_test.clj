@@ -2,10 +2,7 @@
   (:require
    [publicator-ext.domain.abstractions.aggregate :as sut]
    [publicator-ext.domain.util.validation :as validation]
-   [publicator-ext.utils.test.instrument :as instrument]
    [clojure.test :as t]))
-
-(t/use-fixtures :once instrument/fixture)
 
 (defmethod sut/schema ::aggregate [_]
   {:inner/base {:db/valueType :db.type/ref}})

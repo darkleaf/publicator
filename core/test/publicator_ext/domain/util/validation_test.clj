@@ -1,11 +1,8 @@
 (ns publicator-ext.domain.util.validation-test
   (:require
    [publicator-ext.domain.util.validation :as sut]
-   [publicator-ext.utils.test.instrument :as instrument]
    [datascript.core :as d]
    [clojure.test :as t]))
-
-(t/use-fixtures :once instrument/fixture)
 
 (defn- errors->set [errors]
   (->> errors

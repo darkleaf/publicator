@@ -2,12 +2,10 @@
   (:require
    [publicator-ext.domain.aggregates.author :as sut]
    [publicator-ext.domain.test.fakes :as fakes]
-   [publicator-ext.utils.test.instrument :as instrument]
    [publicator-ext.domain.abstractions.aggregate :as aggregate]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fakes/fixture)
-(t/use-fixtures :once instrument/fixture)
 
 (t/deftest build
   (let [user-id 1

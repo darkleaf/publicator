@@ -2,11 +2,9 @@
   (:require
    [publicator-ext.domain.aggregates.stream :as sut]
    [publicator-ext.domain.test.fakes :as fakes]
-   [publicator-ext.utils.test.instrument :as instrument]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fakes/fixture)
-(t/use-fixtures :once instrument/fixture)
 
 (t/deftest build
   (let [tx-data [{:db/ident     :root

@@ -2,13 +2,11 @@
   (:require
    [publicator-ext.domain.aggregates.article :as sut]
    [publicator-ext.domain.test.fakes :as fakes]
-   [publicator-ext.utils.test.instrument :as instrument]
    [publicator-ext.domain.abstractions.aggregate :as aggregate]
    [publicator-ext.domain.abstractions.instant :as instant]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fakes/fixture)
-(t/use-fixtures :once instrument/fixture)
 
 (t/deftest build
   (let [tx-data [{:db/ident                :root
