@@ -9,8 +9,8 @@
 
 (defmethod aggregate/validator :user [chain]
   (-> chain
-      (validation/attributes '[[(entity ?e)
-                                [?e :db/ident :root]]]
+      (validation/attributes '{:find [[?e ...]]
+                               :where [[?e :db/ident :root]]}
                              [[:req :user/login string?]
                               [:req :user/login not-empty]
                               [:req :user/password-digest string?]

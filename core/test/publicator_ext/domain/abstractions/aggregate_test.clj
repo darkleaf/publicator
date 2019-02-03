@@ -9,13 +9,12 @@
 
 (defmethod sut/validator ::aggregate [chain]
   (-> chain
-      (validation/attributes '[[(entity ?e)
-                                [?e :db/ident :root]]]
+      (validation/attributes '{:find [[?e ...]]
+                               :where [[?e :db/ident :root]]}
                              [[:req :root/key keyword?]])
-      (validation/attributes '[[(entity ?e)
-                                [?e :inner/base :root]]]
+      (validation/attributes '{:find [[?e ...]]
+                               :where [[?e :inner/base :root]]}
                              [[:req :inner/key keyword?]])))
-
 
 (t/deftest build
   (let [id        1

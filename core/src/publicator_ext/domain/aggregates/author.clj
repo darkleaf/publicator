@@ -16,18 +16,18 @@
 
 (defmethod aggregate/validator :author [chain]
   (-> chain
-      (validation/attributes '[[(entity ?e)
-                                [?e :db/ident :root]]]
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :db/ident :root]]}
                              [[:req :author/state +states+]])
-      (validation/attributes '[[(entity ?e)
-                                [?e :author.translation/author :root]]]
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :author.translation/author :root]]}
                              [[:req :author.translation/lang langs/+languages+]
                               [:req :author.translation/first-name string?]
                               [:req :author.translation/first-name not-empty]
                               [:req :author.translation/last-name string?]
                               [:req :author.translation/last-name not-empty]])
-      (validation/attributes '[[(entity ?e)
-                                [?e :author.stream-participation/author :root]]]
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :author.stream-participation/author :root]]}
                              [[:req :author.stream-participation/role +stream-participation-roles+]
                               [:req :author.stream-participation/stream-id pos-int?]])))
 

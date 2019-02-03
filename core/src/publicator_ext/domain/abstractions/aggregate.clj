@@ -12,8 +12,8 @@
 
 (defn- common-validator [chain]
   (validation/attributes chain
-                         '[[(entity ?e)
-                            [?e :db/ident :root]]]
+                         '{:find [[?e ...]]
+                           :where [[?e :db/ident :root]]}
                          [[:req :aggregate/id pos-int?]
                           [:req :aggregate/created-at inst?]
                           [:req :aggregate/updated-at inst?]]))

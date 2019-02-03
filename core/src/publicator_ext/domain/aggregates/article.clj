@@ -10,22 +10,22 @@
 (defmethod aggregate/validator :article [chain]
   (-> chain
       (publication/validator)
-      (validation/attributes '[[(entity ?e)
-                                [?e :db/ident :root]]]
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :db/ident :root]]}
                              [[:opt :article/image-url string?]])
-      (validation/attributes '[[(entity ?e)
-                                [?e :publication.translation/publication :root]]]
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :publication.translation/publication :root]]}
                              [[:opt :article.translation/content string?]])
-      (validation/attributes '[[(entity ?e)
-                                [?e :db/ident :root]
-                                [?e :publication/state :active]
-                                [?translation :publication.translation/publication ?e]
-                                [?translation :publication.translation/state :published]]]
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :db/ident :root]
+                                       [?e :publication/state :active]
+                                       [?translation :publication.translation/publication ?e]
+                                       [?translation :publication.translation/state :published]]}
                              [[:req :article/image-url not-empty]])
-      (validation/attributes '[[(entity ?e)
-                                [?e :publication.translation/publication :root]
-                                [?e :publication.translation/state :published]
-                                [:root :publication/state :active]]]
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :publication.translation/publication :root]
+                                       [?e :publication.translation/state :published]
+                                       [:root :publication/state :active]]}
                              [[:req :article.translation/content not-empty]])))
 
 (defn build [tx-data]

@@ -9,8 +9,8 @@
 
 (defmethod aggregate/validator :admin [chain]
   (-> chain
-      (validation/attributes '[[(entity ?e)
-                                [?e :db/ident :root]]]
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :db/ident :root]]}
                              [[:req :admin/state +states+]])))
 
 (defn build [user-id tx-data]
