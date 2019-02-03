@@ -13,14 +13,13 @@
 
 (defn- testing-attrs [name checks aggregate expected]
   (t/testing name
-    (let [errors (-> (sut/begin aggregate)
-                     (sut/attributes '[[(entity ?e)
-                                        [?e _ _]]]
-                                     checks)
-                     (sut/end)
-                     (errors->set))]
+    (let [entities-q '{:find  [[?e ...]]
+                       :where [[?e _ _]]}
+          errors     (-> (sut/begin aggregate)
+                         (sut/attributes entities-q checks)
+                         (sut/end)
+                         (errors->set))]
       (t/is (= expected errors)))))
-
 
 (defn- testing-attrs-common [kind]
   (t/testing kind
@@ -85,7 +84,6 @@
                       :predicate int?
                       :args      []}})))
 
-
 (t/deftest attributes
   (testing-attrs-common :opt)
   (testing-attrs-common :req)
@@ -104,3 +102,34 @@
                       :entity    42
                       :attribute :attr
                       :type      ::sut/required}})))
+
+(t/deftest query
+  (let [aggregate (-> (d/empty-db {:base {:db/valueType :db.type/ref}})
+                      (d/db-with [{:db/ident :root}
+                                  {:base :root
+                                   :val  1}
+                                  {:base :root
+                                   :val  1}]))
+        errors    (-> (sut/begin aggregate)
+                      (sut/query '{:find  [[?e ...]]
+                                   :where [[?e :db/ident :root]]}
+                                 '{:find  [(clojure.core/sort ?v) .]
+                                   :in    [$ ?e]
+                                   :with  [?nested]
+                                   :where [[?nested :base ?e]
+                                           [?nested :val  ?v]]}
+                                 = [1 1 2])
+                      (sut/end)
+                      (errors->set))]
+    (t/is (= #{{:db/id     1
+                :entity    1
+                :value     [1 1]
+                :query     '{:find  [(clojure.core/sort ?v) .]
+                             :in    [$ ?e]
+                             :with  [?nested]
+                             :where [[?nested :base ?e]
+                                     [?nested :val  ?v]]}
+                :predicate =
+                :args      [[1 1 2]]
+                :type      ::sut/query}}
+             errors))))
