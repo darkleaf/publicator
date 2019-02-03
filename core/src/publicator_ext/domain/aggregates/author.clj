@@ -3,14 +3,14 @@
    [publicator-ext.domain.abstractions.aggregate :as aggregate]
    [publicator-ext.domain.abstractions.id-generator :as id-generator]
    [publicator-ext.domain.util.validation :as validation]
-   [publicator-ext.domain.languages :as langs]))
+   [publicator-ext.domain.languages :as langs]
+   [publicator-ext.util :as u]))
 
 (def ^:const +states+ #{:active :archived})
 (def ^:const +stream-participation-roles+ #{:regular :admin})
 
 (defmethod aggregate/schema :author [_]
-  {:author.translation/lang               {:db/unique :db.unique/identity}
-   :author.translation/author             {:db/valueType :db.type/ref}
+  {:author.translation/author             {:db/valueType :db.type/ref}
    :author.stream-participation/stream-id {:db/unique :db.unique/identity}
    :author.stream-participation/author    {:db/valueType :db.type/ref}})
 
@@ -26,6 +26,14 @@
                               [:req :author.translation/first-name not-empty]
                               [:req :author.translation/last-name string?]
                               [:req :author.translation/last-name not-empty]])
+      (validation/query '{:find  [[?e ...]]
+                          :where [[?e :db/ident :root]]}
+                        '{:find  [[?lang ...]]
+                          :in    [$ ?e]
+                          :with  [?trans]
+                          :where [[?trans :author.translation/author ?e]
+                                  [?trans :author.translation/lang ?lang]]}
+                        u/match? langs/+languages+)
       (validation/attributes '{:find  [[?e ...]]
                                :where [[?e :author.stream-participation/author :root]]}
                              [[:req :author.stream-participation/role +stream-participation-roles+]

@@ -10,6 +10,9 @@
   (let [tx-data [{:db/ident     :root
                   :stream/state :active}
                  {:stream.translation/stream :root
+                  :stream.translation/lang   :en
+                  :stream.translation/name   "News"}
+                 {:stream.translation/stream :root
                   :stream.translation/lang   :ru
                   :stream.translation/name   "Новости"}]
         stream  (sut/build tx-data)]
