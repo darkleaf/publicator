@@ -1,4 +1,5 @@
-(ns publicator-ext.util)
+(ns publicator-ext.util
+  (:refer-clojure :exclude [distinct?]))
 
 (defn distinct? [coll]
   (= coll (distinct coll)))

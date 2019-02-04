@@ -18,14 +18,12 @@
                              [[:opt :article.translation/content string?]])
       (validation/attributes '{:find  [[?e ...]]
                                :where [[?e :db/ident :root]
-                                       [?e :publication/state :active]
                                        [?translation :publication.translation/publication ?e]
                                        [?translation :publication.translation/state :published]]}
                              [[:req :article/image-url not-empty]])
       (validation/attributes '{:find  [[?e ...]]
                                :where [[?e :publication.translation/publication :root]
-                                       [?e :publication.translation/state :published]
-                                       [:root :publication/state :active]]}
+                                       [?e :publication.translation/state :published]]}
                              [[:req :article.translation/content not-empty]])))
 
 (defn build [tx-data]

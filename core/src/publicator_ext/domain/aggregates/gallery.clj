@@ -17,7 +17,6 @@
                              [[:opt :gallery/image-urls string?]])
       (validation/attributes '{:find  [[?e ...]]
                                :where [[?e :db/ident :root]
-                                       [?e :publication/state :active]
                                        [?translation :publication.translation/publication ?e]
                                        [?translation :publication.translation/state :published]]}
                              [[:req :gallery/image-urls not-empty]])))

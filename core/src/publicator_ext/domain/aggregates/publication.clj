@@ -33,8 +33,7 @@
                         u/distinct?)
       (validation/attributes '{:find  [[?e ...]]
                                :where [[?e :publication.translation/publication :root]
-                                       [?e :publication.translation/state :published]
-                                       [:root :publication/state :active]]}
+                                       [?e :publication.translation/state :published]]}
                              [[:req :publication.translation/title not-empty]
                               [:req :publication.translation/summary not-empty]
                               [:req :publication.translation/published-at some?]])))

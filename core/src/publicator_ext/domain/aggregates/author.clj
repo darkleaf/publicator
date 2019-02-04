@@ -10,9 +10,8 @@
 (def ^:const +stream-participation-roles+ #{:regular :admin})
 
 (defmethod aggregate/schema :author [_]
-  {:author.translation/author             {:db/valueType :db.type/ref}
-   :author.stream-participation/stream-id {:db/unique :db.unique/identity}
-   :author.stream-participation/author    {:db/valueType :db.type/ref}})
+  {:author.translation/author          {:db/valueType :db.type/ref}
+   :author.stream-participation/author {:db/valueType :db.type/ref}})
 
 (defmethod aggregate/validator :author [chain]
   (-> chain
@@ -26,6 +25,10 @@
                               [:req :author.translation/first-name not-empty]
                               [:req :author.translation/last-name string?]
                               [:req :author.translation/last-name not-empty]])
+      (validation/attributes '{:find  [[?e ...]]
+                               :where [[?e :author.stream-participation/author :root]]}
+                             [[:req :author.stream-participation/role +stream-participation-roles+]
+                              [:req :author.stream-participation/stream-id pos-int?]])
       (validation/query '{:find  [[?e ...]]
                           :where [[?e :db/ident :root]]}
                         '{:find  [[?lang ...]]
@@ -34,10 +37,14 @@
                           :where [[?trans :author.translation/author ?e]
                                   [?trans :author.translation/lang ?lang]]}
                         u/match? langs/+languages+)
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :author.stream-participation/author :root]]}
-                             [[:req :author.stream-participation/role +stream-participation-roles+]
-                              [:req :author.stream-participation/stream-id pos-int?]])))
+      (validation/query '{:find  [[?e ...]]
+                          :where [[?e :db/ident :root]]}
+                        '{:find  [[?stream-id ...]]
+                          :in    [$ ?e]
+                          :with  [?part]
+                          :where [[?part :author.stream-participation/author ?e]
+                                  [?part :author.stream-participation/stream-id ?stream-id]]}
+                        u/distinct?)))
 
 (defn build [user-id tx-data]
   (aggregate/build :author user-id tx-data))
