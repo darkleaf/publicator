@@ -14,6 +14,10 @@
             [?translation :publication.translation/publication ?e]
             [?translation :publication.translation/state :published]]})
 
+(def ^:const translations-q
+  '{:find  [[?e ...]]
+    :where [[?e :publication.translation/publication :root]]})
+
 (def ^:const published-translations-q
   '{:find  [[?e ...]]
     :where [[?e :publication.translation/publication :root]
@@ -33,10 +37,12 @@
 
       (validation/required-for aggregate/root-q
                                [:publication/state some?])
+      (validation/required-for translations-q
+                               [:publication.translation/state some?]
+                               [:publication.translation/lang  some?])
       (validation/required-for published-translations-q
                                [:publication.translation/title not-empty]
                                [:publication.translation/summary not-empty]
-                               [:publication.translation/lang some?]
                                [:publication.translation/published-at some?])
 
       (validation/query aggregate/root-q
