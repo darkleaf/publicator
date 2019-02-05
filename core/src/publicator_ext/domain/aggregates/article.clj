@@ -10,21 +10,17 @@
 (defmethod aggregate/validator :article [chain]
   (-> chain
       (publication/validator)
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :db/ident :root]]}
-                             [[:opt :article/image-url string?]])
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :publication.translation/publication :root]]}
-                             [[:opt :article.translation/content string?]])
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :db/ident :root]
-                                       [?translation :publication.translation/publication ?e]
-                                       [?translation :publication.translation/state :published]]}
-                             [[:req :article/image-url not-empty]])
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :publication.translation/publication :root]
-                                       [?e :publication.translation/state :published]]}
-                             [[:req :article.translation/content not-empty]])))
+      (validation/types [:article/image-url string?]
+                        [:article.translation/content string?])
+      (validation/required-for '{:find  [[?e ...]]
+                                 :where [[?e :db/ident :root]
+                                         [?translation :publication.translation/publication ?e]
+                                         [?translation :publication.translation/state :published]]}
+                               [:article/image-url not-empty])
+      (validation/required-for '{:find  [[?e ...]]
+                                 :where [[?e :publication.translation/publication :root]
+                                         [?e :publication.translation/state :published]]}
+                               [:article.translation/content not-empty])))
 
 (defn build [tx-data]
   (let [id (id-generator/generate :publication)]

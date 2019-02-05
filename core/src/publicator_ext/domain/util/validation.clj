@@ -12,51 +12,55 @@
 (defn aggregate [chain]
   (:aggregate chain))
 
-(defn- attribute-normalize-check [[kind attribute predicate & args]]
-  [kind attribute predicate (vec args)])
+(defn- without-attribute-errors [chain ids attribute]
+  (d/q '{:find  [[?e ...]]
+         :in    [$ [?e ...] ?a]
+         :where [(not-join [?e ?a]
+                   [?err :entity ?e]
+                   [?err :attribute ?a])]}
+       (:errors chain) ids attribute))
 
-(defn- attribute-required [chain ids check]
-  (let [agg      (:aggregate chain)
-        errors   (d/q '{:find  [?e ?a]
-                        :in    [$ [?e ...] [?kind ?a _ _]]
-                        :where [[(= ?kind :req)]
-                                [(missing? $ ?e ?a)]]}
-                      agg ids check)
-        tx-data  (for [error errors]
-                   (-> (zipmap [:entity :attribute] error)
-                       (assoc :type ::required)))]
-    (update chain :errors d/db-with tx-data)))
-
-(defn- attribute-predicate [chain ids check]
-  (let [agg      (:aggregate chain)
-        errors   (d/q '{:find  [?e ?a ?v ?pred ?args]
-                        :in    [$ [?e ...] [_ ?a ?pred ?args]]
-                        :where [[?e ?a ?v]
-                                (not [(clojure.core/apply ?pred ?v ?args)])]}
-                      agg ids check)
-        tx-data  (for [error errors]
-                   (-> (zipmap [:entity :attribute :value :predicate :args] error)
-                       (assoc :type ::predicate)))]
-    (update chain :errors d/db-with tx-data)))
-
-(defn- attribute [chain ids check]
-  (let [errors (:errors chain)
-        ids    (d/q '{:find  [[?e ...]]
-                      :in    [$ [?e ...] [_ ?a _ _]]
-                      :where [(not-join [?e ?a]
-                                [?err :entity ?e]
-                                [?err :attribute ?a])]}
-                    errors ids check)]
-    (-> chain
-        (attribute-required  ids check)
-        (attribute-predicate ids check))))
-
-(defn attributes [chain entities-q checks]
-  (let [checks (map attribute-normalize-check checks)
+(defn- apply-check [chain ids [attr pred & args]]
+  (let [args   (vec args)
+        ids    (without-attribute-errors chain ids attr)
         agg    (:aggregate chain)
-        errs   (:errors chain)
-        ids    (d/q entities-q agg)]
-    (reduce (fn [chain check] (attribute chain ids check))
+        errors (d/q '{:find  [?e ?a ?v ?pred ?args]
+                      :in    [$ [?e ...] ?a ?pred ?args]
+                      :where [[?e ?a ?v]
+                              (not [(clojure.core/apply ?pred ?v ?args)])]}
+                    agg ids attr pred args)
+        tx-data (for [error errors]
+                  (-> (zipmap [:entity :attribute :value :predicate :args]
+                              error)
+                      (assoc :type ::predicate)))]
+    (update chain :errors d/db-with tx-data)))
+
+(defn- check-required [chain ids [attr & _]]
+  (let [ids    (without-attribute-errors chain ids attr)
+        agg    (:aggregate chain)
+        errors (d/q '{:find  [?e ?a]
+                      :in    [$ [?e ...] ?a]
+                      :where [[(missing? $ ?e ?a)]]}
+                    agg ids attr)
+        tx-data (for [error errors]
+                  (-> (zipmap [:entity :attribute]
+                              error)
+                      (assoc :type ::required)))]
+    (update chain :errors d/db-with tx-data)))
+
+(defn types [chain & checks]
+  (let [agg (:aggregate chain)
+        ids (d/q '[:find [?e ...] :where [?e _ _]] agg)]
+    (reduce (fn [chain check] (apply-check chain ids check))
+            chain checks)))
+
+(defn required-for [chain entities-q & checks]
+  (let [agg (:aggregate chain)
+        ids (d/q entities-q agg)]
+    (reduce (fn [chain check]
+              (-> chain
+                  (check-required ids check)
+                  (apply-check ids check)))
             chain checks)))
 
 (defn query [chain entities-q query pred & args]

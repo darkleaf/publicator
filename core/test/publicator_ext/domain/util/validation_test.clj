@@ -11,97 +11,96 @@
        (flatten)
        (set)))
 
-(defn- testing-attrs [name checks aggregate expected]
-  (t/testing name
-    (let [entities-q '{:find  [[?e ...]]
-                       :where [[?e _ _]]}
-          errors     (-> (sut/begin aggregate)
-                         (sut/attributes entities-q checks)
-                         (sut/end)
-                         (errors->set))]
-      (t/is (= expected errors)))))
+(defn- get-errors [aggregate validator]
+  (-> (sut/begin aggregate)
+      (validator)
+      (sut/end)
+      (errors->set)))
 
-(defn- testing-attrs-common [kind]
-  (t/testing kind
-    (testing-attrs "with empty aggregate"
-                   [[kind :attr int?]]
-                   (d/empty-db)
-                   #{})
-    (testing-attrs "with correct attribute"
-                   [[kind :attr int?]]
-                   (-> (d/empty-db)
-                       (d/db-with [[:db/add 42 :attr 0]]))
-                   #{})
-    (testing-attrs "with wrong attribute"
-                   [[kind :attr int?]]
-                   (-> (d/empty-db)
-                       (d/db-with [[:db/add 42 :attr :wrong-value]]))
-                   #{{:db/id     1
-                      :entity    42
-                      :attribute :attr
-                      :value     :wrong-value
-                      :type      ::sut/predicate
-                      :predicate int?
-                      :args      []}})
-    (testing-attrs "with predicate args"
-                   [[kind :attr = :val]]
-                   (-> (d/empty-db)
-                       (d/db-with [[:db/add 42 :attr :val]]))
-                   #{})
-    (testing-attrs "with predicate args"
-                   [[kind :attr = :val]]
-                   (-> (d/empty-db)
-                       (d/db-with [[:db/add 42 :attr :wrong-value]]))
-                   #{{:db/id     1
-                      :entity    42
-                      :attribute :attr
-                      :value     :wrong-value
-                      :type      ::sut/predicate
-                      :predicate =
-                      :args      [:val]}})
-    (testing-attrs "double"
-                   [[kind :attr int?]
-                    [kind :attr int?]]
-                   (-> (d/empty-db)
-                       (d/db-with [[:db/add 42 :attr :wrong-value]]))
-                   #{{:db/id     1
-                      :entity    42
-                      :attribute :attr
-                      :value     :wrong-value
-                      :type      ::sut/predicate
-                      :predicate int?
-                      :args      []}})
-    (testing-attrs "same attr"
-                   [[kind :attr int?]
-                    [kind :attr < 10]]
-                   (-> (d/empty-db)
-                       (d/db-with [[:db/add 42 :attr :wrong-value]]))
-                   #{{:db/id     1
-                      :entity    42
-                      :attribute :attr
-                      :value     :wrong-value
-                      :type      ::sut/predicate
-                      :predicate int?
-                      :args      []}})))
+(t/deftest types
+  (let [validator #(-> %
+                       (sut/types [:attr int?]
+                                  [:attr < 10]))]
+    (t/testing "empty"
+      (let [agg    (d/empty-db)
+            errors (get-errors agg validator)]
+        (t/is (= #{} errors))))
+    (t/testing "missed"
+      (let [agg    (-> (d/empty-db)
+                       (d/db-with [[:db/add 1 :other :val]]))
+            errors (get-errors agg validator)]
+        (t/is (= #{} errors))))
+    (t/testing "correct"
+      (let [agg    (-> (d/empty-db)
+                       (d/db-with [[:db/add 1 :attr 0]]))
+            errors (get-errors agg validator)]
+        (t/is (= #{} errors))))
+    (t/testing "first check"
+      (let [agg    (-> (d/empty-db)
+                       (d/db-with [[:db/add 1 :attr :wrong]]))
+            errors (get-errors agg validator)]
+        (t/is (= #{{:db/id     1
+                    :entity    1
+                    :attribute :attr
+                    :value     :wrong
+                    :predicate int?
+                    :args      []
+                    :type      ::sut/predicate}}
+                 errors))))
+    (t/testing "second check"
+      (let [agg    (-> (d/empty-db)
+                       (d/db-with [[:db/add 1 :attr 10]]))
+            errors (get-errors agg validator)]
+        (t/is (= #{{:db/id     1
+                    :entity    1
+                    :attribute :attr
+                    :value     10
+                    :predicate <
+                    :args      [10]
+                    :type      ::sut/predicate}}
+                 errors))))
+    (t/testing "many"
+      (let [agg    (-> (d/empty-db {:attr {:db/cardinality :db.cardinality/many}})
+                       (d/db-with [[:db/add 1 :attr 1]
+                                   [:db/add 1 :attr 10]]))
+            errors (get-errors agg validator)]
+        (t/is (= #{{:db/id     1
+                    :entity    1
+                    :attribute :attr
+                    :value     10
+                    :predicate <
+                    :args      [10]
+                    :type      ::sut/predicate}}
+                 errors))))))
 
-(t/deftest attributes
-  (testing-attrs-common :opt)
-  (testing-attrs-common :req)
-  (t/testing :opt
-    (testing-attrs "with missing attribute"
-                   [[:opt :attr int?]]
-                   (-> (d/empty-db)
-                       (d/db-with [[:db/add 42 :other-attr :value]]))
-                   #{}))
-  (t/testing :req
-    (testing-attrs "with missing attribute"
-                   [[:req :attr int?]]
-                   (-> (d/empty-db)
-                       (d/db-with [[:db/add 42 :other-attr :value]]))
-                   #{{:db/id     1
-                      :entity    42
-                      :attribute :attr
-                      :type      ::sut/required}})))
+(t/deftest required-for
+  (let [validator #(-> %
+                       (sut/types [:attr int?])
+                       (sut/required-for '{:find  [[?e ...]]
+                                           :where [[?e :type :active]]}
+                                         [:attr = 0]))]
+    (t/testing "empty"
+      (let [agg    (d/empty-db)
+            errors (get-errors agg validator)]
+        (t/is (= #{} errors))))
+    (t/testing "missing"
+      (let [agg    (-> (d/empty-db)
+                       (d/db-with [[:db/add 1 :type :active]]))
+            errors (get-errors agg validator)]
+        (t/is (= #{{:db/id     1
+                    :entity    1
+                    :attribute :attr
+                    :type      ::sut/required}}
+                 errors))))
+    (t/testing "scope"
+      (let [agg    (-> (d/empty-db)
+                       (d/db-with [{:db/id 1
+                                    :type  :active
+                                    :attr  0}
+                                   {:db/id 2
+                                    :type  :inactive}]))
+            errors (get-errors agg validator)]
+        (t/is (= #{} errors))))))
 
 (t/deftest query
   (let [aggregate (-> (d/empty-db {:base {:db/valueType :db.type/ref}})

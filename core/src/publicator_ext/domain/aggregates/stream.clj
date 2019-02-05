@@ -13,14 +13,18 @@
 
 (defmethod aggregate/validator :stream [chain]
   (-> chain
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :db/ident :root]]}
-                             [[:req :stream/state +states+]])
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :stream.translation/stream :root]]}
-                             [[:req :stream.translation/lang langs/+languages+]
-                              [:req :stream.translation/name string?]
-                              [:req :stream.translation/name not-empty]])
+      (validation/types [:stream/state +states+]
+                        [:stream.translation/lang langs/+languages+]
+                        [:stream.translation/name string?])
+
+      (validation/required-for '{:find  [[?e ...]]
+                                 :where [[?e :db/ident :root]]}
+                               [:stream/state some?])
+      (validation/required-for '{:find  [[?e ...]]
+                                 :where [[?e :stream.translation/stream :root]]}
+                               [:stream.translation/lang some?]
+                               [:stream.translation/name not-empty])
+
       (validation/query '{:find  [[?e ...]]
                           :where [[?e :db/ident :root]]}
                         '{:find  [[?lang ...]]

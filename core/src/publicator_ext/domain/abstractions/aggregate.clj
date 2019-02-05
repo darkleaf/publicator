@@ -11,12 +11,15 @@
 (defmethod validator :default [chain] chain)
 
 (defn- common-validator [chain]
-  (validation/attributes chain
-                         '{:find [[?e ...]]
-                           :where [[?e :db/ident :root]]}
-                         [[:req :aggregate/id pos-int?]
-                          [:req :aggregate/created-at inst?]
-                          [:req :aggregate/updated-at inst?]]))
+  (-> chain
+      (validation/types [:aggregate/id         pos-int?]
+                        [:aggregate/created-at inst?]
+                        [:aggregate/updated-at inst?])
+      (validation/required-for '{:find [[?e ...]]
+                                 :where [[?e :db/ident :root]]}
+                               [:aggregate/id         some?]
+                               [:aggregate/created-at some?]
+                               [:aggregate/updated-at some?])))
 
 (defn- check-errors! [aggregate]
   (let [errs (-> (validation/begin aggregate)

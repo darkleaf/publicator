@@ -9,13 +9,15 @@
 
 (defmethod aggregate/validator :user [chain]
   (-> chain
-      (validation/attributes '{:find [[?e ...]]
-                               :where [[?e :db/ident :root]]}
-                             [[:req :user/login string?]
-                              [:req :user/login not-empty]
-                              [:req :user/password-digest string?]
-                              [:req :user/password-digest not-empty]
-                              [:req :user/state +states+]])))
+      (validation/types [:user/login string?]
+                        [:user/password-digest string?]
+                        [:user/state +states+])
+
+      (validation/required-for '{:find [[?e ...]]
+                                 :where [[?e :db/ident :root]]}
+                               [:user/login not-empty]
+                               [:user/password-digest not-empty]
+                               [:user/state some?])))
 
 (defn build [tx-data]
   (let [id (id-generator/generate :user)]

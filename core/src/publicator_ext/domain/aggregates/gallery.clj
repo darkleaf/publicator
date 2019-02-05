@@ -12,14 +12,13 @@
 (defmethod aggregate/validator :gallery [chain]
   (-> chain
       (publication/validator)
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :db/ident :root]]}
-                             [[:opt :gallery/image-urls string?]])
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :db/ident :root]
-                                       [?translation :publication.translation/publication ?e]
-                                       [?translation :publication.translation/state :published]]}
-                             [[:req :gallery/image-urls not-empty]])))
+      (validation/types [:gallery/image-urls string?])
+
+      (validation/required-for '{:find  [[?e ...]]
+                                 :where [[?e :db/ident :root]
+                                         [?translation :publication.translation/publication ?e]
+                                         [?translation :publication.translation/state :published]]}
+                               [:gallery/image-urls not-empty])))
 
 (defn build [tx-data]
   (let [id (id-generator/generate :publication)]

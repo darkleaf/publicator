@@ -15,20 +15,26 @@
 
 (defmethod aggregate/validator :author [chain]
   (-> chain
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :db/ident :root]]}
-                             [[:req :author/state +states+]])
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :author.translation/author :root]]}
-                             [[:req :author.translation/lang langs/+languages+]
-                              [:req :author.translation/first-name string?]
-                              [:req :author.translation/first-name not-empty]
-                              [:req :author.translation/last-name string?]
-                              [:req :author.translation/last-name not-empty]])
-      (validation/attributes '{:find  [[?e ...]]
-                               :where [[?e :author.stream-participation/author :root]]}
-                             [[:req :author.stream-participation/role +stream-participation-roles+]
-                              [:req :author.stream-participation/stream-id pos-int?]])
+      (validation/types [:author/state +states+]
+                        [:author.translation/lang langs/+languages+]
+                        [:author.translation/first-name string?]
+                        [:author.translation/last-name string?]
+                        [:author.stream-participation/role +stream-participation-roles+]
+                        [:author.stream-participation/stream-id pos-int?])
+
+      (validation/required-for '{:find  [[?e ...]]
+                                 :where [[?e :db/ident :root]]}
+                               [:author/state some?])
+      (validation/required-for '{:find  [[?e ...]]
+                                 :where [[?e :author.translation/author :root]]}
+                               [:author.translation/lang some?]
+                               [:author.translation/first-name not-empty]
+                               [:author.translation/last-name not-empty])
+      (validation/required-for '{:find  [[?e ...]]
+                                 :where [[?e :author.stream-participation/author :root]]}
+                               [:author.stream-participation/role some?]
+                               [:author.stream-participation/stream-id some?])
+
       (validation/query '{:find  [[?e ...]]
                           :where [[?e :db/ident :root]]}
                         '{:find  [[?lang ...]]
