@@ -13,8 +13,7 @@
                         [:user/password-digest string?]
                         [:user/state +states+])
 
-      (validation/required-for '{:find [[?e ...]]
-                                 :where [[?e :db/ident :root]]}
+      (validation/required-for aggregate/root-q
                                [:user/login not-empty]
                                [:user/password-digest not-empty]
                                [:user/state some?])))

@@ -10,8 +10,7 @@
 (defmethod aggregate/validator :admin [chain]
   (-> chain
       (validation/types [:admin/state +states+])
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :db/ident :root]]}
+      (validation/required-for aggregate/root-q
                                [:admin/state some?])))
 
 (defn build [user-id tx-data]

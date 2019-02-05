@@ -14,10 +14,7 @@
       (publication/validator)
       (validation/types [:gallery/image-urls string?])
 
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :db/ident :root]
-                                         [?translation :publication.translation/publication ?e]
-                                         [?translation :publication.translation/state :published]]}
+      (validation/required-for publication/published-q
                                [:gallery/image-urls not-empty])))
 
 (defn build [tx-data]

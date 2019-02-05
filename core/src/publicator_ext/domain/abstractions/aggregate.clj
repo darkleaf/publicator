@@ -10,13 +10,15 @@
 (defmulti validator (fn [chain] (-> chain validation/aggregate type)))
 (defmethod validator :default [chain] chain)
 
+(def ^:const root-q '{:find [[?e ...]]
+                      :where [[?e :db/ident :root]]})
+
 (defn- common-validator [chain]
   (-> chain
       (validation/types [:aggregate/id         pos-int?]
                         [:aggregate/created-at inst?]
                         [:aggregate/updated-at inst?])
-      (validation/required-for '{:find [[?e ...]]
-                                 :where [[?e :db/ident :root]]}
+      (validation/required-for root-q
                                [:aggregate/id         some?]
                                [:aggregate/created-at some?]
                                [:aggregate/updated-at some?])))

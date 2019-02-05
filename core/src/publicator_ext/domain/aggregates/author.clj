@@ -9,6 +9,14 @@
 (def ^:const +states+ #{:active :archived})
 (def ^:const +stream-participation-roles+ #{:regular :admin})
 
+(def ^:const translations-q
+  '{:find  [[?e ...]]
+    :where [[?e :author.translation/author :root]]})
+
+(def ^:const stream-participations-q
+  '{:find  [[?e ...]]
+    :where [[?e :author.stream-participation/author :root]]})
+
 (defmethod aggregate/schema :author [_]
   {:author.translation/author          {:db/valueType :db.type/ref}
    :author.stream-participation/author {:db/valueType :db.type/ref}})
@@ -22,29 +30,24 @@
                         [:author.stream-participation/role +stream-participation-roles+]
                         [:author.stream-participation/stream-id pos-int?])
 
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :db/ident :root]]}
+      (validation/required-for aggregate/root-q
                                [:author/state some?])
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :author.translation/author :root]]}
+      (validation/required-for translations-q
                                [:author.translation/lang some?]
                                [:author.translation/first-name not-empty]
                                [:author.translation/last-name not-empty])
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :author.stream-participation/author :root]]}
+      (validation/required-for stream-participations-q
                                [:author.stream-participation/role some?]
                                [:author.stream-participation/stream-id some?])
 
-      (validation/query '{:find  [[?e ...]]
-                          :where [[?e :db/ident :root]]}
+      (validation/query aggregate/root-q
                         '{:find  [[?lang ...]]
                           :in    [$ ?e]
                           :with  [?trans]
                           :where [[?trans :author.translation/author ?e]
                                   [?trans :author.translation/lang ?lang]]}
                         u/match? langs/+languages+)
-      (validation/query '{:find  [[?e ...]]
-                          :where [[?e :db/ident :root]]}
+      (validation/query aggregate/root-q
                         '{:find  [[?stream-id ...]]
                           :in    [$ ?e]
                           :with  [?part]

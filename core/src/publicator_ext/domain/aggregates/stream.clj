@@ -8,6 +8,10 @@
 
 (def ^:const +states+ #{:active :archived})
 
+(def ^:const translations-q
+  '{:find  [[?e ...]]
+    :where [[?e :stream.translation/stream :root]]})
+
 (defmethod aggregate/schema :stream [_]
   {:stream.translation/stream {:db/valueType :db.type/ref}})
 
@@ -17,16 +21,13 @@
                         [:stream.translation/lang langs/+languages+]
                         [:stream.translation/name string?])
 
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :db/ident :root]]}
+      (validation/required-for aggregate/root-q
                                [:stream/state some?])
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :stream.translation/stream :root]]}
+      (validation/required-for translations-q
                                [:stream.translation/lang some?]
                                [:stream.translation/name not-empty])
 
-      (validation/query '{:find  [[?e ...]]
-                          :where [[?e :db/ident :root]]}
+      (validation/query aggregate/root-q
                         '{:find  [[?lang ...]]
                           :in    [$ ?e]
                           :with  [?trans]

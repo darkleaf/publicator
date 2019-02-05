@@ -8,6 +8,17 @@
 (def ^:const +states+ #{:active :archived})
 (def ^:const +translation-states+ #{:draft :published})
 
+(def ^:const published-q
+  '{:find  [[?e ...]]
+    :where [[?e :db/ident :root]
+            [?translation :publication.translation/publication ?e]
+            [?translation :publication.translation/state :published]]})
+
+(def ^:const published-translations-q
+  '{:find  [[?e ...]]
+    :where [[?e :publication.translation/publication :root]
+            [?e :publication.translation/state :published]]})
+
 (defn validator [chain]
   (-> chain
       (validation/types [:publication/state +states+]
@@ -20,19 +31,15 @@
                         [:publication.translation/tags string?]
                         [:publication.translation/published-at inst?])
 
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :db/ident :root]]}
+      (validation/required-for aggregate/root-q
                                [:publication/state some?])
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :publication.translation/publication :root]
-                                         [?e :publication.translation/state :published]]}
+      (validation/required-for published-translations-q
                                [:publication.translation/title not-empty]
                                [:publication.translation/summary not-empty]
                                [:publication.translation/lang some?]
                                [:publication.translation/published-at some?])
 
-      (validation/query '{:find  [[?e ...]]
-                          :where [[?e :db/ident :root]]}
+      (validation/query aggregate/root-q
                         '{:find  [[?lang ...]]
                           :in    [$ ?e]
                           :with  [?trans]

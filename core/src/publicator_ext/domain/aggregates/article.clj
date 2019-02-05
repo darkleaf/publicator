@@ -12,14 +12,9 @@
       (publication/validator)
       (validation/types [:article/image-url string?]
                         [:article.translation/content string?])
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :db/ident :root]
-                                         [?translation :publication.translation/publication ?e]
-                                         [?translation :publication.translation/state :published]]}
+      (validation/required-for publication/published-q
                                [:article/image-url not-empty])
-      (validation/required-for '{:find  [[?e ...]]
-                                 :where [[?e :publication.translation/publication :root]
-                                         [?e :publication.translation/state :published]]}
+      (validation/required-for publication/published-translations-q
                                [:article.translation/content not-empty])))
 
 (defn build [tx-data]
