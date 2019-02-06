@@ -1,14 +1,9 @@
-(ns publicator-ext.domain.abstractions.instant
-  (:require
-   [clojure.spec.alpha :as s])
-  (:import
-   [java.time Instant]))
+(ns publicator-ext.domain.abstractions.instant)
 
-(defn ^:dynamic *now* []
-  (Instant/now))
+(defprotocol Instant
+  (-now [this]))
 
-(s/fdef now
-  :ret inst?)
+(declare ^:dynamic *instant*)
 
 (defn now []
-  (*now*))
+  (-now *instant*))
