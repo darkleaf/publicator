@@ -2,7 +2,6 @@
   (:require
    [publicator-ext.domain.aggregates.author :as sut]
    [publicator-ext.domain.test.fakes :as fakes]
-   [publicator-ext.domain.abstractions.aggregate :as aggregate]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fakes/fixture)

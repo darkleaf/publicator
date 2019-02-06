@@ -1,4 +1,4 @@
-(ns publicator-ext.domain.abstractions.aggregate
+(ns publicator-ext.domain.aggregate
   (:require
    [publicator-ext.domain.abstractions.instant :as instant]
    [publicator-ext.domain.util.validation :as validation]

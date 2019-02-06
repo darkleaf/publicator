@@ -2,7 +2,6 @@
   (:require
    [publicator-ext.domain.aggregates.gallery :as sut]
    [publicator-ext.domain.test.fakes :as fakes]
-   [publicator-ext.domain.abstractions.aggregate :as aggregate]
    [publicator-ext.domain.abstractions.instant :as instant]
    [clojure.test :as t]))
 

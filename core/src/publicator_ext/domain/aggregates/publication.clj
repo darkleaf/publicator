@@ -1,6 +1,6 @@
 (ns publicator-ext.domain.aggregates.publication
   (:require
-   [publicator-ext.domain.abstractions.aggregate :as aggregate]
+   [publicator-ext.domain.aggregate :as aggregate]
    [publicator-ext.domain.util.validation :as validation]
    [publicator-ext.domain.languages :as langs]
    [publicator-ext.util :as u]))

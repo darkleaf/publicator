@@ -1,6 +1,6 @@
-(ns publicator-ext.domain.abstractions.aggregate-test
+(ns publicator-ext.domain.aggregate-test
   (:require
-   [publicator-ext.domain.abstractions.aggregate :as sut]
+   [publicator-ext.domain.aggregate :as sut]
    [publicator-ext.domain.util.validation :as validation]
    [clojure.test :as t]))
 
