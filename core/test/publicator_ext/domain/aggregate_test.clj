@@ -2,19 +2,13 @@
   (:require
    [publicator-ext.domain.aggregate :as sut]
    [publicator-ext.domain.util.validation :as validation]
+   [publicator-ext.domain.abstractions.scaffolding :as scaffolding]
    [clojure.test :as t]))
+
+(t/use-fixtures :each scaffolding/setup)
 
 (defmethod sut/schema ::aggregate [_]
   {:inner/base {:db/valueType :db.type/ref}})
-
-(defmethod sut/validator ::aggregate [chain]
-  (-> chain
-      (validation/attributes '{:find [[?e ...]]
-                               :where [[?e :db/ident :root]]}
-                             [[:req :root/key keyword?]])
-      (validation/attributes '{:find [[?e ...]]
-                               :where [[?e :inner/base :root]]}
-                             [[:req :inner/key keyword?]])))
 
 (t/deftest build
   (let [id        1

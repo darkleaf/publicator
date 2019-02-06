@@ -1,11 +1,11 @@
 (ns publicator-ext.domain.aggregates.gallery-test
   (:require
    [publicator-ext.domain.aggregates.gallery :as sut]
-   [publicator-ext.domain.test.fakes :as fakes]
+   [publicator-ext.domain.abstractions.scaffolding :as scaffolding]
    [publicator-ext.domain.abstractions.instant :as instant]
    [clojure.test :as t]))
 
-(t/use-fixtures :each fakes/fixture)
+(t/use-fixtures :each scaffolding/setup)
 
 (t/deftest build
   (let [tx-data [{:db/ident                :root
