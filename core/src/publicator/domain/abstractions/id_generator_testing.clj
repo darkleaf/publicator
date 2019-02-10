@@ -4,6 +4,4 @@
    [clojure.test :as t]))
 
 (defn testing []
-  (doseq [space #{:user :stream :publication}]
-    (t/testing space
-      (t/is (pos-int? (sut/generate space))))))
+  (t/is (pos-int? (sut/generate :test-space))))
