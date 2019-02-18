@@ -1,11 +1,11 @@
 (ns publicator.domain.abstractions.id-generator-fake-test
   (:require
    [publicator.domain.abstractions.id-generator-fake :as sut]
-   [publicator.domain.abstractions.id-generator-testing :as testing]
+   [publicator.utils.test :as u.t]
    [clojure.test :as t]))
 
 (t/deftest id-generator
-  (testing/tests (fn [t]
-                   (fn []
-                     (with-bindings (sut/binding-map)
-                       (t))))))
+  (u.t/run 'publicator.domain.abstractions.id-generator-testing
+    (fn [t]
+      (with-bindings (sut/binding-map)
+        (t)))))
