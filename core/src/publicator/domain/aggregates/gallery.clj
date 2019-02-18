@@ -3,7 +3,7 @@
    [publicator.domain.aggregate :as aggregate]
    [publicator.domain.abstractions.id-generator :as id-generator]
    [publicator.domain.aggregates.publication :as publication]
-   [publicator.domain.util.validation :as validation]))
+   [publicator.domain.utils.validation :as validation]))
 
 (defmethod aggregate/schema :gallery [_]
   (merge publication/+schema+

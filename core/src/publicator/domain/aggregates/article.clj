@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.aggregate :as aggregate]
    [publicator.domain.aggregates.publication :as publication]
-   [publicator.domain.util.validation :as validation]
+   [publicator.domain.utils.validation :as validation]
    [publicator.domain.abstractions.id-generator :as id-generator]))
 
 (defmethod aggregate/schema :article [_] publication/+schema+)

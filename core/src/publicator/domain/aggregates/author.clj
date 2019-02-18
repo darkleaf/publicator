@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.aggregate :as aggregate]
    [publicator.domain.abstractions.id-generator :as id-generator]
-   [publicator.domain.util.validation :as validation]
+   [publicator.domain.utils.validation :as validation]
    [publicator.domain.languages :as langs]
    [publicator.utils.coll :as u.c]))
 

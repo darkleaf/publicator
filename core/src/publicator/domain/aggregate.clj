@@ -1,7 +1,7 @@
 (ns publicator.domain.aggregate
   (:require
    [publicator.domain.abstractions.instant :as instant]
-   [publicator.domain.util.validation :as validation]
+   [publicator.domain.utils.validation :as validation]
    [datascript.core :as d]))
 
 (defmulti schema identity)

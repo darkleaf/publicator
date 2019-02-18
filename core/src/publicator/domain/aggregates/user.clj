@@ -3,7 +3,7 @@
    [publicator.domain.abstractions.id-generator :as id-generator]
    [publicator.domain.abstractions.instant :as instant]
    [publicator.domain.aggregate :as aggregate]
-   [publicator.domain.util.validation :as validation]))
+   [publicator.domain.utils.validation :as validation]))
 
 (def ^:const +states+ #{:active :archived})
 
