@@ -4,7 +4,7 @@
    [publicator.domain.abstractions.id-generator :as id-generator]
    [publicator.domain.util.validation :as validation]
    [publicator.domain.languages :as langs]
-   [publicator.util :as u]))
+   [publicator.utils.coll :as u.c]))
 
 (def ^:const +states+ #{:active :archived})
 (def ^:const +stream-participation-roles+ #{:regular :admin})
@@ -46,14 +46,14 @@
                           :with  [?trans]
                           :where [[?trans :author.translation/author ?e]
                                   [?trans :author.translation/lang ?lang]]}
-                        u/match? langs/+languages+)
+                        u.c/match? langs/+languages+)
       (validation/query aggregate/root-q
                         '{:find  [[?stream-id ...]]
                           :in    [$ ?e]
                           :with  [?part]
                           :where [[?part :author.stream-participation/author ?e]
                                   [?part :author.stream-participation/stream-id ?stream-id]]}
-                        u/distinct?)))
+                        u.c/distinct?)))
 
 (defn build [user-id tx-data]
   (aggregate/build :author user-id tx-data))

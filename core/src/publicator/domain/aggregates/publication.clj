@@ -3,7 +3,7 @@
    [publicator.domain.aggregate :as aggregate]
    [publicator.domain.util.validation :as validation]
    [publicator.domain.languages :as langs]
-   [publicator.util :as u]))
+   [publicator.utils.coll :as u.c]))
 
 (def ^:const +states+ #{:active :archived})
 (def ^:const +translation-states+ #{:draft :published})
@@ -51,7 +51,7 @@
                           :with  [?trans]
                           :where [[?trans :publication.translation/publication ?e]
                                   [?trans :publication.translation/lang ?lang]]}
-                        u/distinct?)))
+                        u.c/distinct?)))
 
 (def ^:const +schema+ {:publication/related-ids             {:db/cardinality :db.cardinality/many}
                        :publication.translation/publication {:db/valueType :db.type/ref}

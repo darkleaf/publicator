@@ -4,7 +4,7 @@
    [publicator.domain.aggregate :as aggregate]
    [publicator.domain.util.validation :as validation]
    [publicator.domain.languages :as langs]
-   [publicator.util :as u]))
+   [publicator.utils.coll :as u.c]))
 
 (def ^:const +states+ #{:active :archived})
 
@@ -33,7 +33,7 @@
                           :with  [?trans]
                           :where [[?trans :stream.translation/stream ?e]
                                   [?trans :stream.translation/lang ?lang]]}
-                        u/match? langs/+languages+)))
+                        u.c/match? langs/+languages+)))
 
 (defn build [tx-data]
   (let [id (id-generator/generate :stream)]
