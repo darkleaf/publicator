@@ -4,10 +4,5 @@
   (:import
    [java.time Instant]))
 
-(deftype InstantImpl []
-  instant/Instant
-  (-now [this]
-    (Instant/now)))
-
 (defn binding-map []
-  {#'instant/*instant* (InstantImpl.)})
+  {#'instant/now (fn [] (Instant/now))})

@@ -1,9 +1,5 @@
 (ns publicator.domain.abstractions.instant)
 
-(defprotocol Instant
-  (-now [this]))
-
-(declare ^:dynamic *instant*)
-
-(defn now []
-  (-now *instant*))
+(declare ^{:dynamic true
+           :arglists '([])}
+         now)
