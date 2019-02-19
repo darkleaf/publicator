@@ -1,5 +1,5 @@
 (ns publicator.domain.abstractions.id-generator)
 
-(declare ^{:dynamic true
+(declare ^{:dynamic  true
            :arglists '([space])}
          generate)
