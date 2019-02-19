@@ -4,6 +4,7 @@
    [clojure.test :as t]))
 
 (defn- test-vars [ns-symbol]
+  (require ns-symbol)
   (->> ns-symbol
        find-ns
        ns-publics
