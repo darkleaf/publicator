@@ -14,53 +14,37 @@
 
 (defn test-create-&-get []
   (let [agg (build-agg)]
-    (t/is (= agg
-             (sut/atomic t
-               @(sut/create t agg))
-             (sut/atomic t
-               @(sut/get-one t id))))))
+    (sut/just-create agg)
+    (t/is (= agg (sut/just-get-one id)))))
 
 (defn test-alter []
-  (let [test    (build-agg)
+  (let [agg     (build-agg)
         tx-data [[:db/add :root :counter 1]]
-        test'   (d/db-with test tx-data)
-        _       (sut/atomic t
-                  (sut/create t test))
-        _       (sut/atomic t
-                  (let [iagg (sut/get-one t id)]
-                    (dosync
-                     (alter iagg d/db-with tx-data))))
-        test''  (sut/atomic t
-                  @(sut/get-one t id))]
-    (t/is (= test' test''))))
+        agg'    (d/db-with agg tx-data)
+        _       (sut/just-create agg)
+        _       (sut/just-alter id d/db-with tx-data)
+        agg''   (sut/just-get-one id)]
+    (t/is (= agg' agg''))))
 
-;; (defn test-identity-map-persisted
-;;   (let [test (storage/tx-create (->Test 0))
-;;         id   (aggregate/id test)]
-;;     (storage/with-tx t
-;;       (let [x (storage/get-one t id)
-;;             y (storage/get-one t id)]
-;;         (t/is (identical? x y))))))
+(defn test-identity-map-persisted []
+  (let [agg (sut/just-create (build-agg))]
+    (sut/atomic t
+      (let [iagg  (sut/get-one t id)
+            iagg' (sut/get-one t id)]
+        (t/is (identical? iagg iagg'))))))
 
-;; (t/deftest identity-map-in-memory
-;;   (storage/with-tx t
-;;     (let [x (storage/create t (->Test 0))
-;;           y (storage/get-one t (aggregate/id @x))]
-;;       (t/is (identical? x y)))))
+(defn test-identity-map-in-memory []
+  (sut/atomic t
+    (let [iagg  (sut/create t (build-agg))
+          iagg' (sut/get-one t id)]
+      (t/is (identical? iagg iagg')))))
 
-;; (t/deftest identity-map-swap
-;;   (storage/with-tx t
-;;     (let [x (storage/create t (->Test 0))
-;;           y (storage/get-one t (aggregate/id @x))
-;;           _ (dosync (alter x update :counter inc))]
-;;       (t/is (= 1 (:counter @x) (:counter @y))))))
-
-
-
-
-
-
-
+(defn test-identity-map-swap []
+  (sut/atomic t
+    (let [iagg    (sut/create t (build-agg))
+          iagg'   (sut/get-one t id)]
+      (dosync (alter iagg d/db-with [[:db/add :root :counter 1]]))
+      (t/is (= @iagg @iagg')))))
 
 
 

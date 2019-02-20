@@ -1,4 +1,6 @@
-(ns publicator.use-cases.abstractions.storage)
+(ns publicator.use-cases.abstractions.storage
+  (:require
+   [publicator.utils.coll :as u.c]))
 
 (declare ^{:dynamic true, :arglists '([func-from-t])}
          *atomic-apply*)
@@ -17,28 +19,26 @@
   (let [res (get-many t [id])]
     (get res id)))
 
-;;(defn preload [t ids]) ;; alias
+(def ^{:arglists '([t ids])} preload get-many)
 
+(defn just-get-one [id]
+  (atomic t
+    (when-let [x (get-one t id)]
+      @x)))
 
+(defn just-get-many [ids]
+  (atomic t
+    (->> ids
+         (get-many t)
+         (u.c/map-vals deref))))
 
+(defn just-create [state]
+  (atomic t
+    (create t state))
+  nil)
 
-;; (defn atomic-get-one [id]
-;;   (atomic t
-;;     (when-let [x (get-one t id)]
-;;       @x)))
-
-;; (defn atomic-get-many [ids]
-;;   (atomic t
-;;     (->> ids
-;;          (get-many t)
-;;          (ext/map-vals deref))))
-
-;; (defn atomic-create [state]
-;;   (atomic t
-;;     @(create t state)))
-
-;; (defn atomic-alter [state f & args]
-;;   (atomic t
-;;     (when-let [x (get-one t (aggregate/id state))]
-;;       (dosync
-;;        (apply alter x f args)))))
+(defn just-alter [id f & args]
+  (atomic t
+    (when-let [x (get-one t id)]
+      (dosync
+       (apply alter x f args)))))
