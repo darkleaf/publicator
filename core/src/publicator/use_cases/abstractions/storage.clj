@@ -1,18 +1,16 @@
 (ns publicator.use-cases.abstractions.storage)
 
 (declare ^{:dynamic true, :arglists '([func-from-t])}
-         atomic-apply
+         *atomic-apply*)
 
-         ^{:dynamic true, :arglists '([t ids])}
-         get-many
-
-         ^{:dynamic true, :arglists '([t state])}
-         create)
+(defprotocol Transaction
+  (create [t state])
+  (get-many [t ids]))
 
 (defmacro atomic
   {:style/indent [1 [[:defn]] :form]}
   [t-name & body]
-  `(atomic-apply (fn [~t-name] ~@body)))
+  `(*atomic-apply* (fn [~t-name] ~@body)))
 
 (defn get-one [t id]
   (let [res (get-many t [id])]

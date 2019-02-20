@@ -6,22 +6,19 @@
 (defn- build-atomic-apply [db]
   (fn [func]
     (locking db
-      (let [t db]
+      (let [t (reify
+                storage/Transaction
+                (get-many [_ ids]
+                  (select-keys @db ids))
+                (create [_ state]
+                  (let [id   (-> state aggregate/root :aggregate/id)
+                        iagg (ref state)]
+                    (vswap! db assoc id iagg)
+                    iagg)))]
         (func t)))))
-
-(defn- get-many [t ids]
-  (select-keys @t ids))
-
-(defn- create [t state]
-  (let [id   (-> state aggregate/root :aggregate/id)
-        iagg (ref state)]
-    (vswap! t assoc id iagg)
-    iagg))
 
 (defn build-db []
   (volatile! {}))
 
 (defn binding-map [db]
-  {#'storage/atomic-apply (build-atomic-apply db)
-   #'storage/get-many     get-many
-   #'storage/create       create})
+  {#'storage/*atomic-apply* (build-atomic-apply db)})
