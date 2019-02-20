@@ -4,6 +4,7 @@
          *atomic-apply*)
 
 (defprotocol Transaction
+  :extend-via-metadata true
   (create [t state])
   (get-many [t ids]))
 
