@@ -2,4 +2,4 @@
 
 (declare ^{:dynamic  true
            :arglists '([space])}
-         generate)
+         *generate*)

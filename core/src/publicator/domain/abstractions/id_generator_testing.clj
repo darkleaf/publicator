@@ -4,4 +4,4 @@
    [clojure.test :as t]))
 
 (defn test-return-value []
-  (t/is (pos-int? (sut/generate :test-space))))
+  (t/is (pos-int? (sut/*generate* :test-space))))

@@ -5,4 +5,4 @@
    [java.time Instant]))
 
 (defn binding-map []
-  {#'instant/now #(Instant/now)})
+  {#'instant/*now* #(Instant/now)})

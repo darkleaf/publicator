@@ -10,4 +10,4 @@
           (get space)))))
 
 (defn binding-map []
-  {#'id-generator/generate (build)})
+  {#'id-generator/*generate* (build)})

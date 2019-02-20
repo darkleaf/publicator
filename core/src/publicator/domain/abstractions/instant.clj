@@ -2,4 +2,4 @@
 
 (declare ^{:dynamic  true
            :arglists '([])}
-         now)
+         *now*)

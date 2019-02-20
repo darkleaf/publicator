@@ -4,4 +4,4 @@
    [clojure.test :as t]))
 
 (defn test-return-value []
-  (t/is (inst? (sut/now))))
+  (t/is (inst? (sut/*now*))))

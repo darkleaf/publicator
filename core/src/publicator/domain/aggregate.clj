@@ -45,8 +45,8 @@
 
 (defn build [type id tx-data]
    (let [aggregate (-> (allocate type id)
-                       (d/db-with [[:db/add :root :aggregate/created-at (instant/now)]
-                                   [:db/add :root :aggregate/updated-at (instant/now)]])
+                       (d/db-with [[:db/add :root :aggregate/created-at (instant/*now*)]
+                                   [:db/add :root :aggregate/updated-at (instant/*now*)]])
                        (d/db-with tx-data))]
      (doto aggregate
        check-errors!)))
@@ -54,6 +54,6 @@
 (defn change [aggregate tx-data]
   (let [aggregate (-> aggregate
                       (d/db-with tx-data)
-                      (d/db-with [[:db/add :root :aggregate/updated-at (instant/now)]]))]
+                      (d/db-with [[:db/add :root :aggregate/updated-at (instant/*now*)]]))]
     (doto aggregate
       check-errors!)))

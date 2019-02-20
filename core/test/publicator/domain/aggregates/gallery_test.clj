@@ -18,6 +18,6 @@
                   :publication.translation/lang         :en
                   :publication.translation/title        "some text"
                   :publication.translation/summary      "some text"
-                  :publication.translation/published-at (instant/now)}]
+                  :publication.translation/published-at (instant/*now*)}]
         gallery (sut/build tx-data)]
     (t/is (some? gallery))))

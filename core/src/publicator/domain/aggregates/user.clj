@@ -19,5 +19,5 @@
                                [:user/state some?])))
 
 (defn build [tx-data]
-  (let [id (id-generator/generate :user)]
+  (let [id (id-generator/*generate* :user)]
     (aggregate/build :user id tx-data)))

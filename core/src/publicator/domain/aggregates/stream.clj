@@ -36,5 +36,5 @@
                         u.c/match? langs/+languages+)))
 
 (defn build [tx-data]
-  (let [id (id-generator/generate :stream)]
+  (let [id (id-generator/*generate* :stream)]
     (aggregate/build :stream id tx-data)))
