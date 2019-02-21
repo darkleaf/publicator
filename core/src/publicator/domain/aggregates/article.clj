@@ -18,5 +18,5 @@
                                [:article.translation/content not-empty])))
 
 (defn build [tx-data]
-  (let [id (id-generator/*generate* :article)]
+  (let [id (id-generator/*generate* :publication)]
     (aggregate/build :article id tx-data)))

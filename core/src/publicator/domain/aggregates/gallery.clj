@@ -18,5 +18,5 @@
                                [:gallery/image-urls not-empty])))
 
 (defn build [tx-data]
-  (let [id (id-generator/*generate* :gallery)]
+  (let [id (id-generator/*generate* :publication)]
     (aggregate/build :gallery id tx-data)))
