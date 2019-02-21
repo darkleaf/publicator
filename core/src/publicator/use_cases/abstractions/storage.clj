@@ -9,28 +9,28 @@
   "Thread unsafe"
   :extend-via-metadata true
   (create [t state])
-  (get-many [t ids]))
+  (get-many [t type ids]))
 
 (defmacro atomic
   {:style/indent [1 [[:defn]] :form]}
   [t-name & body]
   `(*atomic-apply* (fn [~t-name] ~@body)))
 
-(defn get-one [t id]
-  (let [res (get-many t [id])]
+(defn get-one [t type id]
+  (let [res (get-many t type [id])]
     (get res id)))
 
-(def ^{:arglists '([t ids])} preload get-many)
+(def ^{:arglists '([t type ids])} preload get-many)
 
-(defn just-get-one [id]
+(defn just-get-one [type id]
   (atomic t
-    (when-let [x (get-one t id)]
+    (when-let [x (get-one t type id)]
       @x)))
 
-(defn just-get-many [ids]
+(defn just-get-many [type ids]
   (atomic t
     (->> ids
-         (get-many t)
+         (get-many t type)
          (u.c/map-vals deref))))
 
 (defn just-create [state]
@@ -38,8 +38,8 @@
     (create t state))
   nil)
 
-(defn just-alter [id f & args]
+(defn just-alter [type id f & args]
   (atomic t
-    (when-let [x (get-one t id)]
+    (when-let [x (get-one t type id)]
       (dosync
        (apply alter x f args)))))

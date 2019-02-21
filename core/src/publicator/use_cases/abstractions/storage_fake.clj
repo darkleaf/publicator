@@ -3,13 +3,16 @@
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.domain.aggregate :as aggregate]))
 
-(defn- get-many [t ids]
-  (select-keys @t ids))
+(defn- get-many [t agg-type ids]
+  (-> @t
+      (get agg-type)
+      (select-keys ids)))
 
 (defn- create [t state]
-  (let [id   (-> state aggregate/root :root/id)
-        iagg (ref state)]
-    (swap! t assoc id iagg)
+  (let [id       (-> state aggregate/root :root/id)
+        agg-type (type state)
+        iagg     (ref state)]
+    (swap! t assoc-in [agg-type id] iagg)
     iagg))
 
 (defn- build-atomic-apply [db]
