@@ -15,13 +15,13 @@
 
 (defn- common-validator [chain]
   (-> chain
-      (validation/types [:aggregate/id         pos-int?]
-                        [:aggregate/created-at inst?]
-                        [:aggregate/updated-at inst?])
+      (validation/types [:root/id         pos-int?]
+                        [:root/created-at inst?]
+                        [:root/updated-at inst?])
       (validation/required-for root-q
-                               [:aggregate/id         some?]
-                               [:aggregate/created-at some?]
-                               [:aggregate/updated-at some?])))
+                               [:root/id         some?]
+                               [:root/created-at some?]
+                               [:root/updated-at some?])))
 
 (defn- check-errors! [aggregate]
   (let [errs (-> (validation/begin aggregate)
@@ -37,16 +37,16 @@
 
 (defn allocate [type id]
   (let [s (merge (schema type)
-                 {:aggregate/id {:db/unique :db.unique/identity}})]
+                 {:root/id {:db/unique :db.unique/identity}})]
     (-> (d/empty-db s)
-        (d/db-with [{:db/ident     :root
-                     :aggregate/id id}])
+        (d/db-with [{:db/ident :root
+                     :root/id  id}])
         (with-meta {:type type}))))
 
 (defn build [type id tx-data]
    (let [aggregate (-> (allocate type id)
-                       (d/db-with [[:db/add :root :aggregate/created-at (instant/*now*)]
-                                   [:db/add :root :aggregate/updated-at (instant/*now*)]])
+                       (d/db-with [[:db/add :root :root/created-at (instant/*now*)]
+                                   [:db/add :root :root/updated-at (instant/*now*)]])
                        (d/db-with tx-data))]
      (doto aggregate
        check-errors!)))
@@ -54,6 +54,6 @@
 (defn change [aggregate tx-data]
   (let [aggregate (-> aggregate
                       (d/db-with tx-data)
-                      (d/db-with [[:db/add :root :aggregate/updated-at (instant/*now*)]]))]
+                      (d/db-with [[:db/add :root :root/updated-at (instant/*now*)]]))]
     (doto aggregate
       check-errors!)))

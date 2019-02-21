@@ -7,7 +7,7 @@
   (select-keys @t ids))
 
 (defn- create [t state]
-  (let [id   (-> state aggregate/root :aggregate/id)
+  (let [id   (-> state aggregate/root :root/id)
         iagg (ref state)]
     (swap! t assoc id iagg)
     iagg))
