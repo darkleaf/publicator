@@ -45,32 +45,3 @@
           iagg'   (sut/get-one t id)]
       (dosync (alter iagg d/db-with [[:db/add :root :counter 1]]))
       (t/is (= @iagg @iagg')))))
-
-
-
-;; (t/deftest concurrency
-;;   (let [test (storage/tx-create (->Test 0))
-;;         id   (aggregate/id test)
-;;         n    10
-;;         _    (->> (repeatedly #(future (storage/tx-alter test update :counter inc)))
-;;                   (take n)
-;;                   (doall)
-;;                   (map deref)
-;;                   (doall))
-;;         test (storage/tx-get-one id)]
-;;     (t/is (= n (:counter test)))))
-
-;; (t/deftest inner-concurrency
-;;   (let [test (storage/tx-create (->Test 0))
-;;         id   (aggregate/id test)
-;;         n    10
-;;         _    (storage/with-tx t
-;;                (->> (repeatedly #(future (as-> id <>
-;;                                            (storage/get-one t <>)
-;;                                            (dosync (alter <> update :counter inc)))))
-;;                     (take n)
-;;                     (doall)
-;;                     (map deref)
-;;                     (doall)))
-;;         test (storage/tx-get-one id)]
-;;     (t/is (= n (:counter test)))))

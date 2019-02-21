@@ -6,6 +6,7 @@
          *atomic-apply*)
 
 (defprotocol Transaction
+  "Thread unsafe"
   :extend-via-metadata true
   (create [t state])
   (get-many [t ids]))
