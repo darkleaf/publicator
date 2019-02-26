@@ -2,44 +2,24 @@
   (:require
    [publicator.utils.coll :as u.c]))
 
-(declare ^{:dynamic true, :arglists '([func-from-t])}
-         *atomic-apply*)
+(declare ^{:dynamic true, :arglists '([state])}
+         *create*
 
-(defprotocol Transaction
-  "Thread unsafe"
-  :extend-via-metadata true
-  (create [t state])
-  (get-many [t type ids]))
+         ^{:dynamic true, :arglists '([type ids])}
+         *preload*
 
-(defmacro atomic
-  {:style/indent [1 [[:defn]] :form]}
-  [t-name & body]
-  `(*atomic-apply* (fn [~t-name] ~@body)))
+         ^{:dynamic true, :arglists '([type id])}
+         *get*)
 
-(defn get-one [t type id]
-  (let [res (get-many t type [id])]
-    (get res id)))
+         ;; можно сделать надежный after-commit,
+         ;; сохранять намерение
+         ;; ^{:dynamic true, :arglists '([func-sym & args])}
+         ;; *after-commit*)
 
-(def ^{:arglists '([t type ids])} preload get-many)
 
-(defn just-get-one [type id]
-  (atomic t
-    (when-let [x (get-one t type id)]
-      @x)))
 
-(defn just-get-many [type ids]
-  (atomic t
-    (->> ids
-         (get-many t type)
-         (u.c/map-vals deref))))
+;; запросы объявляются в отдельных неймспейсах.
+;; запросы возвращают id и/или аггрегационные данные.
+;; id автора и кол-во его книг
 
-(defn just-create [state]
-  (atomic t
-    (create t state))
-  nil)
-
-(defn just-alter [type id f & args]
-  (atomic t
-    (when-let [x (get-one t type id)]
-      (dosync
-       (apply alter x f args)))))
+;; можно добавить запрос, явно блокирующий агрегат с нужным типом блокировки.
