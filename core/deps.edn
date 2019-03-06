@@ -1,3 +1,4 @@
-{:deps {datascript {:mvn/version "0.18.1"}}
+{:deps {datascript {:git/url "https://github.com/tonsky/datascript"
+                    :sha     "cb5a4a9b92d058ee28b4ae9fd34b6784b5de908e"}}
 
  :aliases {:dev {:extra-paths ["test"]}}}
