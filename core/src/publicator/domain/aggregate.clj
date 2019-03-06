@@ -44,16 +44,24 @@
         (with-meta {:type type}))))
 
 (defn build [type id tx-data]
-   (let [aggregate (-> (allocate type id)
-                       (d/db-with [[:db/add :root :root/created-at (instant/*now*)]
-                                   [:db/add :root :root/updated-at (instant/*now*)]])
-                       (d/db-with tx-data))]
-     (doto aggregate
-       check-errors!)))
+  (let [tx-data   (concat tx-data
+                          [[:db/add :root :root/created-at (instant/*now*)]
+                           [:db/add :root :root/updated-at (instant/*now*)]
+                           [:db.fn/call check-errors!]])
+        aggregate (allocate type id)
+        report    (d/with aggregate tx-data)
+        tx-data   (:tx-data report)
+        aggregate (:db-after report)]
+    (vary-meta aggregate assoc :aggregate/tx-data tx-data)))
 
 (defn change [aggregate tx-data]
-  (let [aggregate (-> aggregate
-                      (d/db-with tx-data)
-                      (d/db-with [[:db/add :root :root/updated-at (instant/*now*)]]))]
-    (doto aggregate
-      check-errors!)))
+  (let [tx-data   (concat tx-data
+                          [[:db/add :root :root/updated-at (instant/*now*)]
+                           [:db.fn/call check-errors!]])
+        report    (d/with aggregate tx-data)
+        tx-data   (:tx-data report)
+        aggregate (:db-after report)]
+    (vary-meta aggregate assoc :aggregate/tx-data tx-data)))
+
+
+
