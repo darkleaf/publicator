@@ -47,14 +47,14 @@
                       (assoc :type ::required)))]
     (vary-meta agg update :aggregate/errors db-with tx-data)))
 
-(defn types [agg & checks]
+(defn attributes [agg & checks]
   (let [ids (d/q '{:find  [[?e ...]]
                    :where [[?e _ _]]}
                  agg)]
     (reduce (fn [agg check] (check-attribute agg ids check))
             agg checks)))
 
-(defn required-for [agg entities-q & checks]
+(defn in-case-of [agg entities-q & checks]
   (let [ids (d/q entities-q agg)]
     (reduce (fn [agg check]
               (-> agg
@@ -62,7 +62,7 @@
                   (check-attribute ids check)))
             agg checks)))
 
-(defn query [agg entities-q query pred & args]
+(defn query-resp [agg entities-q query pred & args]
   (let [args        (vec args)
         ids         (d/q entities-q agg)
         value-by-id (for [id ids]
@@ -77,10 +77,3 @@
                        :args      args
                        :type      ::query})]
     (vary-meta agg update :aggregate/errors db-with tx-data)))
-
-
-
-
-;; attributes
-;; in-case-of
-;; query-resp

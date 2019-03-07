@@ -18,10 +18,10 @@
       :aggregate/errors
       (errors->set)))
 
-(t/deftest types
-  (let [validator #(sut/types %
-                              [:attr int?]
-                              [:attr < 10])]
+(t/deftest attributes
+  (let [validator #(sut/attributes %
+                                   [:attr int?]
+                                   [:attr < 10])]
     (t/testing "empty"
       (let [agg    (d/empty-db)
             errors (get-errors agg validator)]
@@ -74,12 +74,11 @@
                     :type      ::sut/predicate}}
                  errors))))))
 
-(t/deftest required-for
-  (let [validator #(-> %
-                       (sut/types [:attr int?])
-                       (sut/required-for '{:find  [[?e ...]]
-                                           :where [[?e :type :active]]}
-                                         [:attr = 0]))]
+(t/deftest in-case-of
+  (let [validator #(sut/in-case-of %
+                                   '{:find  [[?e ...]]
+                                     :where [[?e :type :active]]}
+                                   [:attr = 0])]
     (t/testing "empty"
       (let [agg    (d/empty-db)
             errors (get-errors agg validator)]
@@ -93,7 +92,7 @@
                     :attribute :attr
                     :type      ::sut/required}}
                  errors))))
-    (t/testing "scope"
+    (t/testing "query"
       (let [agg    (-> (d/empty-db)
                        (d/db-with [{:db/id 1
                                     :type  :active
@@ -103,16 +102,16 @@
             errors (get-errors agg validator)]
         (t/is (= #{} errors))))))
 
-(t/deftest query
-  (let [validator #(sut/query %
-                              '{:find  [[?e ...]]
-                                :where [[?e :db/ident :root]]}
-                              '{:find  [(clojure.core/sort ?v) .]
-                                :in    [$ ?e]
-                                :with  [?nested]
-                                :where [[?nested :base ?e]
-                                        [?nested :val  ?v]]}
-                              = [1 1 2])
+(t/deftest query-resp
+  (let [validator #(sut/query-resp %
+                                   '{:find  [[?e ...]]
+                                     :where [[?e :db/ident :root]]}
+                                   '{:find  [(clojure.core/sort ?v) .]
+                                     :in    [$ ?e]
+                                     :with  [?nested]
+                                     :where [[?nested :base ?e]
+                                             [?nested :val  ?v]]}
+                                   = [1 1 2])
         aggregate (-> (d/empty-db {:base {:db/valueType :db.type/ref}})
                       (d/db-with [{:db/ident :root}
                                   {:base :root
