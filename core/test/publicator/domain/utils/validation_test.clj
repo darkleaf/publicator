@@ -12,15 +12,16 @@
        (set)))
 
 (defn- get-errors [aggregate validator]
-  (-> (sut/begin aggregate)
+  (-> aggregate
       (validator)
-      (sut/end)
+      (meta)
+      :aggregate/errors
       (errors->set)))
 
 (t/deftest types
-  (let [validator #(-> %
-                       (sut/types [:attr int?]
-                                  [:attr < 10]))]
+  (let [validator #(sut/types %
+                              [:attr int?]
+                              [:attr < 10])]
     (t/testing "empty"
       (let [agg    (d/empty-db)
             errors (get-errors agg validator)]
@@ -103,23 +104,22 @@
         (t/is (= #{} errors))))))
 
 (t/deftest query
-  (let [aggregate (-> (d/empty-db {:base {:db/valueType :db.type/ref}})
+  (let [validator #(sut/query %
+                              '{:find  [[?e ...]]
+                                :where [[?e :db/ident :root]]}
+                              '{:find  [(clojure.core/sort ?v) .]
+                                :in    [$ ?e]
+                                :with  [?nested]
+                                :where [[?nested :base ?e]
+                                        [?nested :val  ?v]]}
+                              = [1 1 2])
+        aggregate (-> (d/empty-db {:base {:db/valueType :db.type/ref}})
                       (d/db-with [{:db/ident :root}
                                   {:base :root
                                    :val  1}
                                   {:base :root
                                    :val  1}]))
-        errors    (-> (sut/begin aggregate)
-                      (sut/query '{:find  [[?e ...]]
-                                   :where [[?e :db/ident :root]]}
-                                 '{:find  [(clojure.core/sort ?v) .]
-                                   :in    [$ ?e]
-                                   :with  [?nested]
-                                   :where [[?nested :base ?e]
-                                           [?nested :val  ?v]]}
-                                 = [1 1 2])
-                      (sut/end)
-                      (errors->set))]
+        errors    (get-errors aggregate validator)]
     (t/is (= #{{:db/id     1
                 :entity    1
                 :value     [1 1]
