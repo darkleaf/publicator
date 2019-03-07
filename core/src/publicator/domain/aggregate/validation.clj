@@ -1,4 +1,4 @@
-(ns publicator.domain.utils.validation
+(ns publicator.domain.aggregate.validation
   (:require
    [datascript.core :as d]))
 

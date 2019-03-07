@@ -1,6 +1,6 @@
-(ns publicator.domain.utils.validation-test
+(ns publicator.domain.aggregate.validation-test
   (:require
-   [publicator.domain.utils.validation :as sut]
+   [publicator.domain.aggregate.validation :as sut]
    [datascript.core :as d]
    [clojure.test :as t]))
 
