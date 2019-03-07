@@ -45,7 +45,7 @@
     (t/is (= agg' agg''))))
 
 (defn test-identity-map-persisted []
-  (let [agg (sut/just-create (build-agg))]
+  (let [agg (just-create (build-agg))]
     (sut/transaction
      (let [iagg  (sut/*get* ::aggregate id)
            iagg' (sut/*get* ::aggregate id)]
