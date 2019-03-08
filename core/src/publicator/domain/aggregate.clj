@@ -7,13 +7,10 @@
 (defmulti schema identity)
 (defmethod schema :default [_] {})
 
-(defmulti validator type)
-(defmethod validator :default [agg] agg)
-
 (def ^:const root-q '{:find [[?e ...]]
                       :where [[?e :db/ident :root]]})
 
-(defn- common-validator [agg]
+(defn- validator [agg]
   (-> agg
       (validation/attributes [:root/id         pos-int?]
                              [:root/created-at inst?]
@@ -24,14 +21,9 @@
                              [:root/updated-at some?])))
 
 (defn- check-errors! [aggregate]
-  (let [errs (->  aggregate
-                  (common-validator)
-                  (validator)
-                  (meta)
-                  :aggregate/errors)]
-    (if (not-empty errs)
-      (throw (ex-info "Aggregate has errors" {:type   ::has-errors
-                                              :errors errs})))))
+  (if-let [errs (-> aggregate meta :aggregate/errors seq)]
+    (throw (ex-info "Aggregate has errors" {:type   ::has-errors
+                                            :errors errs}))))
 
 (defn root [aggregate]
   (d/entity aggregate :root))
@@ -50,6 +42,7 @@
   (let [tx-data   (concat tx-data
                           [[:db/add :root :root/created-at (instant/*now*)]
                            [:db/add :root :root/updated-at (instant/*now*)]
+
                            [:db.fn/call check-errors!]])
         aggregate (allocate type id)
         report    (d/with aggregate tx-data)
@@ -65,3 +58,7 @@
         tx-data   (:tx-data report)
         aggregate (:db-after report)]
     (vary-meta aggregate assoc :aggregate/tx-data tx-data)))
+
+
+;; (defn build! [])
+;; (defn change! [])

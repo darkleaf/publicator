@@ -1,6 +1,6 @@
-(ns publicator.domain.aggregate.validation-test
+(ns publicator.utils.datascript.validation-test
   (:require
-   [publicator.domain.aggregate.validation :as sut]
+   [publicator.utils.datascript.validation :as sut]
    [datascript.core :as d]
    [clojure.test :as t]))
 
@@ -12,34 +12,26 @@
        (set)))
 
 (defn- get-errors [aggregate validator]
-  (-> aggregate
-      (validator)
-      (meta)
-      :aggregate/errors
-      (errors->set)))
-
-(defn- empty-agg
-  ([] (empty-agg {}))
-  ([schema]
-   (-> (d/empty-db schema)
-       (vary-meta assoc :aggregate/errors (d/empty-db)))))
+  (let [tx-data (validator aggregate)
+        errors  (-> (d/empty-db) ;;todo: вынести в validation
+                    (d/db-with tx-data))]
+    (errors->set errors)))
 
 (t/deftest attributes
-  (let [validator #(sut/attributes %
-                                   [:attr int?]
-                                   [:attr < 10])]
+  (let [validator (sut/attributes [:attr int?]
+                                  [:attr < 10])]
     (t/testing "missed"
-      (let [agg    (-> (empty-agg)
+      (let [agg    (-> (d/empty-db)
                        (d/db-with [[:db/add 1 :other :val]]))
             errors (get-errors agg validator)]
         (t/is (= #{} errors))))
     (t/testing "correct"
-      (let [agg    (-> (empty-agg)
+      (let [agg    (-> (d/empty-db)
                        (d/db-with [[:db/add 1 :attr 0]]))
             errors (get-errors agg validator)]
         (t/is (= #{} errors))))
     (t/testing "first check"
-      (let [agg    (-> (empty-agg)
+      (let [agg    (-> (d/empty-db)
                        (d/db-with [[:db/add 1 :attr :wrong]]))
             errors (get-errors agg validator)]
         (t/is (= #{{:db/id     1
@@ -51,7 +43,7 @@
                     :type      ::sut/predicate}}
                  errors))))
     (t/testing "second check"
-      (let [agg    (-> (empty-agg)
+      (let [agg    (-> (d/empty-db)
                        (d/db-with [[:db/add 1 :attr 10]]))
             errors (get-errors agg validator)]
         (t/is (= #{{:db/id     1
@@ -63,7 +55,7 @@
                     :type      ::sut/predicate}}
                  errors))))
     (t/testing "many"
-      (let [agg    (-> (empty-agg {:attr {:db/cardinality :db.cardinality/many}})
+      (let [agg    (-> (d/empty-db {:attr {:db/cardinality :db.cardinality/many}})
                        (d/db-with [[:db/add 1 :attr 1]
                                    [:db/add 1 :attr 10]]))
             errors (get-errors agg validator)]
@@ -77,16 +69,15 @@
                  errors))))))
 
 (t/deftest in-case-of
-  (let [validator #(sut/in-case-of %
-                                   '{:find  [[?e ...]]
-                                     :where [[?e :type :active]]}
-                                   [:attr = 0])]
+  (let [validator (sut/in-case-of '{:find  [[?e ...]]
+                                    :where [[?e :type :active]]}
+                                  [:attr = 0])]
     (t/testing "empty"
-      (let [agg    (empty-agg)
+      (let [agg    (d/empty-db)
             errors (get-errors agg validator)]
         (t/is (= #{} errors))))
     (t/testing "missing"
-      (let [agg    (-> (empty-agg)
+      (let [agg    (-> (d/empty-db)
                        (d/db-with [[:db/add 1 :type :active]]))
             errors (get-errors agg validator)]
         (t/is (= #{{:db/id     1
@@ -95,7 +86,7 @@
                     :type      ::sut/required}}
                  errors))))
     (t/testing "query"
-      (let [agg    (-> (empty-agg)
+      (let [agg    (-> (d/empty-db)
                        (d/db-with [{:db/id 1
                                     :type  :active
                                     :attr  0}
@@ -105,16 +96,15 @@
         (t/is (= #{} errors))))))
 
 (t/deftest query-resp
-  (let [validator #(sut/query-resp %
-                                   '{:find  [[?e ...]]
-                                     :where [[?e :db/ident :root]]}
-                                   '{:find  [(clojure.core/sort ?v) .]
-                                     :in    [$ ?e]
-                                     :with  [?nested]
-                                     :where [[?nested :base ?e]
-                                             [?nested :val  ?v]]}
-                                   = [1 1 2])
-        aggregate (-> (empty-agg {:base {:db/valueType :db.type/ref}})
+  (let [validator (sut/query-resp '{:find  [[?e ...]]
+                                    :where [[?e :db/ident :root]]}
+                                  '{:find  [(clojure.core/sort ?v) .]
+                                    :in    [$ ?e]
+                                    :with  [?nested]
+                                    :where [[?nested :base ?e]
+                                            [?nested :val  ?v]]}
+                                  = [1 1 2])
+        aggregate (-> (d/empty-db {:base {:db/valueType :db.type/ref}})
                       (d/db-with [{:db/ident :root}
                                   {:base :root
                                    :val  1}
