@@ -2,22 +2,32 @@
   (:require
    [publicator.domain.abstractions.id-generator :as id-generator]
    [publicator.domain.abstractions.instant :as instant]
-   [publicator.domain.aggregate :as aggregate]
-   [publicator.domain.utils.validation :as validation]))
+   [publicator.domain.abstractions.password-hasher :as password-hasher]
+   [publicator.domain.aggregate :as agg]
+   [publicator.utils.datascript.validation :as d.validation]
+   [publicator.utils.string :as u.str]))
 
-(def ^:const +states+ #{:active :archived})
+(def ^:const states #{:active :archived})
 
-(defmethod aggregate/validator :user [chain]
-  (-> chain
-      (validation/types [:user/login string?]
-                        [:user/password-digest string?]
-                        [:user/state +states+])
+(defn- hash-password [user]
+  (let [password        (-> user agg/root :user/password)
+        password-digest (password-hasher/*derive* password)]
+    [[:db/retract :root :user/password password]
+     [:db/add :root :user/password-digest password-digest]]))
 
-      (validation/required-for aggregate/root-q
-                               [:user/login not-empty]
-                               [:user/password-digest not-empty]
-                               [:user/state some?])))
-
-(defn build [tx-data]
-  (let [id (id-generator/*generate* :user)]
-    (aggregate/build :user id tx-data)))
+(def spec
+  {:type          :user
+   :build-tx      (fn [] [[:db/add :root :root/id (id-generator/*generate* :user)]
+                          [:db/add :root :user/state :active]])
+   :additional-tx (fn [] [[:db.fn/call hash-password]])
+   :validator     (d.validation/compose
+                   (d.validation/attributes [:user/login string?]
+                                            [:user/login u.str/match? #"\w{3,256}"]
+                                            [:user/password string?]
+                                            [:user/password u.str/match? #".{8,256}"]
+                                            [:user/password-digest string?]
+                                            [:user/state states])
+                   (d.validation/in-case-of agg/root-q
+                                            [:user/login not-empty]
+                                            [:user/password-digest not-empty]
+                                            [:user/state some?]))})

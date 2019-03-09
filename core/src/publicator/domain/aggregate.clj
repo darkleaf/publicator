@@ -7,6 +7,8 @@
 (defn root [aggregate]
   (d/entity aggregate :root))
 
+(def ^{:arglists '([query & inputs])} q d/q)
+
 (def ^:const root-q '{:find [[?e ...]]
                       :where [[?e :db/ident :root]]})
 
