@@ -17,7 +17,7 @@
 
 (def spec
   {:type          :user
-   :build-tx      (fn [] [[:db/add :root :root/id (id-generator/*generate* :user)]
+   :defaults-tx   (fn [] [[:db/add :root :root/id (id-generator/*generate* :user)]
                           [:db/add :root :user/state :active]])
    :additional-tx (fn [] [[:db.fn/call hash-password]])
    :validator     (d.validation/compose

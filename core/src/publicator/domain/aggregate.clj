@@ -14,7 +14,8 @@
 
 (def base-spec
   {:schema        {:root/id {:db/unique :db.unique/identity}}
-   :build-tx      (fn [] [[:db/add :root :root/created-at (instant/*now*)]])
+   :defaults-tx   (fn [] [[:db/add 1 :db/ident :root]
+                          [:db/add :root :root/created-at (instant/*now*)]])
    :additional-tx (fn [] [[:db/add :root :root/updated-at (instant/*now*)]])
    :read-only     #{:root/id :root/created-at}
    :validator     (d.validation/compose
@@ -31,8 +32,8 @@
     (contains? other :type)          (assoc :type (:type other))
     :always                          (update :schema
                                              merge (:schema other))
-    (contains? other :build-tx)      (update :build-tx
-                                             (fn [old] #(concat (old) ((:build-tx other)))))
+    (contains? other :defaults-tx)   (update :defaults-tx
+                                             (fn [old] #(concat (old) ((:defaults-tx other)))))
     (contains? other :additional-tx) (update :additional-tx
                                              (fn [old] #(concat (old) ((:additional-tx other)))))
     :always                          (update :read-only
@@ -49,9 +50,8 @@
 
 (defn build [spec tx-data]
   (let [spec    (extend-spec base-spec spec)
-        tx-data (concat [[:db/add 1 :db/ident :root]]
+        tx-data (concat ((:defaults-tx spec))
                         tx-data
-                        ((:build-tx spec))
                         ((:additional-tx spec)))
         agg     (d/empty-db (:schema spec))
         report  (d/with agg tx-data)

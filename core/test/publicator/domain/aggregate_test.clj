@@ -13,7 +13,7 @@
 (def spec
   {:type          :test-agg
    :schema        {:inner/base {:db/valueType :db.type/ref}}
-   :build-tx      (fn [] [[:db/add :root :root/id id]
+   :defaults-tx   (fn [] [[:db/add :root :root/id id]
                           [:db/add :root :test-agg/version 0]
                           [:db/add :root :test-agg/read-only 0]])
    :additional-tx (fn [] [[:db.fn/call d.fns/update-all :test-agg/version inc]])

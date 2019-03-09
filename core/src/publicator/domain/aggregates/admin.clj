@@ -6,9 +6,9 @@
 (def ^:const states #{:active :archived})
 
 (def spec
-  {:type :admin
-   :build-tx (fn [] [[:db/add :root :admin/state :active]])
-   :validator (d.validation/compose
-               (d.validation/attributes [:admin/state states])
-               (d.validation/in-case-of agg/root-q
-                                        [:admin/state some?]))})
+  {:type        :admin
+   :defaults-tx (fn [] [[:db/add :root :admin/state :active]])
+   :validator   (d.validation/compose
+                 (d.validation/attributes [:admin/state states])
+                 (d.validation/in-case-of agg/root-q
+                                          [:admin/state some?]))})
