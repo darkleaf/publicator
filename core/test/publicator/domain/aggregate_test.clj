@@ -13,7 +13,7 @@
 (def spec
   {:type          :test-agg
    :schema        {:inner/base {:db/valueType :db.type/ref}}
-   :on-build-tx   (fn [] [[:db/add :root :root/id id]
+   :build-tx      (fn [] [[:db/add :root :root/id id]
                           [:db/add :root :test-agg/version 0]
                           [:db/add :root :test-agg/read-only 0]])
    :additional-tx (fn [] [[:db.fn/call d.fns/update-all :test-agg/version inc]])
@@ -22,11 +22,6 @@
                                            [:teat-agg/read-only pos-int?]
                                            [:inner/key keyword?])
    :read-only     #{:test-agg/read-only}})
-
-;; (t/deftest allocate
-;;   (let [tx-data [[:db/add :root :root/id 1]]
-;;         agg     (aggregate/allocate spec tx-data)]
-;;     (t/is (some? agg))))
 
 (t/deftest build
   (t/testing "main path"
@@ -49,18 +44,35 @@
       (t/testing :aggregate/errors
         (t/is (empty? (-> agg meta :aggregate/errors))))))
   (t/testing "errors"
-    (let [agg (agg/build spec
-                         [[:db/add :root :test-agg/key "wrong"]])]
-      (t/is (not-empty (-> agg meta :aggregate/errors))))))
+    (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Aggregate has errors"
+                            (agg/build spec [[:db/add :root :test-agg/key "wrong"]])))))
 
-
-;; (t/deftest build!)
-
-;; (t/deftest change
-;;   (let [aggregate (sut/build ::aggregate id
-;;                              [{:db/ident :root
-;;                                :root/key :val}
-;;                               {:inner/base :root
-;;                                :inner/key  :inner-val}])
-;;         aggregate (sut/change aggregate [[:db/add :root :root/key :new-val]])]
-;;     (t/is (= :new-val (-> aggregate sut/root :root/key)))))
+(t/deftest change
+  (let [agg (agg/build spec
+                       [[:db/add :root :test-agg/key :val]])]
+    (t/testing "main path"
+      (let [agg (agg/change agg [[:db/add :root :test-agg/key :new-val]])]
+        (t/testing "update"
+          (t/is (= :new-val (-> agg agg/root :test-agg/key))))
+        (t/testing :additional-tx
+          (t/is (= 2 (-> agg agg/root :test-agg/version))))
+        (t/testing :aggregate/changes
+          (t/is (= [[:test-agg/key false]
+                    [:test-agg/key true]
+                    [:root/updated-at false]
+                    [:root/updated-at true]
+                    [:test-agg/version false]
+                    [:test-agg/version true]]
+                   (map (fn [[e a v t added]] [a added])
+                        (-> agg meta :aggregate/changes)))))
+        (t/testing :aggregate/errors
+          (t/is (empty? (-> agg meta :aggregate/errors))))))
+    (t/testing "errors"
+      (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
+                              #"Aggregate has errors"
+                              (agg/change agg [[:db/add :root :test-agg/key "wrong"]]))))
+    (t/testing "read only"
+      (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
+                              #"Read only attributes are changed"
+                              (agg/change agg [[:db/add :root :test-agg/read-only 1]]))))))
