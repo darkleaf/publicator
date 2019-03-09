@@ -1,22 +1,17 @@
 (ns publicator.domain.aggregates.gallery
   (:require
-   [publicator.domain.aggregate :as aggregate]
+   [publicator.domain.aggregate :as agg]
    [publicator.domain.abstractions.id-generator :as id-generator]
    [publicator.domain.aggregates.publication :as publication]
-   [publicator.domain.utils.validation :as validation]))
+   [publicator.utils.datascript.validation :as d.validation]))
 
-(defmethod aggregate/schema :gallery [_]
-  (merge publication/+schema+
-         {:gallery/image-urls {:db/cardinality :db.cardinality/many}}))
-
-(defmethod aggregate/validator :gallery [chain]
-  (-> chain
-      (publication/validator)
-      (validation/types [:gallery/image-urls string?])
-
-      (validation/required-for publication/published-q
-                               [:gallery/image-urls not-empty])))
-
-(defn build [tx-data]
-  (let [id (id-generator/*generate* :publication)]
-    (aggregate/build :gallery id tx-data)))
+(def spec
+  (agg/extend-spec
+   publication/spec
+   {:type        :gallery
+    :schema      {:gallery/image-urls {:db/cardinality :db.cardinality/many}}
+    :defaults-tx (fn [] [[:db/add :root :root/id (id-generator/*generate* :gallery)]])
+    :validator   (d.validation/compose
+                  (d.validation/attributes [:gallery/image-urls string?])
+                  (d.validation/in-case-of publication/published-q
+                                           [:gallery/image-urls not-empty]))}))
