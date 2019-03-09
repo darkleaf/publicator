@@ -1,5 +1,3 @@
-(ns publicator.domain.languages
-  (:require
-   [clojure.spec.alpha :as s]))
+(ns publicator.domain.languages)
 
-(def ^:const +languages+ #{:en :ru})
+(def ^:const languages #{:en :ru})

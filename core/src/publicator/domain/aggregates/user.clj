@@ -7,7 +7,7 @@
    [publicator.utils.datascript.validation :as d.validation]
    [publicator.utils.string :as u.str]))
 
-(def ^:const states #{:active :archived})
+(def states #{:active :archived})
 
 (defn- hash-password [user]
   (let [password        (-> user agg/root :user/password)
