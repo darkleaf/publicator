@@ -1,6 +1,7 @@
 (ns publicator.domain.aggregates.author-test
   (:require
-   [publicator.domain.aggregates.author :as sut]
+   [publicator.domain.aggregates.author :as author]
+   [publicator.domain.aggregate :as agg]
    [publicator.domain.abstractions.scaffolding :as scaffolding]
    [clojure.test :as t]))
 
@@ -8,8 +9,8 @@
 
 (t/deftest build
   (let [user-id 1
-        tx-data [{:db/ident     :root
-                  :author/state :active}
+        tx-data [{:db/ident :root
+                  :root/id  user-id}
                  {:author.translation/author     :root
                   :author.translation/lang       :en
                   :author.translation/first-name "John"
@@ -21,5 +22,5 @@
                  {:author.stream-participation/author    :root
                   :author.stream-participation/stream-id 1
                   :author.stream-participation/role      :regular}]
-        author  (sut/build user-id tx-data)]
+        author  (agg/build author/spec tx-data)]
     (t/is (some? author))))
