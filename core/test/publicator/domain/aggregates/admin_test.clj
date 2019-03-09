@@ -1,6 +1,7 @@
 (ns publicator.domain.aggregates.admin-test
   (:require
-   [publicator.domain.aggregates.admin :as sut]
+   [publicator.domain.aggregates.admin :as admin]
+   [publicator.domain.aggregate :as agg]
    [publicator.domain.abstractions.scaffolding :as scaffolding]
    [clojure.test :as t]))
 
@@ -8,7 +9,7 @@
 
 (t/deftest build
   (let [user-id 1
-        tx-data [{:db/ident    :root
-                  :admin/state :active}]
-        admin   (sut/build user-id tx-data)]
+        tx-data [{:db/ident :root
+                  :root/id  user-id}]
+        admin   (agg/build admin/spec tx-data)]
     (t/is (some? admin))))

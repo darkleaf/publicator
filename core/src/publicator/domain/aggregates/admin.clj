@@ -1,17 +1,14 @@
 (ns publicator.domain.aggregates.admin
   (:require
-   [publicator.domain.abstractions.id-generator :as id-generator]
-   [publicator.domain.abstractions.instant :as instant]
-   [publicator.domain.aggregate :as aggregate]
-   [publicator.domain.utils.validation :as validation]))
+   [publicator.domain.aggregate :as agg]
+   [publicator.utils.datascript.validation :as d.validation]))
 
-(def ^:const +states+ #{:active :archived})
+(def ^:const states #{:active :archived})
 
-(defmethod aggregate/validator :admin [chain]
-  (-> chain
-      (validation/types [:admin/state +states+])
-      (validation/required-for aggregate/root-q
-                               [:admin/state some?])))
-
-(defn build [user-id tx-data]
-  (aggregate/build :admin user-id tx-data))
+(def spec
+  {:type :admin
+   :build-tx (fn [] [[:db/add :root :admin/state :active]])
+   :validator (d.validation/compose
+               (d.validation/attributes [:admin/state states])
+               (d.validation/in-case-of agg/root-q
+                                        [:admin/state some?]))})
