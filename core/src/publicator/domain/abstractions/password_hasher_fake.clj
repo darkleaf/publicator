@@ -1,6 +1,6 @@
-(ns publicator.use-cases.abstractions.password-hasher-fake
+(ns publicator.domain.abstractions.password-hasher-fake
   (:require
-   [publicator.use-cases.abstractions.password-hasher :as password-hasher]
+   [publicator.domain.abstractions.password-hasher :as password-hasher]
    [clojure.string :as str]))
 
 (defn binding-map []
