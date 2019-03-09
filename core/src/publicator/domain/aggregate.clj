@@ -39,9 +39,6 @@
     (contains? other :validator)     (update :validator
                                              d.validation/compose (:validator other))))
 
-
-;; (defn becomes [agg new-spec])  ????
-
 (defn- check-errors! [agg]
   (if-let [errs (-> agg meta :aggregate/errors seq)]
     (throw (ex-info "Aggregate has errors" {:type   ::has-errors
