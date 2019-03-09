@@ -1,7 +1,7 @@
 (ns publicator.domain.aggregate
   (:require
    [publicator.domain.abstractions.instant :as instant]
-   [publicator.domain.aggregate.validation :as validation]
+   [publicator.utils.datascript.validation :as validation]
    [datascript.core :as d]))
 
 (defmulti schema identity)
@@ -10,15 +10,15 @@
 (def ^:const root-q '{:find [[?e ...]]
                       :where [[?e :db/ident :root]]})
 
-(defn- validator [agg]
-  (-> agg
-      (validation/attributes [:root/id         pos-int?]
-                             [:root/created-at inst?]
-                             [:root/updated-at inst?])
-      (validation/in-case-of root-q
-                             [:root/id         some?]
-                             [:root/created-at some?]
-                             [:root/updated-at some?])))
+(def ^:private validator
+  (validation/compose
+   (validation/attributes [:root/id         pos-int?]
+                          [:root/created-at inst?]
+                          [:root/updated-at inst?])
+   (validation/in-case-of root-q
+                          [:root/id         some?]
+                          [:root/created-at some?]
+                          [:root/updated-at some?])))
 
 (defn- check-errors! [aggregate]
   (if-let [errs (-> aggregate meta :aggregate/errors seq)]

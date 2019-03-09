@@ -2,6 +2,18 @@
   (:require
    [datascript.core :as d]))
 
+(defn compose [& validators]
+  (fn [db]
+    (reduce (fn [acc validator]
+              (into acc (validator db)))
+            []
+            validators)))
+
+(defn validate [db validator]
+  (let [errors  (d/empty-db)
+        tx-data (validator db)]
+    (d/db-with errors tx-data)))
+
 (defn- without-attribute-errors [errors ids attribute]
   (d/q '{:find  [[?e ...]]
          :in    [$ [?e ...] ?a]

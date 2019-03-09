@@ -11,10 +11,8 @@
        (flatten)
        (set)))
 
-(defn- get-errors [aggregate validator]
-  (let [tx-data (validator aggregate)
-        errors  (-> (d/empty-db) ;;todo: вынести в validation
-                    (d/db-with tx-data))]
+(defn- get-errors [db validator]
+  (let [errors  (sut/validate db validator)]
     (errors->set errors)))
 
 (t/deftest attributes
