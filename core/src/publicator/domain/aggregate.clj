@@ -40,10 +40,11 @@
                                              d.validation/compose (:validator other))))
 
 (defn- check-errors! [agg]
-  (if-let [errs (-> agg meta :aggregate/errors seq)]
-    (throw (ex-info "Aggregate has errors" {:type   ::has-errors
-                                            :errors errs}))
-    agg))
+  (let [errs (-> agg meta :aggregate/errors)]
+    (if (not-empty errs)
+      (throw (ex-info "Aggregate has errors" {:type   ::has-errors
+                                              :errors errs}))
+      agg)))
 
 (defn build [spec tx-data]
   (let [spec    (extend-spec base-spec spec)
