@@ -13,7 +13,7 @@
                   [:db/add e attribute (apply f v args)])]
     (concat retract add)))
 
-(defn assoc-in [db entities-q attr value]
-  (let [ids (d/q entities-q db)]
-    (for [id ids]
-      [:db/add id attr value])))
+;; (defn assoc-in [db entities-q attr value]
+;;   (let [ids (d/q entities-q db)]
+;;     (for [id ids]
+;;       [:db/add id attr value])))
