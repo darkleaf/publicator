@@ -1,0 +1,4 @@
+{:aliases {:run-tests {:extra-deps {com.cognitect/test-runner
+                                    {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                     :sha     "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}}
+                       :main-opts  ["-m" "cognitect.test-runner"]}}}

@@ -1,0 +1,43 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: clojure:tools-deps-alpine
+        environment:
+          CLJ_CONFIG: /root/project/.circleci
+          #TEST_DATABASE_URL: postgres://postgres:password@localhost:5432/postgres
+      # - image: postgres:10.4-alpine
+      #   environment:
+      #     POSTGRES_PASSWORD: password
+    steps:
+      - checkout
+      - restore_cache:
+          key:
+            deps
+            {{ checksum "core/deps.edn" }}
+            # {{ checksum "web/deps.edn" }}
+            # {{ checksum "persistence/deps.edn" }}
+      - run:
+          name: Core
+          command: |
+            cd core
+            clojure -Adev:run-tests
+      # - run:
+      #     name: Web
+      #     command: |
+      #       cd web
+      #       clojure -Adev:run-tests
+      # - run:
+      #     name: Persistence
+      #     command: |
+      #       cd persistence
+      #       clojure -Adev:run-tests
+      - save_cache:
+          key:
+            deps
+            {{ checksum "core/deps.edn" }}
+            # {{ checksum "web/deps.edn" }}
+            # {{ checksum "persistence/deps.edn" }}
+          paths:
+            - /root/.m2
+            - /root/.gitlibs
