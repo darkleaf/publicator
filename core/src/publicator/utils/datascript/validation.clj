@@ -64,19 +64,19 @@
      (let [ids (d/q entities-q (:db-after report))]
        [[:db.fn/call check-required report ids attrs]]))))
 
-(defn query-resp [entities-q query pred & args]
-  (fn [report]
-    (let [db          (:db-after report)
-          args        (vec args)
-          ids         (d/q entities-q db)
-          value-by-id (for [id ids]
-                        [id (d/q query db id)])
-          with-errs   (remove (fn [[id value]] (apply pred value args))
-                              value-by-id)]
-      (for [[id value] with-errs]
-        {:entity    id
-         :value     value
-         :query     query
-         :predicate pred
-         :args      args
-         :type      ::query}))))
+(defn query [entities-q value-q pred & args]
+   (fn [report]
+     (let [args      (vec args)
+           db-after  (:db-after report)
+           ids       (d/q entities-q db-after)
+           id-value  (for [id ids]
+                       [id (d/q value-q db-after id)])
+           with-errs (remove (fn [[id value]] (apply pred value args))
+                             id-value)]
+       (for [[id value] with-errs]
+         {:entity    id
+          :value-q   value-q
+          :value     value
+          :predicate pred
+          :args      args
+          :type      ::query}))))

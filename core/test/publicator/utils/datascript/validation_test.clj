@@ -103,31 +103,29 @@
             errors    (get-errors report validator)]
         (t/is (= 1 (count errors)))))))
 
-(t/deftest query-resp
-  (let [validator (d.validation/query-resp
-                   '{:find  [[?e ...]]
+(t/deftest query
+  (let [entities-q '{:find  [[?e ...]]
                      :where [[?e :db/ident :root]]}
-                   '{:find  [(clojure.core/sort ?v) .]
+        value-q    '{:find  [(clojure.core/sort ?v) .]
                      :in    [$ ?e]
                      :with  [?nested]
                      :where [[?nested :base ?e]
                              [?nested :val  ?v]]}
-                   = [1 1 2])
-        report    (-> (d/empty-db {:base {:db/valueType :db.type/ref}})
-                      (d/with [{:db/ident :root}
-                               {:base :root
-                                :val  1}
-                               {:base :root
-                                :val  1}]))
-        errors    (get-errors report validator)]
+        validator  (d.validation/query
+                    entities-q
+                    value-q
+                    = [1 1 2])
+        report     (-> (d/empty-db {:base {:db/valueType :db.type/ref}})
+                       (d/with [{:db/ident :root}
+                                {:base :root
+                                 :val  1}
+                                {:base :root
+                                 :val  1}]))
+        errors     (get-errors report validator)]
     (t/is (= #{{:db/id     1
                 :entity    1
                 :value     [1 1]
-                :query     '{:find  [(clojure.core/sort ?v) .]
-                             :in    [$ ?e]
-                             :with  [?nested]
-                             :where [[?nested :base ?e]
-                                     [?nested :val  ?v]]}
+                :value-q   value-q
                 :predicate =
                 :args      [[1 1 2]]
                 :type      ::d.validation/query}}
