@@ -14,23 +14,18 @@
         tx-data (validator report)]
     (d/db-with errors tx-data)))
 
-(defn- without-attribute-errors [errors ids attribute]
-  (d/q '{:find  [[?e ...]]
-         :in    [$ [?e ...] ?a]
-         :where [(not-join [?e ?a]
-                   [?err :entity ?e]
-                   [?err :attribute ?a])]}
-       errors ids attribute))
-
 (defn- check-attribute [errors report ids [attr pred & args]]
   (let [args   (vec args)
-        ids    (without-attribute-errors errors ids attr)
         errors (d/q '{:find  [?e ?a ?v ?pred ?args]
-                      :in    [$before $after [?e ...] ?a ?pred ?args]
-                      :where [[$after ?e ?a ?v]
+                      :in    [$before $after $errors [?e ...] ?a ?pred ?args]
+                      :where [($errors not-join [?e ?a]
+                                       [?err :entity ?e]
+                                       [?err :attribute ?a]
+                                       [?err :type ::predicate])
+                              [$after ?e ?a ?v]
                               (not [$before ?e ?a ?v])
                               (not [(clojure.core/apply ?pred ?v ?args)])]}
-                    (:db-before report) (:db-after report) ids attr pred args)]
+                    (:db-before report) (:db-after report) errors ids attr pred args)]
     (for [error errors]
       (-> (zipmap [:entity :attribute :value :predicate :args]
                   error)
@@ -45,11 +40,14 @@
         [:db.fn/call check-attribute report ids check]))))
 
 (defn- check-required [errors db ids [attr & _]]
-  (let [ids     (without-attribute-errors db ids attr)
-        errors  (d/q '{:find  [?e ?a]
-                       :in    [$ [?e ...] ?a]
-                       :where [[(missing? $ ?e ?a)]]}
-                     db ids attr)]
+  (let [errors  (d/q '{:find  [?e ?a]
+                       :in    [$ $errors [?e ...] ?a]
+                       :where [($errors not-join [?e ?a]
+                                        [?err :entity ?e]
+                                        [?err :attribute ?a]
+                                        [?err :type ::required])
+                               [(missing? $ ?e ?a)]]}
+                     db errors ids attr)]
     (for [error errors]
       (-> (zipmap [:entity :attribute]
                   error)

@@ -77,7 +77,8 @@
   (let [validator (d.validation/in-case-of
                    '{:find  [[?e ...]]
                      :where [[?e :type :active]]}
-                   [:attr = 0])]
+                   [:attr = 0]
+                   [:attr some? #_second-check])]
     (t/testing "empty"
       (let [report (-> (d/empty-db)
                        (d/with []))
