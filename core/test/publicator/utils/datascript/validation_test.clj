@@ -1,6 +1,6 @@
 (ns publicator.utils.datascript.validation-test
   (:require
-   [publicator.utils.datascript.validation :as sut]
+   [publicator.utils.datascript.validation :as d.validation]
    [datascript.core :as d]
    [clojure.test :as t]))
 
@@ -12,12 +12,13 @@
        (set)))
 
 (defn- get-errors [db validator]
-  (let [errors  (sut/validate db validator)]
+  (let [errors  (d.validation/validate db validator)]
     (errors->set errors)))
 
 (t/deftest attributes
-  (let [validator (sut/attributes [:attr int?]
-                                  [:attr < 10])]
+  (let [validator (d.validation/attributes
+                   [:attr int?]
+                   [:attr < 10])]
     (t/testing "missed"
       (let [report (-> (d/empty-db)
                        (d/with [[:db/add 1 :other :val]]))
@@ -38,7 +39,7 @@
                     :value     :wrong
                     :predicate int?
                     :args      []
-                    :type      ::sut/predicate}}
+                    :type      ::d.validation/predicate}}
                  errors))))
     (t/testing "second check"
       (let [report (-> (d/empty-db)
@@ -50,7 +51,7 @@
                     :value     10
                     :predicate <
                     :args      [10]
-                    :type      ::sut/predicate}}
+                    :type      ::d.validation/predicate}}
                  errors))))
     (t/testing "not changed"
       (let [report (-> (d/empty-db)
@@ -69,13 +70,14 @@
                     :value     10
                     :predicate <
                     :args      [10]
-                    :type      ::sut/predicate}}
+                    :type      ::d.validation/predicate}}
                  errors))))))
 
 (t/deftest in-case-of
-  (let [validator (sut/in-case-of '{:find  [[?e ...]]
-                                    :where [[?e :type :active]]}
-                                  [:attr = 0])]
+  (let [validator (d.validation/in-case-of
+                   '{:find  [[?e ...]]
+                     :where [[?e :type :active]]}
+                   [:attr = 0])]
     (t/testing "empty"
       (let [report (-> (d/empty-db)
                        (d/with []))
@@ -88,7 +90,7 @@
         (t/is (= #{{:db/id     1
                     :entity    1
                     :attribute :attr
-                    :type      ::sut/required}}
+                    :type      ::d.validation/required}}
                  errors))))
     (t/testing "query"
       (let [report (-> (d/empty-db)
@@ -101,14 +103,15 @@
         (t/is (= #{} errors))))))
 
 (t/deftest query-resp
-  (let [validator (sut/query-resp '{:find  [[?e ...]]
-                                    :where [[?e :db/ident :root]]}
-                                  '{:find  [(clojure.core/sort ?v) .]
-                                    :in    [$ ?e]
-                                    :with  [?nested]
-                                    :where [[?nested :base ?e]
-                                            [?nested :val  ?v]]}
-                                  = [1 1 2])
+  (let [validator (d.validation/query-resp
+                   '{:find  [[?e ...]]
+                     :where [[?e :db/ident :root]]}
+                   '{:find  [(clojure.core/sort ?v) .]
+                     :in    [$ ?e]
+                     :with  [?nested]
+                     :where [[?nested :base ?e]
+                             [?nested :val  ?v]]}
+                   = [1 1 2])
         report    (-> (d/empty-db {:base {:db/valueType :db.type/ref}})
                       (d/with [{:db/ident :root}
                                {:base :root
@@ -126,5 +129,5 @@
                                      [?nested :val  ?v]]}
                 :predicate =
                 :args      [[1 1 2]]
-                :type      ::sut/query}}
+                :type      ::d.validation/query}}
              errors))))
