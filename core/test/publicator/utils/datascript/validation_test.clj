@@ -52,6 +52,12 @@
                     :args      [10]
                     :type      ::sut/predicate}}
                  errors))))
+    (t/testing "not changed"
+      (let [report (-> (d/empty-db)
+                       (d/db-with [[:db/add 1 :attr :wrong]])
+                       (d/with [[:db/add 1 :other :val]]))
+            errors (get-errors report validator)]
+        (t/is (empty? errors))))
     (t/testing "many"
       (let [report (-> (d/empty-db {:attr {:db/cardinality :db.cardinality/many}})
                        (d/with [[:db/add 1 :attr 1]

@@ -22,14 +22,15 @@
                    [?err :attribute ?a])]}
        errors ids attribute))
 
-(defn- check-attribute [errors db ids [attr pred & args]]
+(defn- check-attribute [errors report ids [attr pred & args]]
   (let [args   (vec args)
         ids    (without-attribute-errors errors ids attr)
         errors (d/q '{:find  [?e ?a ?v ?pred ?args]
-                      :in    [$ [?e ...] ?a ?pred ?args]
-                      :where [[?e ?a ?v]
+                      :in    [$before $after [?e ...] ?a ?pred ?args]
+                      :where [[$after ?e ?a ?v]
+                              (not [$before ?e ?a ?v])
                               (not [(clojure.core/apply ?pred ?v ?args)])]}
-                    db ids attr pred args)]
+                    (:db-before report) (:db-after report) ids attr pred args)]
     (for [error errors]
       (-> (zipmap [:entity :attribute :value :predicate :args]
                   error)
@@ -37,12 +38,11 @@
 
 (defn attributes [& checks]
   (fn [report]
-    (let [db  (:db-after report)
-          ids (d/q '{:find  [[?e ...]]
+    (let [ids (d/q '{:find  [[?e ...]]
                      :where [[?e _ _]]}
-                   db)]
+                   (:db-after report))]
       (for [check checks]
-        [:db.fn/call check-attribute db ids check]))))
+        [:db.fn/call check-attribute report ids check]))))
 
 (defn- check-required [errors db ids [attr & _]]
   (let [ids     (without-attribute-errors db ids attr)
