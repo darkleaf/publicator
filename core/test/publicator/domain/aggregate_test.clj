@@ -17,11 +17,15 @@
                           [:db/add :root :test-agg/version 0]
                           [:db/add :root :test-agg/read-only 0]])
    :additional-tx (fn [] [[:db.fn/call d.fns/update-all :test-agg/version inc]])
-   :validator     (d.validation/attributes [:test-agg/key keyword?]
-                                           [:test-agg/version pos-int?]
-                                           [:teat-agg/read-only pos-int?]
-                                           [:inner/key keyword?])
-   :read-only     #{:test-agg/read-only}})
+   :validator     (d.validation/compose
+
+                   (d.validation/predicate
+                    [[:test-agg/key keyword?]
+                     [:test-agg/version pos-int?]
+                     [:teat-agg/read-only pos-int?]
+                     [:inner/key keyword?]])
+
+                   (d.validation/read-only #{:test-agg/read-only}))})
 
 (t/deftest build
   (t/testing "main path"
@@ -39,8 +43,8 @@
         (t/is (= :inner-val (-> agg agg/root :inner/_base first :inner/key))))
       (t/testing :additional-tx
         (t/is (= 1 (-> agg agg/root :test-agg/version))))
-      (t/testing :aggregate/changes
-        (t/is (not-empty (-> agg meta :aggregate/changes))))
+      (t/testing :aggregate/tx-data
+        (t/is (not-empty (-> agg meta :aggregate/tx-data))))
       (t/testing :aggregate/errors
         (t/is (empty? (-> agg meta :aggregate/errors))))))
   (t/testing "errors"
@@ -57,7 +61,7 @@
           (t/is (= :new-val (-> agg agg/root :test-agg/key))))
         (t/testing :additional-tx
           (t/is (= 2 (-> agg agg/root :test-agg/version))))
-        (t/testing :aggregate/changes
+        (t/testing :aggregate/tx-data
           (t/is (= [[:test-agg/key false]
                     [:test-agg/key true]
                     [:root/updated-at false]
@@ -65,14 +69,10 @@
                     [:test-agg/version false]
                     [:test-agg/version true]]
                    (map (fn [[e a v t added]] [a added])
-                        (-> agg meta :aggregate/changes)))))
+                        (-> agg meta :aggregate/tx-data)))))
         (t/testing :aggregate/errors
           (t/is (empty? (-> agg meta :aggregate/errors))))))
     (t/testing "errors"
       (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
                               #"Aggregate has errors"
-                              (agg/change agg [[:db/add :root :test-agg/key "wrong"]]))))
-    (t/testing "read only"
-      (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
-                              #"Read only attributes are changed"
-                              (agg/change agg [[:db/add :root :test-agg/read-only 1]]))))))
+                              (agg/change agg [[:db/add :root :test-agg/key "wrong"]]))))))

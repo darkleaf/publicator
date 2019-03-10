@@ -9,23 +9,26 @@
 
 (def ^{:arglists '([query & inputs])} q d/q)
 
-(def ^:const root-q '{:find [[?e ...]]
-                      :where [[?e :db/ident :root]]})
+(def root-q '{:find [[?e ...]]
+              :where [[?e :db/ident :root]]})
 
 (def base-spec
   {:schema        {:root/id {:db/unique :db.unique/identity}}
    :defaults-tx   (fn [] [[:db/add 1 :db/ident :root]
                           [:db/add :root :root/created-at (instant/*now*)]])
    :additional-tx (fn [] [[:db/add :root :root/updated-at (instant/*now*)]])
-   :read-only     #{:root/id :root/created-at}
    :validator     (d.validation/compose
-                   (d.validation/attributes [:root/id         pos-int?]
-                                            [:root/created-at inst?]
-                                            [:root/updated-at inst?])
-                   (d.validation/in-case-of root-q
-                                            [:root/id         some?]
-                                            [:root/created-at some?]
-                                            [:root/updated-at some?]))})
+
+                   (d.validation/predicate
+                    [[:root/id         pos-int?]
+                     [:root/created-at inst?]
+                     [:root/updated-at inst?]])
+
+                   (d.validation/required
+                    root-q #{:root/id :root/created-at :root/updated-at})
+
+                   (d.validation/read-only
+                    root-q #{:root/id :root/created-at}))})
 
 (defn extend-spec [spec other]
   (cond-> spec
@@ -36,8 +39,6 @@
                                              (fn [old] #(concat (old) ((:defaults-tx other)))))
     (contains? other :additional-tx) (update :additional-tx
                                              (fn [old] #(concat (old) ((:additional-tx other)))))
-    :always                          (update :read-only
-                                             into (:read-only other))
     (contains? other :validator)     (update :validator
                                              d.validation/compose (:validator other))))
 
@@ -56,25 +57,13 @@
         agg     (d/empty-db (:schema spec))
         report  (d/with agg tx-data)
         agg     (:db-after report)
-        changes (:tx-data report)
-        errors  (d.validation/validate agg (:validator spec))
-        agg (vary-meta agg merge {:type              (:type spec)
-                                  :aggregate/spec    spec
-                                  :aggregate/changes changes
-                                  :aggregate/errors  errors})]
+        tx-data (:tx-data report)
+        errors  (d.validation/validate report (:validator spec))
+        agg     (vary-meta agg merge {:type              (:type spec)
+                                      :aggregate/spec    spec
+                                      :aggregate/tx-data tx-data
+                                      :aggregate/errors  errors})]
     (check-errors! agg)))
-
-(defn- check-read-only! [agg]
-  (let [read-only (-> agg meta :aggregate/spec :read-only)
-        changes   (-> agg meta :aggregate/changes)
-        violators (->> changes
-                       (map (fn [[e a v t added]] a))
-                       (filter #(contains? read-only %))
-                       (set))]
-    (if (not-empty violators)
-      (throw (ex-info "Read only attributes are changed" {:type      ::read-only-violation
-                                                          :violators violators}))
-      agg)))
 
 (defn change [agg tx-data]
   (let [spec    (-> agg meta :aggregate/spec)
@@ -82,10 +71,8 @@
                         ((:additional-tx spec)))
         report  (d/with agg tx-data)
         agg     (:db-after report)
-        changes (:tx-data report)
-        errors  (d.validation/validate agg (:validator spec))
-        agg     (vary-meta agg merge {:aggregate/changes changes
+        tx-data (:tx-data report)
+        errors  (d.validation/validate report (:validator spec))
+        agg     (vary-meta agg merge {:aggregate/tx-data tx-data
                                       :aggregate/errors  errors})]
-    (-> agg
-        (check-read-only!)
-        (check-errors!))))
+    (check-errors! agg)))
