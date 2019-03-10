@@ -15,10 +15,10 @@
   (let [errors  (d.validation/validate db validator)]
     (errors->set errors)))
 
-(t/deftest attributes
-  (let [validator (d.validation/attributes
-                   [:attr int?]
-                   [:attr < 10])]
+(t/deftest predicate
+  (let [validator (d.validation/predicate
+                   [[:attr int?]
+                    [:attr < 10]])]
     (t/testing "missed"
       (let [report (-> (d/empty-db)
                        (d/with [[:db/add 1 :other :val]]))

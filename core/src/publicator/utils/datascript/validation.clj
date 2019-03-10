@@ -14,7 +14,11 @@
         tx-data (validator report)]
     (d/db-with errors tx-data)))
 
-(defn- check-attribute [errors report ids [attr pred & args]]
+(def all-q
+  '{:find  [[?e ...]]
+    :where [[?e _ _]]})
+
+(defn- check-predicate [errors report ids [attr pred & args]]
   (let [args   (vec args)
         errors (d/q '{:find  [?e ?a ?v ?pred ?args]
                       :in    [$before $after $errors [?e ...] ?a ?pred ?args]
@@ -31,13 +35,13 @@
                   error)
           (assoc :type ::predicate)))))
 
-(defn attributes [& checks]
-  (fn [report]
-    (let [ids (d/q '{:find  [[?e ...]]
-                     :where [[?e _ _]]}
-                   (:db-after report))]
-      (for [check checks]
-        [:db.fn/call check-attribute report ids check]))))
+(defn predicate
+  ([checks] (predicate all-q checks))
+  ([entities-q checks]
+   (fn [report]
+     (let [ids (d/q entities-q (:db-after report))]
+       (for [check checks]
+         [:db.fn/call check-predicate report ids check])))))
 
 (defn- check-required [errors db ids [attr & _]]
   (let [errors  (d/q '{:find  [?e ?a]
