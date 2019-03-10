@@ -72,13 +72,11 @@
                     :args      [10]
                     :type      ::d.validation/predicate}}
                  errors))))))
+;; todo query
 
-(t/deftest in-case-of
-  (let [validator (d.validation/in-case-of
-                   '{:find  [[?e ...]]
-                     :where [[?e :type :active]]}
-                   [:attr = 0]
-                   [:attr some? #_second-check])]
+(t/deftest required
+  (let [validator (d.validation/required
+                   #{:attr})]
     (t/testing "empty"
       (let [report (-> (d/empty-db)
                        (d/with []))
@@ -86,22 +84,15 @@
         (t/is (= #{} errors))))
     (t/testing "missing"
       (let [report (-> (d/empty-db)
-                       (d/with [[:db/add 1 :type :active]]))
+                       (d/with [[:db/add 1 :other :val]]))
             errors (get-errors report validator)]
         (t/is (= #{{:db/id     1
                     :entity    1
                     :attribute :attr
                     :type      ::d.validation/required}}
-                 errors))))
-    (t/testing "query"
-      (let [report (-> (d/empty-db)
-                       (d/with [{:db/id 1
-                                 :type  :active
-                                 :attr  0}
-                                {:db/id 2
-                                 :type  :inactive}]))
-            errors (get-errors report validator)]
-        (t/is (= #{} errors))))))
+                 errors))))))
+;; todo query
+;; todo idempotence
 
 (t/deftest query-resp
   (let [validator (d.validation/query-resp

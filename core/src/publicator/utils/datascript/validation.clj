@@ -43,28 +43,26 @@
        (for [check checks]
          [:db.fn/call check-predicate report ids check])))))
 
-(defn- check-required [errors db ids [attr & _]]
-  (let [errors  (d/q '{:find  [?e ?a]
-                       :in    [$ $errors [?e ...] ?a]
-                       :where [($errors not-join [?e ?a]
-                                        [?err :entity ?e]
-                                        [?err :attribute ?a]
-                                        [?err :type ::required])
-                               [(missing? $ ?e ?a)]]}
-                     db errors ids attr)]
+(defn- check-required [errors report ids attrs]
+  (let [errors (d/q '{:find  [?e ?a]
+                      :in    [$after $errors [?e ...] [?a ...]]
+                      :where [($errors not-join [?e ?a]
+                                       [?err :entity ?e]
+                                       [?err :attribute ?a]
+                                       [?err :type ::required])
+                              [(missing? $after ?e ?a)]]}
+                    (:db-after report) errors ids attrs)]
     (for [error errors]
       (-> (zipmap [:entity :attribute]
                   error)
           (assoc :type ::required)))))
 
-(defn in-case-of [entities-q & checks]
-  (fn [report]
-    (let [db  (:db-after report)
-          ids (d/q entities-q db)]
-      (for [check checks]
-        [:db.fn/call (fn [errors]
-                       (concat (check-required errors db ids check)
-                               (check-attribute errors db ids check)))]))))
+(defn required
+  ([attrs] (required all-q attrs))
+  ([entities-q attrs]
+   (fn [report]
+     (let [ids (d/q entities-q (:db-after report))]
+       [[:db.fn/call check-required report ids attrs]]))))
 
 (defn query-resp [entities-q query pred & args]
   (fn [report]
