@@ -103,6 +103,37 @@
             errors    (get-errors report validator)]
         (t/is (= 1 (count errors)))))))
 
+(t/deftest read-only
+  (let [validator (d.validation/read-only
+                   #{:attr})]
+    (t/testing "empty"
+      (let [report (-> (d/empty-db)
+                       (d/with []))
+            errors (get-errors report validator)]
+        (t/is (= #{} errors))))
+    (t/testing "initialize"
+      (let [report (-> (d/empty-db)
+                       (d/with [[:db/add 1 :attr :val]]))
+            errors (get-errors report validator)]
+        (t/is (= #{} errors))))
+    (t/testing "change"
+      (let [report (-> (d/empty-db)
+                       (d/db-with [[:db/add 1 :attr :val]])
+                       (d/with [[:db/add 1 :attr :new-val]]))
+            errors (get-errors report validator)]
+        (t/is (= #{{:db/id     1
+                    :entity    1
+                    :attribute :attr
+                    :type      ::d.validation/read-only}}
+                 errors))))
+    (t/testing "idempotence"
+      (let [report    (-> (d/empty-db)
+                          (d/db-with [[:db/add 1 :attr :val]])
+                          (d/with [[:db/add 1 :attr :new-val]]))
+            validator (d.validation/compose validator validator)
+            errors    (get-errors report validator)]
+        (t/is (= 1 (count errors)))))))
+
 (t/deftest query
   (let [entities-q '{:find  [[?e ...]]
                      :where [[?e :db/ident :root]]}

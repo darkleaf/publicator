@@ -64,6 +64,33 @@
      (let [ids (d/q entities-q (:db-after report))]
        [[:db.fn/call check-required report ids attrs]]))))
 
+(defn- check-read-only [errors report ids attrs]
+  (let [errors (d/q '{:find  [?e ?a]
+                      :in    [$errors [[?de ?da _ _ _]] [?e ...] [?a ...]]
+                      :where [($errors not-join [?e ?a]
+                                       [?err :entity ?e]
+                                       [?err :attribute ?a]
+                                       [?err :type ::read-only])
+                              [(= ?de ?e)]
+                              [(= ?da ?a)]]}
+                    errors (:tx-data report) ids attrs)]
+    (for [error errors]
+      (-> (zipmap [:entity :attribute]
+                  error)
+          (assoc :type ::read-only)))))
+
+(defn read-only
+  ([attrs] (read-only all-q attrs))
+  ([entities-q attrs]
+   (fn [report]
+     (when (-> report :db-before not-empty)
+       (let [ids (d/q entities-q (:db-after report))]
+         [[:db.fn/call check-read-only report ids attrs]])))))
+
+;; (defn allowed-to-change
+;;   ([attrs] (read-only all-q attrs))
+;;   ([entities-q attrs]))
+
 (defn query [entities-q value-q pred & args]
    (fn [report]
      (let [args      (vec args)
