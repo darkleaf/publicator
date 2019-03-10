@@ -63,7 +63,11 @@
                                       :aggregate/spec    spec
                                       :aggregate/tx-data tx-data
                                       :aggregate/errors  errors})]
-    (check-errors! agg)))
+    agg))
+
+(defn build! [spec tx-data]
+  (-> (build spec tx-data)
+      (check-errors!)))
 
 (defn change [agg tx-data]
   (let [spec    (-> agg meta :aggregate/spec)
@@ -75,4 +79,8 @@
         errors  (d.validation/validate report (:validator spec))
         agg     (vary-meta agg merge {:aggregate/tx-data tx-data
                                       :aggregate/errors  errors})]
-    (check-errors! agg)))
+    agg))
+
+(defn change! [agg tx-data]
+  (-> (change agg tx-data)
+      (check-errors!)))

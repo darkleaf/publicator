@@ -48,13 +48,20 @@
       (t/testing :aggregate/errors
         (t/is (empty? (-> agg meta :aggregate/errors))))))
   (t/testing "errors"
+    (let [agg (agg/build spec [[:db/add :root :test-agg/key "wrong"]])]
+      (t/is (not-empty (-> agg meta :aggregate/errors))))))
+
+(t/deftest build!
+  (t/testing "main path"
+    (t/is (some? (agg/build! spec [[:db/add :root :test-agg/key :new-val]]))))
+  (t/testing "errors"
     (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Aggregate has errors"
-                            (agg/build spec [[:db/add :root :test-agg/key "wrong"]])))))
+                            (agg/build! spec [[:db/add :root :test-agg/key "wrong"]])))))
 
 (t/deftest change
-  (let [agg (agg/build spec
-                       [[:db/add :root :test-agg/key :val]])]
+  (let [agg (agg/build! spec
+                        [[:db/add :root :test-agg/key :val]])]
     (t/testing "main path"
       (let [agg (agg/change agg [[:db/add :root :test-agg/key :new-val]])]
         (t/testing "update"
@@ -73,6 +80,15 @@
         (t/testing :aggregate/errors
           (t/is (empty? (-> agg meta :aggregate/errors))))))
     (t/testing "errors"
+      (let [agg (agg/change agg [[:db/add :root :test-agg/key "wrong"]])]
+        (t/is (not-empty (-> agg meta :aggregate/errors)))))))
+
+(t/deftest change!
+  (let [agg (agg/build! spec
+                        [[:db/add :root :test-agg/key :val]])]
+    (t/testing "main path"
+      (t/is (some? (agg/change! agg [[:db/add :root :test-agg/key :new-val]]))))
+    (t/testing "errors"
       (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
                               #"Aggregate has errors"
-                              (agg/change agg [[:db/add :root :test-agg/key "wrong"]]))))))
+                              (agg/change! agg [[:db/add :root :test-agg/key "wrong"]]))))))
