@@ -21,7 +21,8 @@
    (d.validation/compose
     (d.validation/predicate [[:stream/state states]
                              [:stream.translation/lang langs/languages]
-                             [:stream.translation/name string?]])
+                             [:stream.translation/name string?]
+                             [:stream.translation/name not-empty]])
 
     (d.validation/required agg/root-q
                            #{:stream/state})
@@ -29,9 +30,6 @@
     (d.validation/required translations-q
                            #{:stream.translation/lang
                              :stream.translation/name})
-
-    (d.validation/predicate translations-q
-                            [[:stream.translation/name not-empty]])
 
     (d.validation/query agg/root-q
                         '{:find  [[?lang ...]]

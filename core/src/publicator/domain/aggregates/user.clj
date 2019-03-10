@@ -26,13 +26,10 @@
                                             [:user/password string?]
                                             [:user/password u.str/match? #".{8,256}"]
                                             [:user/password-digest string?]
+                                            [:user/password-digest not-empty]
                                             [:user/state states]])
 
                    (d.validation/required agg/root-q
                                           #{:user/login
                                             :user/password-digest
-                                            :user/state})
-
-                   (d.validation/predicate agg/root-q
-                                           [[:user/login not-empty]
-                                            [:user/password-digest not-empty]]))})
+                                            :user/state}))})
