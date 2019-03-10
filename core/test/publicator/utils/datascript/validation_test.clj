@@ -71,8 +71,13 @@
                     :predicate <
                     :args      [10]
                     :type      ::d.validation/predicate}}
-                 errors))))))
-;; todo query
+                 errors))))
+    (t/testing "idempotence"
+      (let [report    (-> (d/empty-db)
+                          (d/with [[:db/add 1 :attr :wrong]]))
+            validator (d.validation/compose validator validator)
+            errors    (get-errors report validator)]
+        (t/is (= 1 (count errors)))))))
 
 (t/deftest required
   (let [validator (d.validation/required
@@ -90,9 +95,13 @@
                     :entity    1
                     :attribute :attr
                     :type      ::d.validation/required}}
-                 errors))))))
-;; todo query
-;; todo idempotence
+                 errors))))
+    (t/testing "idempotence"
+      (let [report    (-> (d/empty-db)
+                          (d/with [[:db/add 1 :other :val]]))
+            validator (d.validation/compose validator validator)
+            errors    (get-errors report validator)]
+        (t/is (= 1 (count errors)))))))
 
 (t/deftest query-resp
   (let [validator (d.validation/query-resp
