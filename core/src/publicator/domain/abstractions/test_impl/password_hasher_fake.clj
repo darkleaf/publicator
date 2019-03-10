@@ -1,4 +1,4 @@
-(ns publicator.domain.abstractions.password-hasher-fake
+(ns publicator.domain.abstractions.test-impl.password-hasher-fake
   (:require
    [publicator.domain.abstractions.password-hasher :as password-hasher]
    [clojure.string :as str]))

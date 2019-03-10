@@ -1,4 +1,4 @@
-(ns publicator.domain.abstractions.id-generator-fake
+(ns publicator.domain.abstractions.test-impl.id-generator-fake
   (:require
    [publicator.domain.abstractions.id-generator :as id-generator]))
 

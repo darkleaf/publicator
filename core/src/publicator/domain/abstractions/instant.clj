@@ -1,5 +1,6 @@
-(ns publicator.domain.abstractions.instant)
+(ns publicator.domain.abstractions.instant
+  (:import
+   [java.time Instant]))
 
-(declare ^{:dynamic  true
-           :arglists '([])}
-         *now*)
+(defn ^:dynamic *now* []
+  (Instant/now))

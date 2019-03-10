@@ -1,9 +1,9 @@
-(ns publicator.domain.abstractions.password-hasher-testing
+(ns publicator.domain.abstractions.testing.password-hasher
   (:require
    [publicator.domain.abstractions.password-hasher :as password-hasher]
    [clojure.test :as t]))
 
-(def ^:const ^:private pass "pass")
+(def ^:private pass "pass")
 
 (defn test-derive []
   (t/is (not= pass (password-hasher/*derive* pass))))
