@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.aggregates.gallery :as gallery]
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.abstractions.scaffolding :as scaffolding]
+   [publicator.domain.abstractions.test-impl.scaffolding :as scaffolding]
    [publicator.domain.abstractions.instant :as instant]
    [clojure.test :as t]))
 

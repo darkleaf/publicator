@@ -1,7 +1,7 @@
 (ns publicator.domain.aggregate-test
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.abstractions.scaffolding :as scaffolding]
+   [publicator.domain.abstractions.test-impl.scaffolding :as scaffolding]
    [publicator.utils.datascript.fns :as d.fns]
    [publicator.utils.datascript.validation :as d.validation]
    [clojure.test :as t]))

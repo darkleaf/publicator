@@ -1,6 +1,6 @@
 (ns publicator.use-cases.abstractions.scaffolding
   (:require
-   [publicator.domain.abstractions.scaffolding :as domain-scaffolding]
+   [publicator.domain.abstractions.test-impl.scaffolding :as domain-scaffolding]
    [publicator.use-cases.abstractions.session-fake :as session]
    [publicator.use-cases.abstractions.storage-fake  :as storage]))
 
