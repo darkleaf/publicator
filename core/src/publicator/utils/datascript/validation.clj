@@ -3,15 +3,15 @@
    [datascript.core :as d]))
 
 (defn compose [& validators]
-  (fn [db]
+  (fn [report]
     (reduce (fn [acc validator]
-              (into acc (validator db)))
+              (into acc (validator report)))
             []
             validators)))
 
-(defn validate [db validator]
+(defn validate [report validator]
   (let [errors  (d/empty-db)
-        tx-data (validator db)]
+        tx-data (validator report)]
     (d/db-with errors tx-data)))
 
 (defn- without-attribute-errors [errors ids attribute]
@@ -36,8 +36,9 @@
           (assoc :type ::predicate)))))
 
 (defn attributes [& checks]
-  (fn [db]
-    (let [ids (d/q '{:find  [[?e ...]]
+  (fn [report]
+    (let [db  (:db-after report)
+          ids (d/q '{:find  [[?e ...]]
                      :where [[?e _ _]]}
                    db)]
       (for [check checks]
@@ -55,16 +56,18 @@
           (assoc :type ::required)))))
 
 (defn in-case-of [entities-q & checks]
-  (fn [db]
-    (let [ids (d/q entities-q db)]
+  (fn [report]
+    (let [db  (:db-after report)
+          ids (d/q entities-q db)]
       (for [check checks]
         [:db.fn/call (fn [errors]
                        (concat (check-required errors db ids check)
                                (check-attribute errors db ids check)))]))))
 
 (defn query-resp [entities-q query pred & args]
-  (fn [db]
-    (let [args        (vec args)
+  (fn [report]
+    (let [db          (:db-after report)
+          args        (vec args)
           ids         (d/q entities-q db)
           value-by-id (for [id ids]
                         [id (d/q query db id)])
