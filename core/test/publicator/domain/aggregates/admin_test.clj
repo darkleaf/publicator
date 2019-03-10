@@ -11,5 +11,5 @@
   (let [user-id 1
         tx-data [{:db/ident :root
                   :root/id  user-id}]
-        admin   (agg/build admin/spec tx-data)]
+        admin   (agg/build! admin/spec tx-data)]
     (t/is (some? admin))))

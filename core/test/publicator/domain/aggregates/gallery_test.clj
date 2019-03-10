@@ -21,5 +21,5 @@
                  {:publication.related/publication :root
                   :publication.related/id          1
                   :publication.related/type        :article}]
-        gallery (agg/build gallery/spec tx-data)]
+        gallery (agg/build! gallery/spec tx-data)]
     (t/is (some? gallery))))

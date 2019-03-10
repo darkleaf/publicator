@@ -19,18 +19,24 @@
                         [:db/add :root :stream/state :active]])
    :validator
    (d.validation/compose
-    (d.validation/attributes [:stream/state states]
+    (d.validation/predicate [[:stream/state states]
                              [:stream.translation/lang langs/languages]
-                             [:stream.translation/name string?])
-    (d.validation/in-case-of agg/root-q
-                             [:stream/state some?])
-    (d.validation/in-case-of translations-q
-                             [:stream.translation/lang some?]
-                             [:stream.translation/name not-empty])
-    (d.validation/query-resp agg/root-q
-                             '{:find  [[?lang ...]]
-                               :in    [$ ?e]
-                               :with  [?trans]
-                               :where [[?trans :stream.translation/stream ?e]
-                                       [?trans :stream.translation/lang ?lang]]}
-                             u.c/match? langs/languages))})
+                             [:stream.translation/name string?]])
+
+    (d.validation/required agg/root-q
+                           #{:stream/state})
+
+    (d.validation/required translations-q
+                           #{:stream.translation/lang
+                             :stream.translation/name})
+
+    (d.validation/predicate translations-q
+                            [[:stream.translation/name not-empty]])
+
+    (d.validation/query agg/root-q
+                        '{:find  [[?lang ...]]
+                          :in    [$ ?e]
+                          :with  [?trans]
+                          :where [[?trans :stream.translation/stream ?e]
+                                  [?trans :stream.translation/lang ?lang]]}
+                        u.c/match? langs/languages))})

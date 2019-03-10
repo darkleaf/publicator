@@ -14,5 +14,5 @@
                  {:stream.translation/stream :root
                   :stream.translation/lang   :ru
                   :stream.translation/name   "Новости"}]
-        stream  (agg/build stream/spec tx-data)]
+        stream  (agg/build! stream/spec tx-data)]
     (t/is (some? stream))))

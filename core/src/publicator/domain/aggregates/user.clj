@@ -21,13 +21,18 @@
                           [:db/add :root :user/state :active]])
    :additional-tx (fn [] [[:db.fn/call hash-password]])
    :validator     (d.validation/compose
-                   (d.validation/attributes [:user/login string?]
+                   (d.validation/predicate [[:user/login string?]
                                             [:user/login u.str/match? #"\w{3,256}"]
                                             [:user/password string?]
                                             [:user/password u.str/match? #".{8,256}"]
                                             [:user/password-digest string?]
-                                            [:user/state states])
-                   (d.validation/in-case-of agg/root-q
-                                            [:user/login not-empty]
-                                            [:user/password-digest not-empty]
-                                            [:user/state some?]))})
+                                            [:user/state states]])
+
+                   (d.validation/required agg/root-q
+                                          #{:user/login
+                                            :user/password-digest
+                                            :user/state})
+
+                   (d.validation/predicate agg/root-q
+                                           [[:user/login not-empty]
+                                            [:user/password-digest not-empty]]))})

@@ -29,12 +29,11 @@
             :publication.translation/publication {:db/valueType :db.type/ref}
             :publication.translation/tags        {:db/cardinality :db.cardinality/many}}
 
-   :defaults-tx (fn []
-                  [[:db/add :root :publication/state :active]
-                   (comment "можно попробовать сразу все переводы создать")])
+   :defaults-tx (fn [] [[:db/add :root :publication/state :active]])
 
    :validator (d.validation/compose
-               (d.validation/attributes [:publication/state states]
+
+               (d.validation/predicate [[:publication/state states]
                                         [:publication/stream-id pos-int?]
                                         [:publication.translation/lang langs/languages]
                                         [:publication.translation/state translation-states]
@@ -43,20 +42,28 @@
                                         [:publication.translation/tags string?]
                                         [:publication.translation/published-at inst?]
                                         [:publication.related/id pos-int?]
-                                        [:publication.related/type keyword?])
-               (d.validation/in-case-of agg/root-q
-                                        [:publication/state some?])
-               (d.validation/in-case-of translations-q
-                                        [:publication.translation/state some?]
-                                        [:publication.translation/lang  some?])
-               (d.validation/in-case-of published-translations-q
-                                        [:publication.translation/title not-empty]
-                                        [:publication.translation/summary not-empty]
-                                        [:publication.translation/published-at some?])
-               (d.validation/query-resp agg/root-q
-                                        '{:find  [[?lang ...]]
-                                          :in    [$ ?e]
-                                          :with  [?trans]
-                                          :where [[?trans :publication.translation/publication ?e]
-                                                  [?trans :publication.translation/lang ?lang]]}
-                                        u.c/distinct?))})
+                                        [:publication.related/type keyword?]])
+
+               (d.validation/required agg/root-q
+                                      #{:publication/state})
+
+               (d.validation/required translations-q
+                                      #{:publication.translation/state
+                                        :publication.translation/lang})
+
+               (d.validation/required published-translations-q
+                                      #{:publication.translation/title
+                                        :publication.translation/summary
+                                        :publication.translation/published-at})
+
+               (d.validation/predicate published-translations-q
+                                       [[:publication.translation/title not-empty]
+                                        [:publication.translation/summary not-empty]])
+
+               (d.validation/query agg/root-q
+                                   '{:find  [[?lang ...]]
+                                     :in    [$ ?e]
+                                     :with  [?trans]
+                                     :where [[?trans :publication.translation/publication ?e]
+                                             [?trans :publication.translation/lang ?lang]]}
+                                   u.c/distinct?))})

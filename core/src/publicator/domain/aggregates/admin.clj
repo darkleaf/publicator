@@ -9,6 +9,5 @@
   {:type        :admin
    :defaults-tx (fn [] [[:db/add :root :admin/state :active]])
    :validator   (d.validation/compose
-                 (d.validation/attributes [:admin/state states])
-                 (d.validation/in-case-of agg/root-q
-                                          [:admin/state some?]))})
+                 (d.validation/predicate [[:admin/state states]])
+                 (d.validation/required agg/root-q #{:admin/state}))})

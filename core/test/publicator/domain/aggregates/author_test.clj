@@ -22,5 +22,5 @@
                  {:author.stream-participation/author    :root
                   :author.stream-participation/stream-id 1
                   :author.stream-participation/role      :regular}]
-        author  (agg/build author/spec tx-data)]
+        author  (agg/build! author/spec tx-data)]
     (t/is (some? author))))

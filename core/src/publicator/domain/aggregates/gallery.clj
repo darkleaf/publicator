@@ -12,6 +12,7 @@
     :schema      {:gallery/image-urls {:db/cardinality :db.cardinality/many}}
     :defaults-tx (fn [] [[:db/add :root :root/id (id-generator/*generate* :gallery)]])
     :validator   (d.validation/compose
-                  (d.validation/attributes [:gallery/image-urls string?])
-                  (d.validation/in-case-of publication/published-q
-                                           [:gallery/image-urls not-empty]))}))
+                  (d.validation/predicate [[:gallery/image-urls string?]])
+
+                  (d.validation/required publication/published-q
+                                         #{:gallery/image-urls}))}))
