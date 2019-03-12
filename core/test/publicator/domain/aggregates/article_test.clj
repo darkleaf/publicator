@@ -11,6 +11,7 @@
 (t/deftest build
   (let [tx-data [{:db/ident              :root
                   :publication/stream-id 1
+                  :publication/state     :active
                   :article/image-url     "some url"}
                  {:publication.translation/publication  :root
                   :publication.translation/state        :published

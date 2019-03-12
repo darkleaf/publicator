@@ -9,8 +9,9 @@
 
 (t/deftest build
   (let [user-id 1
-        tx-data [{:db/ident :root
-                  :root/id  user-id}
+        tx-data [{:db/ident     :root
+                  :root/id      user-id
+                  :author/state :active}
                  {:author.translation/author     :root
                   :author.translation/lang       :en
                   :author.translation/first-name "John"

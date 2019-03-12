@@ -28,9 +28,6 @@
   {:schema {:publication.related/publication     {:db/valueType :db.type/ref}
             :publication.translation/publication {:db/valueType :db.type/ref}
             :publication.translation/tags        {:db/cardinality :db.cardinality/many}}
-
-   :defaults-tx (fn [] [[:db/add :root :publication/state :active]])
-
    :validator (d.validation/compose
 
                (d.validation/predicate [[:publication/state states]

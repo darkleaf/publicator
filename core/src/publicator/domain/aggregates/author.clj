@@ -18,10 +18,9 @@
     :where [[?e :author.stream-participation/author :root]]})
 
 (def spec
-  {:type        :author
-   :schema      {:author.translation/author          {:db/valueType :db.type/ref}
-                 :author.stream-participation/author {:db/valueType :db.type/ref}}
-   :defaults-tx (fn [] [[:db/add :root :author/state :active]])
+  {:type   :author
+   :schema {:author.translation/author          {:db/valueType :db.type/ref}
+            :author.stream-participation/author {:db/valueType :db.type/ref}}
    :validator
    (d.validation/compose
     (d.validation/predicate [[:author/state states]

@@ -10,6 +10,7 @@
 (t/deftest build
   (let [tx-data [{:db/ident      :root
                   :user/login    "john"
-                  :user/password "12345678"}]
+                  :user/password "12345678"
+                  :user/state    :active}]
         user    (agg/build! user/spec tx-data)]
     (t/is (some? user))))

@@ -8,7 +8,9 @@
 (t/use-fixtures :each scaffolding/setup)
 
 (t/deftest build
-  (let [tx-data [{:stream.translation/stream :root
+  (let [tx-data [{:db/ident     :root
+                  :stream/state :active}
+                 {:stream.translation/stream :root
                   :stream.translation/lang   :en
                   :stream.translation/name   "News"}
                  {:stream.translation/stream :root

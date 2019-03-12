@@ -32,15 +32,29 @@
 
 (defn extend-spec [spec other]
   (cond-> spec
-    (contains? other :type)          (assoc :type (:type other))
-    :always                          (update :schema
-                                             merge (:schema other))
-    (contains? other :defaults-tx)   (update :defaults-tx
-                                             (fn [old] #(concat (old) ((:defaults-tx other)))))
-    (contains? other :additional-tx) (update :additional-tx
-                                             (fn [old] #(concat (old) ((:additional-tx other)))))
-    (contains? other :validator)     (update :validator
-                                             d.validation/compose (:validator other))))
+    (contains? other :type)
+    (assoc :type (:type other))
+
+    :always
+    (update :schema merge (:schema other))
+
+    (not (contains? spec :defaults-tx))
+    (assoc :defaults-tx (fn [] []))
+
+    (contains? other :defaults-tx)
+    (update :defaults-tx (fn [old] #(concat (old) ((:defaults-tx other)))))
+
+    (not (contains? spec :additional-tx))
+    (assoc :additional-tx (fn [] []))
+
+    (contains? other :additional-tx)
+    (update :additional-tx (fn [old] #(concat (old) ((:additional-tx other)))))
+
+    (not (contains? spec :validator))
+    (assoc :validator d.validation/null-validator)
+
+    (contains? other :validator)
+    (update :validator d.validation/compose (:validator other))))
 
 (defn- check-errors! [agg]
   (let [errs (-> agg meta :aggregate/errors)]

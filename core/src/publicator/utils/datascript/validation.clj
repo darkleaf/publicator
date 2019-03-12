@@ -2,6 +2,8 @@
   (:require
    [datascript.core :as d]))
 
+(def null-validator (fn [report] []))
+
 (defn compose [& validators]
   (fn [report]
     (reduce (fn [acc validator]
