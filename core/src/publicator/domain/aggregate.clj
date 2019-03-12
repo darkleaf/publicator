@@ -56,6 +56,9 @@
     (contains? other :validator)
     (update :validator d.validation/compose (:validator other))))
 
+(defn extend-agg [agg spec]
+  (vary-meta agg update :aggregate/spec extend-spec spec))
+
 (defn- check-errors! [agg]
   (let [errs (-> agg meta :aggregate/errors)]
     (if (not-empty errs)
