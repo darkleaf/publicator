@@ -87,9 +87,16 @@
        (let [ids (d/q entities-q (:db-after report))]
          [[:db.fn/call check-read-only report ids attrs]])))))
 
-;; (defn allowed-to-change
-;;   ([attrs] (read-only all-q attrs))
-;;   ([entities-q attrs]))
+(defn allowed-to-change
+  ([attrs] (allowed-to-change all-q attrs))
+  ([entities-q attrs]
+   (fn [report]
+     (let [ids      (d/q entities-q (:db-after report))
+           ro-attrs (->> (:tx-data report)
+                         (map (fn [[_ a _ _ _]] a))
+                         (remove attrs)
+                         (set))]
+       [[:db.fn/call check-read-only report ids ro-attrs]]))))
 
 (defn query [entities-q value-q pred & args]
    (fn [report]

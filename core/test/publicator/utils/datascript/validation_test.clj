@@ -134,6 +134,35 @@
             errors    (get-errors report validator)]
         (t/is (= 1 (count errors)))))))
 
+(t/deftest allowed-to-change
+  (let [validator (d.validation/allowed-to-change
+                   #{:allowed-1 :allowed-2})]
+    (t/testing "empty"
+      (let [report (-> (d/empty-db)
+                       (d/with []))
+            errors (get-errors report validator)]
+        (t/is (= #{} errors))))
+    (t/testing "allowed attribute"
+      (let [report (-> (d/empty-db)
+                       (d/with [[:db/add 1 :allowed-1 :val]]))
+            errors (get-errors report validator)]
+        (t/is (= #{} errors))))
+    (t/testing "not allowed attribute"
+      (let [report (-> (d/empty-db)
+                       (d/with [[:db/add 1 :not-allowed :val]]))
+            errors (get-errors report validator)]
+        (t/is (= #{{:db/id     1
+                    :entity    1
+                    :attribute :not-allowed
+                    :type      ::d.validation/read-only}}
+                 errors))))
+    (t/testing "idempotence"
+      (let [report    (-> (d/empty-db)
+                          (d/with [[:db/add 1 :not-allowed :val]]))
+            validator (d.validation/compose validator validator)
+            errors    (get-errors report validator)]
+        (t/is (= 1 (count errors)))))))
+
 (t/deftest query
   (let [entities-q '{:find  [[?e ...]]
                      :where [[?e :db/ident :root]]}
