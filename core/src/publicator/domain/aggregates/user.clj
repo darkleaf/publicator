@@ -5,6 +5,7 @@
    [publicator.domain.abstractions.password-hasher :as password-hasher]
    [publicator.domain.aggregate :as agg]
    [publicator.utils.datascript.validation :as d.validation]
+   [publicator.domain.validators.uniqueness :as uniqueness]
    [publicator.utils.string :as u.str]))
 
 (def states #{:active :archived})
@@ -32,4 +33,6 @@
                    (d.validation/required agg/root-q
                                           #{:user/login
                                             :user/password-digest
-                                            :user/state}))})
+                                            :user/state})
+
+                   (uniqueness/validator agg/root-q #{:user/login}))})
