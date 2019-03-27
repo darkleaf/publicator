@@ -4,6 +4,14 @@
 
 https://darkleaf-publicator2.herokuapp.com/
 
+# Версии
+
++ [1.0](https://github.com/darkleaf/publicator/tree/1.0)
++ [2.0 / current](https://github.com/darkleaf/publicator/tree/master)
++ [3.0 / under development](https://github.com/darkleaf/publicator/tree/3.0)
+
+В версии 3.0 для моделирования агрегатов используется [datascript](https://github.com/tonsky/datascript/) 
+
 # Разработка в docker
 + `docker-compose run  --rm --service-ports app sh`
 + перейти в подпроект, например `cd core`
