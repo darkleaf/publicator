@@ -2,36 +2,35 @@
   (:require
    [datascript.core :as d]))
 
-(def null-validator (fn [report] []))
+(def null-validator (fn [db] []))
 
 (defn compose [& validators]
-  (fn [report]
+  (fn [db]
     (reduce (fn [acc validator]
-              (into acc (validator report)))
+              (into acc (validator db)))
             []
             validators)))
 
-(defn validate [report validator]
+(defn validate [db validator]
   (let [errors  (d/empty-db)
-        tx-data (validator report)]
+        tx-data (validator db)]
     (d/db-with errors tx-data)))
 
 (def all-q
   '{:find  [[?e ...]]
     :where [[?e _ _]]})
 
-(defn- check-predicate [errors report ids [attr pred & args]]
+(defn- check-predicate [errors db ids [attr pred & args]]
   (let [args   (vec args)
         errors (d/q '{:find  [?e ?a ?v ?pred ?args]
-                      :in    [$before $after $errors [?e ...] ?a ?pred ?args]
+                      :in    [$ $errors [?e ...] ?a ?pred ?args]
                       :where [($errors not-join [?e ?a]
                                        [?err :entity ?e]
                                        [?err :attribute ?a]
                                        [?err :type ::predicate])
-                              [$after ?e ?a ?v]
-                              (not [$before ?e ?a ?v])
+                              [?e ?a ?v]
                               (not [(clojure.core/apply ?pred ?v ?args)])]}
-                    (:db-before report) (:db-after report) errors ids attr pred args)]
+                    db errors ids attr pred args)]
     (for [error errors]
       (-> (zipmap [:entity :attribute :value :predicate :args]
                   error)
@@ -40,20 +39,20 @@
 (defn predicate
   ([checks] (predicate all-q checks))
   ([entities-q checks]
-   (fn [report]
-     (let [ids (d/q entities-q (:db-after report))]
+   (fn [db]
+     (let [ids (d/q entities-q db)]
        (for [check checks]
-         [:db.fn/call check-predicate report ids check])))))
+         [:db.fn/call check-predicate db ids check])))))
 
-(defn- check-required [errors report ids attrs]
+(defn- check-required [errors db ids attrs]
   (let [errors (d/q '{:find  [?e ?a]
-                      :in    [$after $errors [?e ...] [?a ...]]
+                      :in    [$ $errors [?e ...] [?a ...]]
                       :where [($errors not-join [?e ?a]
                                        [?err :entity ?e]
                                        [?err :attribute ?a]
                                        [?err :type ::required])
-                              [(missing? $after ?e ?a)]]}
-                    (:db-after report) errors ids attrs)]
+                              [(missing? $ ?e ?a)]]}
+                    db errors ids attrs)]
     (for [error errors]
       (-> (zipmap [:entity :attribute]
                   error)
@@ -62,51 +61,16 @@
 (defn required
   ([attrs] (required all-q attrs))
   ([entities-q attrs]
-   (fn [report]
-     (let [ids (d/q entities-q (:db-after report))]
-       [[:db.fn/call check-required report ids attrs]]))))
-
-(defn- check-read-only [errors report ids attrs]
-  (let [errors (d/q '{:find  [?e ?a]
-                      :in    [$errors [[?de ?da _ _ _]] [?e ...] [?a ...]]
-                      :where [($errors not-join [?e ?a]
-                                       [?err :entity ?e]
-                                       [?err :attribute ?a]
-                                       [?err :type ::read-only])
-                              [(= ?de ?e)]
-                              [(= ?da ?a)]]}
-                    errors (:tx-data report) ids attrs)]
-    (for [error errors]
-      (-> (zipmap [:entity :attribute]
-                  error)
-          (assoc :type ::read-only)))))
-
-(defn read-only
-  ([attrs] (read-only all-q attrs))
-  ([entities-q attrs]
-   (fn [report]
-     (when (-> report :db-before not-empty)
-       (let [ids (d/q entities-q (:db-after report))]
-         [[:db.fn/call check-read-only report ids attrs]])))))
-
-(defn allowed-to-change
-  ([attrs] (allowed-to-change all-q attrs))
-  ([entities-q attrs]
-   (fn [report]
-     (let [ids      (d/q entities-q (:db-after report))
-           ro-attrs (->> (:tx-data report)
-                         (map (fn [[_ a _ _ _]] a))
-                         (remove attrs)
-                         (set))]
-       [[:db.fn/call check-read-only report ids ro-attrs]]))))
+   (fn [db]
+     (let [ids (d/q entities-q db)]
+       [[:db.fn/call check-required db ids attrs]]))))
 
 (defn query [entities-q value-q pred & args]
-   (fn [report]
+   (fn [db]
      (let [args      (vec args)
-           db-after  (:db-after report)
-           ids       (d/q entities-q db-after)
+           ids       (d/q entities-q db)
            id-value  (for [id ids]
-                       [id (d/q value-q db-after id)])
+                       [id (d/q value-q db id)])
            with-errs (remove (fn [[id value]] (apply pred value args))
                              id-value)]
        (for [[id value] with-errs]
