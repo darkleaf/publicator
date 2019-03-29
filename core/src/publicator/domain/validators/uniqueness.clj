@@ -4,6 +4,9 @@
    [publicator.utils.datascript.validation :as validation]
    [datascript.core :as d]))
 
+
+;; валидируем только корень. и нужно id передавать в абстракцию.
+
 (defn validator
   ([attrs] (validator validation/all-q attrs))
   ([entities-q attrs]
