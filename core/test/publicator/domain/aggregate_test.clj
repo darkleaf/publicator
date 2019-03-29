@@ -11,8 +11,7 @@
 
 (def spec
   {:type         :test-agg
-   :id-generator (constantly id)
-   :validator    (fn [_])})
+   :id-generator (constantly id)})
 
 (t/deftest build
   (let [agg (agg/build spec)]
