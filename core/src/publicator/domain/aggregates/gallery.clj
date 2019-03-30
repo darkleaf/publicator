@@ -6,13 +6,13 @@
    [publicator.utils.datascript.validation :as d.validation]))
 
 (def spec
-  (agg/extend-spec
+  (agg/merge-spec
    publication/spec
-   {:type        :gallery
-    :schema      {:gallery/image-urls {:db/cardinality :db.cardinality/many}}
-    :defaults-tx (fn [] [[:db/add :root :root/id (id-generator/*generate* :gallery)]])
-    :validator   (d.validation/compose
-                  (d.validation/predicate [[:gallery/image-urls string?]])
+   {:type         :gallery
+    :schema       {:gallery/image-urls {:db/cardinality :db.cardinality/many}}
+    :id-generator #(id-generator/*generate* :gallery)
+    :validator    (d.validation/compose
+                   (d.validation/predicate [[:gallery/image-urls string?]])
 
-                  (d.validation/required publication/published-q
-                                         #{:gallery/image-urls}))}))
+                   (d.validation/required publication/published-q
+                                          #{:gallery/image-urls}))}))
