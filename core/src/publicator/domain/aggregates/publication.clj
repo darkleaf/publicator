@@ -25,9 +25,9 @@
             [?e :publication.translation/state :published]]})
 
 (def spec
-  {:schema {:publication.related/publication     {:db/valueType :db.type/ref}
-            :publication.translation/publication {:db/valueType :db.type/ref}
-            :publication.translation/tags        {:db/cardinality :db.cardinality/many}}
+  {:schema    {:publication.related/publication     {:db/valueType :db.type/ref}
+               :publication.translation/publication {:db/valueType :db.type/ref}
+               :publication.translation/tags        {:db/cardinality :db.cardinality/many}}
    :validator (d.validation/compose
 
                (d.validation/predicate [[:publication/state states]

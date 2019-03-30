@@ -23,5 +23,7 @@
                  {:publication.related/publication :root
                   :publication.related/id          1
                   :publication.related/type        :article}]
-        article (agg/build! article/spec tx-data)]
-    (t/is (some? article))))
+        article (-> (agg/build article/spec)
+                    (agg/change tx-data agg/allow-everething))
+        errors  (agg/validate article)]
+    (t/is (empty? errors))))
