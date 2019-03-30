@@ -22,9 +22,7 @@
     (t/testing "id"
       (t/is (= id (agg/id agg))))
     (t/testing "type"
-      (t/is (= :test-agg (agg/type agg))))
-    (t/testing "spec"
-      (t/is (= spec (-> agg meta ::agg/spec))))))
+      (t/is (= :test-agg (agg/type agg))))))
 
 (t/deftest change
   (let [agg (agg/build spec)]

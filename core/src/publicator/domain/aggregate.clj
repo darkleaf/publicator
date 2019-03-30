@@ -23,8 +23,30 @@
 (def root-q '{:find [[?e ...]]
               :where [[?e :db/ident :root]]})
 
+(defn- normalize-spec [spec]
+  (-> spec
+      (update :schema    (fnil identity {}))
+      (update :validator (fnil identity d.validation/null-validator))))
+
+(defn merge-spec [spec other]
+  (let [spec  (normalize-spec spec)
+        other (normalize-spec other)]
+    (cond-> spec
+      (contains? other :type)
+      (assoc :type (:type other))
+
+      :always
+      (update :schema merge (:schema other))
+
+      (contains? other :id-generator)
+      (assoc :id-generator (:id-generator other))
+
+      (contains? other :validator)
+      (update :validator d.validation/compose (:validator other)))))
+
 (defn build [spec]
-  (let [schema       (:schema spec)
+  (let [spec         (normalize-spec spec)
+        schema       (:schema spec)
         id-generator (:id-generator spec)
         tx           (cond-> []
                        :always             (conj [:db/add 1 :db/ident :root])
