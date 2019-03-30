@@ -16,5 +16,7 @@
                  {:stream.translation/stream :root
                   :stream.translation/lang   :ru
                   :stream.translation/name   "Новости"}]
-        stream  (agg/build! stream/spec tx-data)]
-    (t/is (some? stream))))
+        stream  (-> (agg/build stream/spec)
+                    (agg/change tx-data agg/allow-everething))
+        errors  (agg/validate stream)]
+    (t/is (empty? errors))))

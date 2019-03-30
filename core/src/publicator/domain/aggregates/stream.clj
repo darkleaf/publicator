@@ -13,9 +13,9 @@
     :where [[?e :stream.translation/stream :root]]})
 
 (def spec
-  {:type        :stream
-   :schema      {:stream.translation/stream {:db/valueType :db.type/ref}}
-   :defaults-tx (fn [] [[:db/add :root :root/id (id-generator/*generate* :stream)]])
+  {:type         :stream
+   :schema       {:stream.translation/stream {:db/valueType :db.type/ref}}
+   :id-generator #(id-generator/*generate* :stream)
    :validator
    (d.validation/compose
     (d.validation/predicate [[:stream/state states]
