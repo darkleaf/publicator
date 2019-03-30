@@ -62,3 +62,14 @@
    (let [v (d.validation/compose (validator agg)
                                  additional-validator)]
      (d.validation/validate agg v))))
+
+(defn validate!
+  ([agg]
+   (validate! agg d.validation/null-validator))
+  ([agg additional-validator]
+   (let [errors (validate agg additional-validator)]
+     (if (not-empty errors)
+       (throw (ex-info "Aggregate has errors"
+                       {:type      ::has-errors
+                        :errors    errors
+                        :aggregate agg}))))))

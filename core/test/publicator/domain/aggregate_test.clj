@@ -68,4 +68,17 @@
             errors    (agg/validate agg validator)]
         (t/is (not-empty errors))))))
 
-(t/deftest validate!)
+(t/deftest validate!
+  (let [agg (agg/build spec)]
+    (t/testing "valid"
+      (let [agg (agg/change agg
+                            [[:db/add :root :test-agg/key :correct]]
+                            agg/allow-everething)]
+        (t/is (nil? (agg/validate! agg)))))
+    (t/testing "invalid"
+      (let [agg (agg/change agg
+                            [[:db/add :root :test-agg/key "wrong"]]
+                            agg/allow-everething)]
+        (t/is (thrown? clojure.lang.ExceptionInfo
+                       #"Aggregate has errors"
+                       (agg/validate! agg)))))))
