@@ -9,7 +9,10 @@
 
 (t/deftest build
   (let [user-id 1
-        tx-data [{:db/ident :root
-                  :root/id  user-id}]
-        admin   (agg/build! admin/spec tx-data)]
-    (t/is (some? admin))))
+        tx-data [{:db/ident    :root
+                  :root/id     user-id
+                  :admin/state :active}]
+        admin   (-> (agg/build admin/spec)
+                    (agg/change tx-data agg/allow-everething))
+        errors  (agg/validate admin)]
+    (t/is (empty? errors))))
