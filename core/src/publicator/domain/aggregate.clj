@@ -15,6 +15,9 @@
 (defn type [agg]
   (-> agg meta ::spec :type))
 
+(defn validator [agg]
+  (-> agg meta ::spec :validator))
+
 (def ^{:arglists '([query & inputs])} q d/q)
 
 (def root-q '{:find [[?e ...]]
@@ -51,3 +54,11 @@
   (let [report (d/with agg tx-data)]
     (tx-validator report)
     (:db-after report)))
+
+(defn validate
+  ([agg]
+   (validate agg d.validation/null-validator))
+  ([agg additional-validator]
+   (let [v (d.validation/compose (validator agg)
+                                 additional-validator)]
+     (d.validation/validate agg v))))

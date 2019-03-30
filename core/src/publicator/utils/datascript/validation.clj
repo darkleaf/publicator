@@ -11,12 +11,10 @@
             []
             validators)))
 
-(defn validate
-  ([db validator]
-   (validate (d/empty-db) db validator))
-  ([errors db validator]
-   (let [tx-data (validator db)]
-     (d/db-with errors tx-data))))
+(defn validate [db validator]
+  (let [errors  (d/empty-db)
+        tx-data (validator db)]
+    (d/db-with errors tx-data)))
 
 (def all-q
   '{:find  [[?e ...]]

@@ -2,6 +2,7 @@
   (:require
    [publicator.domain.aggregate :as agg]
    [publicator.domain.abstractions.test-impl.scaffolding :as scaffolding]
+   [publicator.utils.datascript.validation :as d.validation]
    [publicator.utils.datascript.fns :as d.fns]
    [clojure.test :as t]))
 
@@ -11,7 +12,8 @@
 
 (def spec
   {:type         :test-agg
-   :id-generator (constantly id)})
+   :id-generator (constantly id)
+   :validator    (d.validation/predicate [[:test-agg/key keyword?]])})
 
 (t/deftest build
   (let [agg (agg/build spec)]
@@ -43,3 +45,27 @@
                        (agg/change agg
                                    [[:db/add :root :wrong-attr :val]]
                                    (agg/allow-attributes #{:test-agg/key}))))))))
+
+(t/deftest validate
+  (let [agg (agg/build spec)]
+    (t/testing "valid"
+      (let [agg    (agg/change agg
+                               [[:db/add :root :test-agg/key :correct]]
+                               agg/allow-everething)
+            errors (agg/validate agg)]
+        (t/is (empty? errors))))
+    (t/testing "invalid"
+      (let [agg    (agg/change agg
+                               [[:db/add :root :test-agg/key "wrong"]]
+                               agg/allow-everething)
+            errors (agg/validate agg)]
+        (t/is (not-empty errors))))
+    (t/testing "invalid with additional validator"
+      (let [agg       (agg/change agg
+                                  [[:db/add :root :test-agg/key :incorrect]]
+                                  agg/allow-everething)
+            validator (d.validation/predicate [[:test-agg/key = :correct]])
+            errors    (agg/validate agg validator)]
+        (t/is (not-empty errors))))))
+
+(t/deftest validate!)
