@@ -5,10 +5,11 @@
 
 (defn validator [root-attrs]
   (fn [agg]
-    (let [root      (agg/root agg)
-          id        (:root/id root)
-          root-vals (map #(get root %)
-                         root-attrs)]
+    (let [root       (agg/root agg)
+          id         (:root/id root)
+          root-attrs (sort root-attrs)
+          root-vals  (map #(get root %)
+                          root-attrs)]
       (when-not (*is-unique* id root-attrs root-vals)
         [{:type       ::attributes-not-unique
           :aggregate  agg
