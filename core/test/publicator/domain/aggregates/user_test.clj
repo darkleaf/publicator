@@ -8,9 +8,11 @@
 (t/use-fixtures :each scaffolding/setup)
 
 (t/deftest build
-  (let [tx-data [{:db/ident      :root
-                  :user/login    "john"
-                  :user/password "12345678"
-                  :user/state    :active}]
-        user    (agg/build! user/spec tx-data)]
-    (t/is (some? user))))
+  (let [tx-data [{:db/ident             :root
+                  :user/login           "john"
+                  :user/password-digest "some-hash"
+                  :user/state           :active}]
+        user    (-> (agg/build user/spec)
+                    (agg/change tx-data agg/allow-everething))
+        errors  (agg/validate user)]
+    (t/is (empty? errors))))
