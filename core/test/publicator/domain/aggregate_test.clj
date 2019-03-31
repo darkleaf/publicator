@@ -13,6 +13,8 @@
 (def spec
   {:type         :test-agg
    :id-generator (constantly id)
+   :transformer  (fn [agg]
+                   [[:db/add :root :test-agg/transformed true]])
    :validator    (d.validation/predicate [[:test-agg/key keyword?]])})
 
 (t/deftest build
@@ -42,7 +44,12 @@
                        #"Wrong transaction"
                        (agg/change agg
                                    [[:db/add :root :wrong-attr :val]]
-                                   (agg/allow-attributes #{:test-agg/key}))))))))
+                                   (agg/allow-attributes #{:test-agg/key}))))))
+    (t/testing "transformer"
+      (let [agg (agg/change agg
+                            [[:db/add :root :test-agg/key :val]]
+                            agg/allow-everething)]
+        (t/is (= true (-> agg agg/root :test-agg/transformed)))))))
 
 (t/deftest validate
   (let [agg (agg/build spec)]

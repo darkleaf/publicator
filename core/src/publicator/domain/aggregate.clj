@@ -18,6 +18,9 @@
 (defn validator [agg]
   (-> agg meta ::spec :validator))
 
+(defn transformer [agg]
+  (-> agg meta ::spec :transformer))
+
 (def ^{:arglists '([query & inputs])} q d/q)
 
 (def root-q '{:find [[?e ...]]
@@ -25,8 +28,9 @@
 
 (defn- normalize-spec [spec]
   (-> spec
-      (update :schema    (fnil identity {}))
-      (update :validator (fnil identity d.validation/null-validator))))
+      (update :schema      (fnil identity {}))
+      (update :validator   (fnil identity d.validation/null-validator))
+      (update :trannformer (fnil identity (fn [agg] [])))))
 
 (defn merge-spec [spec other]
   (let [spec  (normalize-spec spec)
@@ -35,14 +39,19 @@
       (contains? other :type)
       (assoc :type (:type other))
 
-      :always
-      (update :schema merge (:schema other))
-
       (contains? other :id-generator)
       (assoc :id-generator (:id-generator other))
 
-      (contains? other :validator)
-      (update :validator d.validation/compose (:validator other)))))
+      :always
+      (update :schema merge (:schema other))
+
+      :always
+      (update :validator d.validation/compose (:validator other))
+
+      :always
+      (assoc :transformer (fn [agg]
+                            [[:db.fn/call (:transformer spec)]
+                             [:db.fn/call (:transformer other)]])))))
 
 (defn build [spec]
   (let [spec         (normalize-spec spec)
@@ -73,9 +82,11 @@
                          :report  report}))))))
 
 (defn change [agg tx-data tx-validator]
-  (let [report (d/with agg tx-data)]
-    (tx-validator report)
-    (:db-after report)))
+  (let [report (d/with agg tx-data)
+        ok!    (tx-validator report)
+        agg    (:db-after report)
+        agg    (d/db-with agg [[:db.fn/call (transformer agg)]])]
+    agg))
 
 (defn validate
   ([agg]
