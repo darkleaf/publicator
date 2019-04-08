@@ -2,8 +2,8 @@
   (:require
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.domain.aggregate :as agg]
-   [clojure.test :as t]
-   [datascript.core :as d]))
+   [publicator.utils.datascript.validation :as d.validation]
+   [clojure.test :as t]))
 
 ;; проверка на смену идентификатора и типа
 
@@ -29,7 +29,8 @@
 
 (def ^:private spec
   {:type         ::test-agg
-   :id-generator (constantly id)})
+   :id-generator (constantly id)
+   :validator (d.validation/predicate [[:counter pos-int?]])})
 
 (defn- build-agg []
   (-> (agg/build spec)
@@ -44,9 +45,9 @@
 (defn test-alter []
   (let [agg     (build-agg)
         tx-data [[:db/add :root :counter 1]]
-        agg'    (d/db-with agg tx-data)
+        agg'    (agg/change agg tx-data agg/allow-everething)
         _       (just-create agg)
-        _       (just-alter ::test-agg id d/db-with tx-data)
+        _       (just-alter ::test-agg id agg/change tx-data agg/allow-everething)
         agg''   (just-get ::test-agg id)]
     (t/is (= agg' agg''))))
 
@@ -67,5 +68,5 @@
   (storage/transaction
    (let [iagg  (storage/*create* (build-agg))
          iagg' (storage/*get* ::test-agg id)]
-     (dosync (alter iagg d/db-with [[:db/add :root :counter 1]]))
+     (dosync (alter iagg agg/change [[:db/add :root :counter 1]] agg/allow-everething))
      (t/is (= @iagg @iagg')))))
