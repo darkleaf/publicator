@@ -1,4 +1,4 @@
 {:deps {datascript {:git/url "https://github.com/tonsky/datascript"
-                    :sha     "cb5a4a9b92d058ee28b4ae9fd34b6784b5de908e"}}
+                    :sha     "5740b9108504c7d8410177e194379d401a452e10"}}
 
  :aliases {:dev {:extra-paths ["test"]}}}
