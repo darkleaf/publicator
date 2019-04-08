@@ -10,7 +10,7 @@
 
 (defn test-process []
   (let [tx-data [[:db/add :root :user/login "john"]
-                 [:db/add :root :user/password "pass"]]
+                 [:db/add :root :user/password "password"]]
         user   (user.register/process tx-data)]
     (t/testing "success"
       (t/is (some? user)))

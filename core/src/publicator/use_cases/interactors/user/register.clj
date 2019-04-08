@@ -31,7 +31,9 @@
 (defn- create-user [tx-data]
   (let [user (-> (agg/build user/spec)
                  (agg/change tx-data
-                             (agg/allow-attributes #{:user/login :user/password})))]
+                             (agg/allow-attributes #{:user/login :user/password}))
+                 (agg/change [[:db/add :root :user/state :active]]
+                             agg/allow-everething))]
     (storage/transaction
      (storage/*create* user))
     user))
