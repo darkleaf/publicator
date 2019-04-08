@@ -30,7 +30,7 @@
 (def ^:private spec
   {:type         ::test-agg
    :id-generator (constantly id)
-   :validator (d.validation/predicate [[:counter pos-int?]])})
+   :validator (d.validation/predicate [[:counter int?]])})
 
 (defn- build-agg []
   (-> (agg/build spec)
@@ -70,3 +70,11 @@
          iagg' (storage/*get* ::test-agg id)]
      (dosync (alter iagg agg/change [[:db/add :root :counter 1]] agg/allow-everething))
      (t/is (= @iagg @iagg')))))
+
+(defn test-validation []
+  (let [agg (just-create (build-agg))]
+    (t/is (thrown? clojure.lang.ExceptionInfo
+                   (just-alter ::test-agg id
+                               agg/change
+                               [[:db/add :root :counter :wrong]]
+                               agg/allow-everething)))))

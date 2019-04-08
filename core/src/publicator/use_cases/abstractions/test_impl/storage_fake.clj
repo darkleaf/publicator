@@ -22,13 +22,25 @@
   (fn [agg-type id]
     (get-in @db [agg-type id])))
 
+;; todo: collect errors
+;; todo: move to storage abstraction?
+(defn- validate! [db]
+  (let [aggs (->> @db
+                  (vals)
+                  (mapcat vals)
+                  (map deref))]
+    (doseq [agg aggs]
+      (agg/validate! agg))))
+
 (defn- ->transaction [db]
   (fn [func]
     (locking db
       (binding [storage/*create*  (->create db)
                 storage/*preload* (->preload db)
                 storage/*get*     (->get db)]
-        (func)))))
+        (let [res (func)]
+          (validate! db)
+          res)))))
 
 (defn binding-map [db]
   {#'storage/*transaction* (->transaction db)})
