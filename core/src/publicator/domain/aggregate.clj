@@ -30,7 +30,7 @@
   (-> spec
       (update :schema      (fnil identity {}))
       (update :validator   (fnil identity d.validation/null-validator))
-      (update :trannformer (fnil identity (fn [agg] [])))))
+      (update :transformer (fnil identity (fn [agg] [])))))
 
 (defn merge-spec [spec other]
   (let [spec  (normalize-spec spec)
