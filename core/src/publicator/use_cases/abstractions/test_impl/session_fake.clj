@@ -1,4 +1,4 @@
-(ns publicator.use-cases.abstractions.session-fake
+(ns publicator.use-cases.abstractions.test-impl.session-fake
   (:require
    [publicator.use-cases.abstractions.session :as session]))
 

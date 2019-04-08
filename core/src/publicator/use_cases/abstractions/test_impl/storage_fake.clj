@@ -1,16 +1,16 @@
-(ns publicator.use-cases.abstractions.storage-fake
+(ns publicator.use-cases.abstractions.test-impl.storage-fake
   (:require
    [publicator.use-cases.abstractions.storage :as storage]
-   [publicator.domain.aggregate :as aggregate]))
+   [publicator.domain.aggregate :as agg]))
 
 (defn build-db []
   (atom {}))
 
 (defn- ->create [db]
-  (fn [state]
-    (let [id       (-> state aggregate/root :root/id)
-          agg-type (type state)
-          iagg     (ref state)]
+  (fn [agg]
+    (let [id       (agg/id agg)
+          agg-type (agg/type agg)
+          iagg     (ref agg)]
       (swap! db assoc-in [agg-type id] iagg)
       iagg)))
 
