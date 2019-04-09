@@ -105,4 +105,5 @@
        (throw (ex-info "Aggregate has errors"
                        {:type      ::has-errors
                         :errors    errors
-                        :aggregate agg}))))))
+                        :aggregate agg}))
+       agg))))

@@ -5,43 +5,44 @@
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.use-cases.abstractions.test-impl.scaffolding :as scaffolding]
    [publicator.domain.aggregate :as agg]
+   [publicator.domain.aggregates.user :as user]
    [publicator.utils.test :as u.t]
    [clojure.test :as t]))
 
 (defn test-process []
-  (let [tx-data [[:db/add :root :user/login "john"]
-                 [:db/add :root :user/password "password"]]
+  (let [tx-data [[:db/add 1 :user/login "john"]
+                 [:db/add 1 :user/password "password"]]
         user   (user.register/process tx-data)]
     (t/testing "success"
       (t/is (some? user)))
-    ;; (t/testing "logged in"
-    ;;   (t/is (user-session/logged-in?)))
+    (t/testing "logged in"
+      (t/is (user-session/logged-in?)))
     (t/testing "persisted"
       (t/is (some? (storage/transaction
                     (storage/*get* :user (agg/id user))))))))
 
-;; (t/deftest already-registered
-;;   (let [params (factories/gen ::sut/params)
-;;         _      (factories/create-user {:login (:login params)})
-;;         [tag]  (sut/process params)]
-;;     (t/testing "has error"
-;;       (t/is (= ::sut/already-registered tag)))
-;;     (t/testing "not sign in"
-;;       (t/is (user-session/logged-out?)))))
+(defn test-already-logged-in []
+  (let [user    (-> (agg/build user/spec)
+                    (agg/change [{:db/ident      :root
+                                  :user/login    "john"
+                                  :user/password "password"
+                                  :user/state    :active}]
+                                agg/allow-everething)
+                    (agg/validate!))
+        _       (storage/transaction
+                 (storage/*create* user))
+        _       (user-session/log-in! user)
+        tx-data [{:db/ident      :root
+                  :user/login    "aaaa"
+                  :user/password "12345678"}]]
+    (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"Authorization failed"
+                            (user.register/process tx-data)))))
 
-;; (t/deftest already-logged-in
-;;   (let [user   (factories/create-user)
-;;         _      (user-session/log-in! user)
-;;         params (factories/gen ::sut/params)
-;;         [tag]  (sut/process params)]
-;;     (t/testing "has error"
-;;       (t/is (= ::sut/already-logged-in tag)))))
-
-;; (t/deftest invalid-params
-;;   (let [params  {}
-;;         [tag _] (sut/process params)]
-;;     (t/testing "error"
-;;       (t/is (= ::sut/invalid-params tag)))))
+(defn test-invalid-params []
+  (t/is (thrown-with-msg? clojure.lang.ExceptionInfo
+                          #"Aggregate has errors"
+                          (user.register/process []))))
 
 (t/deftest register
   (u.t/run 'publicator.use-cases.interactors.user.register-test
