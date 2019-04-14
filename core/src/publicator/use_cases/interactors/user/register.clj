@@ -5,10 +5,9 @@
    [publicator.domain.aggregates.user :as user]
    [publicator.domain.aggregate :as agg]))
 
-(defn- authorization-error []
+(defn authorization-error []
   (cond
-    (user-session/logged-in?) {:type ::already-logged-in}
-    :else                     nil))
+    (user-session/logged-in?) {:type ::already-logged-in}))
 
 (defn- check-authorization! []
   (if-let [error (authorization-error)]
@@ -24,9 +23,6 @@
     (storage/transaction
      (storage/*create* user))
     user))
-
-;; (defn can? []
-;;   (nil? (authorization-error)))
 
 (defn initial []
   (check-authorization!)
