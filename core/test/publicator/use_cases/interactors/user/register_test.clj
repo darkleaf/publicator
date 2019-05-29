@@ -9,7 +9,7 @@
    [publicator.utils.test :as u.t]
    [clojure.test :as t]))
 
-(defn test-process []
+(defn test-main []
   (let [tx-data [[:db/add 1 :user/login "john"]
                  [:db/add 1 :user/password "password"]]
         user   (user.register/process tx-data)]
