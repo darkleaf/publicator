@@ -1,0 +1,8 @@
+/.m2
+/.gitlibs
+
+.cpcache
+.nrepl-port
+target
+
+/back
