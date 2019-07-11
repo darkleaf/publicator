@@ -4,5 +4,6 @@
 .cpcache
 .nrepl-port
 target
+.cljs_node_repl
 
 /back

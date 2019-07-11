@@ -101,7 +101,7 @@
                                 int?)))
           decorators {`agg/validators validators-d}
           agg        (-> agg/blank
-                         (agg/with [[:db/add :root :test-agg/attr 1]])
+                         (agg/with [[:db/add :root :test-agg/attr :wrong]])
                          (agg/decorate decorators)
                          (agg/validate))]
       (t/is (agg/has-errors? agg)))))
