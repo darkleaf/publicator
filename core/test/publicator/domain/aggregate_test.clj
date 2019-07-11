@@ -43,7 +43,7 @@
                            '{:find  [?v .]
                              :in    [?attr]
                              :where [[:root ?attr ?v]]}
-                           [:test-agg/attr]))))))
+                           :test-agg/attr))))))
 
 (t/deftest apply-msg
   (let [msg {:type   :add-attr
@@ -87,4 +87,21 @@
                            (agg/with [[:db/add :root :test-agg/attr :wrong]])
                            (agg/decorate decorators)
                            (agg/validate))]
+      (t/is (agg/has-errors? agg))))
+  (t/testing "query"
+    (let [validators-d (fn [super agg]
+                         (conj (super agg)
+                               (agg/query-validator
+                                (fn [agg]   (agg/q agg '[:find [?e ...] :where (root ?e)]))
+                                (fn [agg e] (agg/q agg
+                                                   '{:find  [?v .]
+                                                     :in    [?e]
+                                                     :where [[?e :test-agg/attr ?v]]}
+                                                   e))
+                                int?)))
+          decorators {`agg/validators validators-d}
+          agg        (-> agg/blank
+                         (agg/with [[:db/add :root :test-agg/attr 1]])
+                         (agg/decorate decorators)
+                         (agg/validate))]
       (t/is (agg/has-errors? agg)))))

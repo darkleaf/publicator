@@ -49,15 +49,16 @@
 
 (def ^{:arglists '([agg tx-data])} with d/db-with)
 
-(defn q
-  ([agg query] (q agg query []))
-  ([agg query inputs]
-   (let [query  (cond
-                  (map? query) query
-                  (sequential? query) (d.p/query->map query))
-         query  (update query :in (fn [in] (concat '[$ %] in)))
-         inputs (concat [agg (rules agg)] inputs)]
-     (apply d/q query inputs))))
+(defn- normalize-query [query]
+  (cond
+    (map? query)        query
+    (sequential? query) (d.p/query->map query)))
+
+(defn q [agg query & inputs]
+  (let [query  (normalize-query query)
+        query  (update query :in (fn [in] (concat '[$ %] in)))
+        inputs (concat [agg (rules agg)] inputs)]
+    (apply d/q query inputs)))
 
 (defn apply-msg [agg msg]
   (with agg (msg->tx agg msg)))
@@ -83,7 +84,7 @@
                       '{:find  [?e ?a]
                         :in    [[?e ...] [?a ...]]
                         :where [[(missing? $ ?e ?a)]]}
-                      [entities attrs])]
+                      entities attrs)]
       (for [[e a] data]
         {:error/type   :required
          :error/entity e
@@ -97,10 +98,21 @@
                         :in    [?apply [?e ...] [[?a ?pred]]]
                         :where [[?e ?a ?v]
                                 (not [(?apply ?pred ?v [])])]}
-                      [apply entities pred-map])]
+                      apply entities pred-map)]
       (for [[e a v pred] data]
         {:error/type   :predicate
          :error/entity e
          :error/attr   a
          :error/value  v
          :error/pred   pred}))))
+
+(defn query-validator [agg->entities entity->value predicate]
+  (fn [agg]
+    (let [entities (agg->entities agg)]
+      (for [e    entities
+            :let [v (entity->value agg e)]]
+        (if (not (predicate v))
+          {:error/type      :query
+           :error/entity    e
+           :error/value     v
+           :error/predicate predicate})))))
