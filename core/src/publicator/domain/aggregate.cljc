@@ -7,7 +7,7 @@
 (defprotocol Aggregate
   :extend-via-metadata true
   (rules [agg])
-  (validators [agg])
+  (validate [agg])
   (msg->tx [agg msg]))
 
 (defn extend-schema [agg ext]
@@ -25,8 +25,8 @@
   '[[(root ?e)
      [?e :db/ident :root]]])
 
-(defn- validators-impl [agg]
-  [])
+(defn- validate-impl [agg]
+  agg)
 
 (defn- msg->tx-impl [agg msg]
   (m/match msg
@@ -40,9 +40,9 @@
   (-> (d/empty-db)
       (d/db-with [[:db/add 1 :db/ident :root]])
       (with-meta
-        {`rules      #'rules-impl
-         `validators #'validators-impl
-         `msg->tx    #'msg->tx-impl})))
+        {`rules    #'rules-impl
+         `validate #'validate-impl
+         `msg->tx  #'msg->tx-impl})))
 
 (defn root [agg]
   (d/entity agg :root))
@@ -68,51 +68,46 @@
    (q agg '{:find [[?e ...]]
             :where [[?e :error/type _]]})))
 
-(defn validate [agg]
-  (reduce
-   (fn [agg validator]
-     (if (has-errors? agg)
-       (reduced agg)
-       (with agg (validator agg))))
-   agg
-   (validators agg)))
+(defn required-validator [agg agg->entities attrs]
+  (let [entities (agg->entities agg)
+        data     (q agg
+                    '{:find  [?e ?a]
+                      :in    [[?e ...] [?a ...]]
+                      :where [[(missing? $ ?e ?a)]]}
+                    entities attrs)
+        tx-data (for [[e a] data]
+                  {:error/type   :required
+                   :error/entity e
+                   :error/attr   a})]
+    (with agg tx-data)))
 
-(defn required-validator [agg->entities attrs]
-  (fn [agg]
-    (let [entities (agg->entities agg)
-          data     (q agg
-                      '{:find  [?e ?a]
-                        :in    [[?e ...] [?a ...]]
-                        :where [[(missing? $ ?e ?a)]]}
-                      entities attrs)]
-      (for [[e a] data]
-        {:error/type   :required
-         :error/entity e
-         :error/attr   a}))))
-
-(defn predicate-validator [agg->entities pred-map]
-  (fn [agg]
+(defn predicate-validator [agg agg->entities pred-map]
+  (if (has-errors? agg)
+    agg
     (let [entities (agg->entities agg)
           data     (q agg
                       '{:find  [?e ?a ?v ?pred]
                         :in    [?apply [?e ...] [[?a ?pred]]]
                         :where [[?e ?a ?v]
                                 (not [(?apply ?pred ?v [])])]}
-                      apply entities pred-map)]
-      (for [[e a v pred] data]
-        {:error/type   :predicate
-         :error/entity e
-         :error/attr   a
-         :error/value  v
-         :error/pred   pred}))))
+                      apply entities pred-map)
+          tx-data  (for [[e a v pred] data]
+                     {:error/type   :predicate
+                      :error/entity e
+                      :error/attr   a
+                      :error/value  v
+                      :error/pred   pred})]
+      (with agg tx-data))))
 
-(defn query-validator [agg->entities entity->value predicate]
-  (fn [agg]
-    (let [entities (agg->entities agg)]
-      (for [e    entities
-            :let [v (entity->value agg e)]]
-        (if (not (predicate v))
-          {:error/type      :query
-           :error/entity    e
-           :error/value     v
-           :error/predicate predicate})))))
+(defn query-validator [agg agg->entities entity->result predicate]
+  (if (has-errors? agg)
+    agg
+    (let [entities (agg->entities agg)
+          tx-data  (for [e    entities
+                         :let [res (entity->result agg e)]]
+                     (if (not (predicate res))
+                       {:error/type      :query
+                        :error/entity    e
+                        :error/result    res
+                        :error/predicate predicate}))]
+      (with agg tx-data))))
