@@ -64,9 +64,10 @@
   (with agg (msg->tx agg msg)))
 
 (defn has-errors? [agg]
-  (not-empty
-   (q agg '{:find [[?e ...]]
-            :where [[?e :error/type _]]})))
+  (boolean
+   (not-empty
+    (q agg '{:find [[?e ...]]
+             :where [[?e :error/type _]]}))))
 
 (defn- normalize-rule-form [rule-or-form]
   (cond
