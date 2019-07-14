@@ -87,11 +87,8 @@
                        (-> (super agg)
                            (agg/query-validator
                             'root
-                            (fn [agg e] (agg/q agg
-                                               '[:find ?v .
-                                                 :in ?e
-                                                 :where [?e :test-agg/attr ?v]]
-                                               e))
+                            '[:find ?v .
+                              :where [?e :test-agg/attr ?v]]
                             int?)))
           decorators {`agg/validate validate-d}
           agg        (-> agg/blank

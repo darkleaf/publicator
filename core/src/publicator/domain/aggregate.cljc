@@ -111,17 +111,21 @@
                        :error/rule   (first rule-form)})]
       (with agg tx-data))))
 
-(defn query-validator [agg rule-or-form query-fn predicate]
+(defn query-validator [agg rule-or-form query predicate]
   (if (has-errors? agg)
     agg
     (let [rule-form (normalize-rule-form rule-or-form)
           entities  (q agg [:find '[?e ...] :where rule-form])
+          query     (-> query
+                        (normalize-query)
+                        (assoc :in '[?e]))
           tx-data   (for [e    entities
-                          :let [res (query-fn agg e)]]
+                          :let [res (q agg query e)]]
                       (if (not (predicate res))
                         {:error/type      :query
                          :error/entity    e
                          :error/result    res
                          :error/predicate predicate
-                         :error/rule      (first rule-form)}))]
+                         :error/rule      (first rule-form)
+                         :error/query     query}))]
       (with agg tx-data))))
