@@ -68,46 +68,55 @@
    (q agg '{:find [[?e ...]]
             :where [[?e :error/type _]]})))
 
-(defn required-validator [agg agg->entities attrs]
-  (let [entities (agg->entities agg)
-        data     (q agg
-                    '{:find  [?e ?a]
-                      :in    [[?e ...] [?a ...]]
-                      :where [[(missing? $ ?e ?a)]]}
-                    entities attrs)
-        tx-data (for [[e a] data]
-                  {:error/type   :required
-                   :error/entity e
-                   :error/attr   a})]
+(defn- normalize-rule-form [rule-or-form]
+  (cond
+    (symbol? rule-or-form) (list rule-or-form '?e)
+    (list? rule-or-form)   rule-or-form))
+
+(defn required-validator [agg rule-or-form attrs]
+  (let [rule-form (normalize-rule-form rule-or-form)
+        query     '{:find  [?e ?a]
+                    :in    [[?a ...]]
+                    :where [[(missing? $ ?e ?a)]]}
+        query     (update query :where conj rule-form)
+        data      (q agg query attrs)
+        tx-data   (for [[e a] data]
+                    {:error/type   :required
+                     :error/entity e
+                     :error/attr   a
+                     :error/rule   (first rule-form)})]
     (with agg tx-data)))
 
-(defn predicate-validator [agg agg->entities pred-map]
+(defn predicate-validator [agg rule-or-form pred-map]
   (if (has-errors? agg)
     agg
-    (let [entities (agg->entities agg)
-          data     (q agg
-                      '{:find  [?e ?a ?v ?pred]
-                        :in    [?apply [?e ...] [[?a ?pred]]]
-                        :where [[?e ?a ?v]
-                                (not [(?apply ?pred ?v [])])]}
-                      apply entities pred-map)
-          tx-data  (for [[e a v pred] data]
-                     {:error/type   :predicate
-                      :error/entity e
-                      :error/attr   a
-                      :error/value  v
-                      :error/pred   pred})]
+    (let [rule-form (normalize-rule-form rule-or-form)
+          query     '{:find  [?e ?a ?v ?pred]
+                      :in    [?apply [[?a ?pred]]]
+                      :where [[?e ?a ?v]
+                              (not [(?apply ?pred ?v [])])]}
+          query     (update query :where conj rule-form)
+          data      (q agg query apply pred-map)
+          tx-data   (for [[e a v pred] data]
+                      {:error/type   :predicate
+                       :error/entity e
+                       :error/attr   a
+                       :error/value  v
+                       :error/pred   pred
+                       :error/rule   (first rule-form)})]
       (with agg tx-data))))
 
-(defn query-validator [agg agg->entities entity->result predicate]
+(defn query-validator [agg rule-or-form query-fn predicate]
   (if (has-errors? agg)
     agg
-    (let [entities (agg->entities agg)
-          tx-data  (for [e    entities
-                         :let [res (entity->result agg e)]]
-                     (if (not (predicate res))
-                       {:error/type      :query
-                        :error/entity    e
-                        :error/result    res
-                        :error/predicate predicate}))]
+    (let [rule-form (normalize-rule-form rule-or-form)
+          entities  (q agg [:find '[?e ...] :where rule-form])
+          tx-data   (for [e    entities
+                          :let [res (query-fn agg e)]]
+                      (if (not (predicate res))
+                        {:error/type      :query
+                         :error/entity    e
+                         :error/result    res
+                         :error/predicate predicate
+                         :error/rule      (first rule-form)}))]
       (with agg tx-data))))

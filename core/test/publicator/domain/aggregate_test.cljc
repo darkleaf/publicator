@@ -7,7 +7,7 @@
   (t/is (some? agg/blank))
   (t/is (not (agg/has-errors? agg/blank)))
   (t/is (some? (agg/root agg/blank)))
-  (t/is (= 1 (agg/q agg/blank '{:find [?e .], :where [(root ?e)]}))))
+  (t/is (= 1 (agg/q agg/blank '[:find ?e . :where (root ?e)]))))
 
 (t/deftest extend-schema
   (let [agg (-> agg/blank
@@ -35,14 +35,13 @@
           agg        (-> agg/blank
                          (agg/decorate decorators)
                          (agg/with [[:db/add :root :test-agg/attr :foo]]))]
-      (t/is (= :foo (agg/q agg '{:find  [?v .]
-                                 :where [(attr ?v)]})))))
+      (t/is (= :foo (agg/q agg '[:find ?v . :where (attr ?v)])))))
   (t/testing "bindings"
     (let [agg (agg/with agg/blank [[:db/add :root :test-agg/attr :foo]])]
       (t/is (= :foo (agg/q agg
-                           '{:find  [?v .]
-                             :in    [?attr]
-                             :where [[:root ?attr ?v]]}
+                           '[:find ?v .
+                             :in ?attr
+                             :where [:root ?attr ?v]]
                            :test-agg/attr))))))
 
 (t/deftest apply-msg
@@ -67,9 +66,7 @@
   (t/testing "required"
     (let [validate-d (fn [super agg]
                        (-> (super agg)
-                           (agg/required-validator
-                            #(agg/q % '[:find [?e ...] :where (root ?e)])
-                            #{:test-att/attr})))
+                           (agg/required-validator 'root #{:test-att/attr})))
           decorators {`agg/validate validate-d}
           agg        (-> agg/blank
                          (agg/decorate decorators)
@@ -78,9 +75,7 @@
   (t/testing "predicate"
     (let [validate-d (fn [super agg]
                        (-> (super agg)
-                           (agg/predicate-validator
-                            #(agg/q % '[:find [?e ...] :where (root ?e)])
-                            {:test-agg/attr int?})))
+                           (agg/predicate-validator 'root {:test-agg/attr int?})))
           decorators {`agg/validate validate-d}
           agg        (-> agg/blank
                          (agg/with [[:db/add :root :test-agg/attr :wrong]])
@@ -91,11 +86,11 @@
     (let [validate-d (fn [super agg]
                        (-> (super agg)
                            (agg/query-validator
-                            (fn [agg]   (agg/q agg '[:find [?e ...] :where (root ?e)]))
+                            'root
                             (fn [agg e] (agg/q agg
-                                               '{:find  [?v .]
-                                                 :in    [?e]
-                                                 :where [[?e :test-agg/attr ?v]]}
+                                               '[:find ?v .
+                                                 :in ?e
+                                                 :where [?e :test-agg/attr ?v]]
                                                e))
                             int?)))
           decorators {`agg/validate validate-d}
