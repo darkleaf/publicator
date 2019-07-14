@@ -90,7 +90,8 @@
 (defn- apply-predicate [p val]
   (cond
     (ifn? p)                            (p val)
-    (instance? java.util.regex.Pattern) (re-matches p val)))
+    (instance? java.util.regex.Pattern) (and (string? val)
+                                             (re-matches p val))))
 
 (defn predicate-validator [agg rule-or-form pred-map]
   (if (has-errors? agg)
