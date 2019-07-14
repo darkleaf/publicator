@@ -87,6 +87,11 @@
                      :error/rule   (first rule-form)})]
     (with agg tx-data)))
 
+(defn- apply-predicate [p val]
+  (cond
+    (ifn? p)                            (p val)
+    (instance? java.util.regex.Pattern) (re-matches p val)))
+
 (defn predicate-validator [agg rule-or-form pred-map]
   (if (has-errors? agg)
     agg
@@ -94,9 +99,9 @@
           query     '{:find  [?e ?a ?v ?pred]
                       :in    [?apply [[?a ?pred]]]
                       :where [[?e ?a ?v]
-                              (not [(?apply ?pred ?v [])])]}
+                              (not [(?apply ?pred ?v)])]}
           query     (update query :where conj rule-form)
-          data      (q agg query apply pred-map)
+          data      (q agg query apply-predicate pred-map)
           tx-data   (for [[e a v pred] data]
                       {:error/type   :predicate
                        :error/entity e
