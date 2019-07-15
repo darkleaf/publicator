@@ -69,6 +69,9 @@
     (q agg '{:find [[?e ...]]
              :where [[?e :error/type _]]}))))
 
+(defn has-no-errors? [agg]
+  (not (has-errors? agg)))
+
 (defn- normalize-rule-form [rule-or-form]
   (cond
     (symbol? rule-or-form) (list rule-or-form '?e)
@@ -79,7 +82,7 @@
         query     '{:find  [?e ?a]
                     :in    [[?a ...]]
                     :where [[(missing? $ ?e ?a)]]}
-        query     (update query :where conj rule-form)
+        query     (update query :where #(into [rule-form] %))
         data      (q agg query attrs)
         tx-data   (for [[e a] data]
                     {:error/type   :required
@@ -90,9 +93,13 @@
 
 (defn- apply-predicate [p val]
   (cond
-    (ifn? p)                            (p val)
-    (instance? java.util.regex.Pattern) (and (string? val)
-                                             (re-matches p val))))
+    (ifn? p)
+    (p val)
+
+    #?(:clj  (instance? java.util.regex.Pattern p)
+       :cljs (regexp? p))
+    (and (string? val)
+         (re-matches p val))))
 
 (defn predicate-validator [agg rule-or-form pred-map]
   (if (has-errors? agg)
@@ -102,7 +109,7 @@
                       :in    [?apply [[?a ?pred]]]
                       :where [[?e ?a ?v]
                               (not [(?apply ?pred ?v)])]}
-          query     (update query :where conj rule-form)
+          query     (update query :where #(into [rule-form] %))
           data      (q agg query apply-predicate pred-map)
           tx-data   (for [[e a v pred] data]
                       {:error/type   :predicate
