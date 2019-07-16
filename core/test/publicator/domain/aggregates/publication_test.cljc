@@ -4,7 +4,7 @@
    [publicator.domain.aggregates.publication :as publication]
    [clojure.test :as t]))
 
-(t/deftest without-errors
+(t/deftest has-no-errors
   (let [agg (-> publication/blank
                 (agg/with [{:db/ident              :root
                             :publication/state     :active
