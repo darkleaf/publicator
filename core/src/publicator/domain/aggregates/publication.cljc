@@ -7,7 +7,7 @@
 (def states #{:active :archived})
 (def translation-states #{:draft :published})
 
-(defn rules-d [super agg]
+(defn- rules-d [super agg]
   (conj (super agg)
         '[(published ?e)
           [?e :db/ident :root]
@@ -21,7 +21,7 @@
         '[(related ?e)
           [?e :publication.related/publication :root]]))
 
-(defn validate-d [super agg]
+(defn- validate-d [super agg]
   (-> (super agg)
 
       (agg/required-validator  'root
