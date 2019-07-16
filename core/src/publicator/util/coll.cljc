@@ -4,6 +4,10 @@
 (defn distinct? [coll]
   (= coll (distinct coll)))
 
+(defn match? [coll expected]
+  (= (sort coll)
+     (sort expected)))
+
 ;; (defn map-vals [f m]
 ;;   (reduce-kv
 ;;    (fn [acc k v] (assoc acc k (f v)))
