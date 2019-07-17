@@ -33,7 +33,7 @@
                                  :where
                                  [?part :author.stream-participation/author ?e]
                                  [?part :author.stream-participation/stream-id ?stream-id]]
-                               u.c/distinct?)
+                               u.coll/distinct?)
 
       (agg/predicate-validator 'translation
                                {:author.translation/lang       langs/languages
