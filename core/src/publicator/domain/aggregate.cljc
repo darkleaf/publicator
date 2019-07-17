@@ -19,7 +19,8 @@
         (with-meta metadata))))
 
 (defn decorate [agg decorators-map]
-  (vary-meta agg #(merge-with partial decorators-map %)))
+  (vary-meta agg #(merge-with (fn [f decorator] (partial decorator f))
+                              % decorators-map)))
 
 (defn- rules-impl [agg]
   '[[(root ?e)
