@@ -13,6 +13,8 @@
       (agg/required-validator  'root
                                #{:user/login
                                  :user/state})
+      (agg/required-validator  'blank
+                               #{:user/password})
       #?(:clj (agg/predicate-validator 'root  {:user/password-digest #".{1,255}"}))
       #?(:clj (agg/required-validator  'root #{:user/password-digest}))))
 
