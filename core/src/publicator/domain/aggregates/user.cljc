@@ -1,6 +1,7 @@
 (ns publicator.domain.aggregates.user
   (:require
-   [publicator.domain.aggregate :as agg]))
+   [publicator.domain.aggregate :as agg]
+   [clojure.core.match :as m]))
 
 (def states #{:active :archived})
 
@@ -18,7 +19,18 @@
       #?(:clj (agg/predicate-validator 'root  {:user/password-digest #".{1,255}"}))
       #?(:clj (agg/required-validator  'root #{:user/password-digest}))))
 
+(defn- msg->tx-d [super agg msg]
+  (m/match msg
+    #?@(:clj [{:type   :add-attr
+               :entity e
+               :attr   :user/password
+               :value  v}
+              (conj (super agg msg)
+                    [:db/add e :user/password-digest v])]) ;; todo: password hasher
+    :else (super agg msg)))
+
 (def blank
   (-> agg/blank
       (vary-meta assoc :type :agg/user)
-      (agg/decorate {`agg/validate #'validate-d})))
+      (agg/decorate {`agg/validate #'validate-d
+                     `agg/msg->tx  #'msg->tx-d})))

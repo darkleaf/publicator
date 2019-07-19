@@ -8,8 +8,10 @@
   (let [agg (-> user/blank
                 (agg/with [{:db/ident             :root
                             :user/state           :active
-                            :user/login           "john"
-                            :user/password        "some password"
-                            :user/password-digest "some digest"}])
+                            :user/login           "john"}])
+                (agg/apply-msg {:type   :add-attr
+                                :entity :root
+                                :attr   :user/password
+                                :value  "some password"})
                 (agg/validate))]
     (t/is (agg/has-no-errors? agg))))
