@@ -45,10 +45,7 @@
                            :test-agg/attr))))))
 
 (t/deftest apply-msg
-  (let [msg {:type   :add-attr
-             :entity :root
-             :attr   :test-agg/attr
-             :value  :foo}
+  (let [msg [:add-attr :root :test-agg/attr :foo]
         agg (agg/apply-msg agg/blank msg)]
     (t/is (= :foo (-> agg agg/root :test-agg/attr)))))
 
