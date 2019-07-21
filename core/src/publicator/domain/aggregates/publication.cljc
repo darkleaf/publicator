@@ -55,8 +55,6 @@
                                #{:publication.translation/title
                                  :publication.translation/summary
                                  :publication.translation/published-at})
-      (agg/predicate-validator 'published-translation
-                               {:publication.translation/summary not-empty})
 
       (agg/required-validator  'related
                                #{:publication.related/id
