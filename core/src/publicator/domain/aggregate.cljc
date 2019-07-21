@@ -60,11 +60,10 @@
         inputs (concat [agg (rules agg)] inputs)]
     (apply d/q query inputs)))
 
-(defn apply-msg [agg msg]
-  (with agg (msg->tx agg msg)))
-
-(defn apply-msgs [agg msgs]
-  (reduce apply-msg agg msgs))
+(defn with-msgs [agg msgs]
+  (let [tx-data (map (fn [msg] [:db.fn/call msg->tx msg])
+                     msgs)]
+    (with agg tx-data)))
 
 (defn has-errors? [agg]
   (boolean
