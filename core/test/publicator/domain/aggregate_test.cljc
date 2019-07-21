@@ -45,7 +45,7 @@
                            :test-agg/attr))))))
 
 (t/deftest with-msgs
-  (let [msgs [[:add-attr :root :test-agg/attr :foo]]
+  (let [msgs [[:agg/add-attr :root :test-agg/attr :foo]]
         agg (agg/with-msgs agg/blank msgs)]
     (t/is (= :foo (-> agg agg/root :test-agg/attr)))))
 
