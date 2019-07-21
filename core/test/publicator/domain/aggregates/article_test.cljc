@@ -6,19 +6,15 @@
 
 (t/deftest has-no-errors
   (let [agg (-> article/blank
-                (agg/with [{:db/ident              :root
-                            :publication/state     :active
-                            :publication/stream-id 1
-                            :article/image-url     "http://cats.com/cat.jpg"}
-                           {:publication.translation/publication  :root
-                            :publication.translation/lang         :ru
-                            :publication.translation/state        :published
-                            :publication.translation/title        "some title"
-                            :publication.translation/summary      "some summary"
-                            :publication.translation/published-at #inst "2019-01-01"
-                            :article.translation/content          "some content"}
-                           {:publication.related/publication :root
-                            :publication.related/id          1
-                            :publication.related/type        :article}])
+                (agg/with-msgs [[:agg/add-attr :root :publication/state :active]
+                                [:agg/add-attr :root :publication/stream-id 1]
+                                [:agg/add-attr :root :article/image-url "http://cats.com/cat.jpg"]
+                                [:publication/add-translation :ru]
+                                [:agg/add-attr 2 :publication.translation/state :published]
+                                [:agg/add-attr 2 :publication.translation/title "some title"]
+                                [:agg/add-attr 2 :publication.translation/summary "some summary"]
+                                [:agg/add-attr 2 :publication.translation/published-at #inst "2019-01-01"]
+                                [:agg/add-attr 2 :article.translation/content "some content"]
+                                [:publication/add-related :article 1]])
                 (agg/validate))]
     (t/is (agg/has-no-errors? agg))))
