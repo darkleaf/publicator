@@ -6,9 +6,8 @@
 
 (t/deftest has-no-errors
   (let [agg (-> user/blank
-                (agg/with [{:db/ident             :root
-                            :user/state           :active
-                            :user/login           "john"}])
-                (agg/apply-msg [:add-attr :root :user/password "some password"])
+                (agg/apply-msgs [[:add-attr :root :user/state :active]
+                                 [:add-attr :root :user/login "john"]
+                                 [:add-attr :root :user/password "some password"]])
                 (agg/validate))]
     (t/is (agg/has-no-errors? agg))))

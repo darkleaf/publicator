@@ -44,9 +44,9 @@
                              :where [:root ?attr ?v]]
                            :test-agg/attr))))))
 
-(t/deftest apply-msg
-  (let [msg [:add-attr :root :test-agg/attr :foo]
-        agg (agg/apply-msg agg/blank msg)]
+(t/deftest apply-msgs
+  (let [msgs [[:add-attr :root :test-agg/attr :foo]]
+        agg (agg/apply-msgs agg/blank msgs)]
     (t/is (= :foo (-> agg agg/root :test-agg/attr)))))
 
 (t/deftest validate

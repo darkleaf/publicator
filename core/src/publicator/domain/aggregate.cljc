@@ -63,6 +63,9 @@
 (defn apply-msg [agg msg]
   (with agg (msg->tx agg msg)))
 
+(defn apply-msgs [agg msgs]
+  (reduce apply-msg agg msgs))
+
 (defn has-errors? [agg]
   (boolean
    (not-empty
