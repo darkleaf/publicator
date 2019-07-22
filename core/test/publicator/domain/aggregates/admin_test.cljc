@@ -6,6 +6,6 @@
 
 (t/deftest has-no-errors
   (let [agg (-> admin/blank
-                (agg/with-msgs [[:agg/add-attr :root :admin/state :active]])
+                (agg/with-msgs [[:admin/state :root :active]])
                 (agg/validate))]
     (t/is (agg/has-no-errors? agg))))
