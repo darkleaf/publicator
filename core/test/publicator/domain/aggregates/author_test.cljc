@@ -6,18 +6,20 @@
 
 (t/deftest has-no-errors
   (let [agg (-> author/blank
-                (agg/with [{:db/ident     :root
-                            :author/state :active}
-                           {:author.translation/author     :root
-                            :author.translation/lang       :en
-                            :author.translation/first-name "John"
-                            :author.translation/last-name  "Doe"}
-                           {:author.translation/author     :root
-                            :author.translation/lang       :ru
-                            :author.translation/first-name "Иван"
-                            :author.translation/last-name  "Иванов"}
-                           {:author.stream-participation/author    :root
-                            :author.stream-participation/role      :admin
-                            :author.stream-participation/stream-id 1}])
+                (agg/with-msgs [[:author/state :root :active]
+
+                                [:author/add-translation "en"]
+                                [:author.translation/lang "en" :en]
+                                [:author.translation/first-name "en" "John"]
+                                [:author.translation/last-name "en" "Doe"]
+
+                                [:author/add-translation "ru"]
+                                [:author.translation/lang "ru" :ru]
+                                [:author.translation/first-name "ru" "Иван"]
+                                [:author.translation/last-name "ru" "Иванов"]
+
+                                [:author/add-stream-participation "stream-1"]
+                                [:author.stream-participation/role "stream-1" :admin]
+                                [:author.stream-participation/stream-id "stream-1" 1]])
                 (agg/validate))]
     (t/is (agg/has-no-errors? agg))))
