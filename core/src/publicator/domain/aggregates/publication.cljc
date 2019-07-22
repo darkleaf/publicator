@@ -66,8 +66,7 @@
 
 (defn- msg->tx-d [super agg msg]
   (m/match msg
-    [:publication/add-translation lang] [{:publication.translation/publication :root
-                                          :publication.translation/lang        lang}]
+    [:publication/add-translation tmp-id] [[:db/add tmp-id :publication.translation/publication :root]]
     [:publication/add-related type id] [{:publication.related/publication :root
                                          :publication.related/type        type
                                          :publication.related/id          id}]
