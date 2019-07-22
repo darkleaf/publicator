@@ -34,7 +34,7 @@
 
 (defn- msg->tx-impl [agg msg]
   (m/match msg
-    [:agg/add-attr e a v] [[:db/add e a v]]))
+    [a e v] [[:db/add e a v]]))
 
 (def blank
   (-> (d/empty-db)
