@@ -21,7 +21,7 @@
 
 (defn- msg->tx-d [super agg msg]
   (m/match msg
-    #?@(:clj [[:agg/add-attr e :user/password v]
+    #?@(:clj [[:user/password e v]
               (conj (super agg msg)
                     [:db/add e :user/password-digest v])]) ;; todo: password hasher
     :else (super agg msg)))
