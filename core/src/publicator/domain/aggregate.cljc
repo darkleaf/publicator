@@ -34,7 +34,9 @@
 
 (defn- msg->tx-impl [agg msg]
   (m/match msg
-    [a e v] [[:db/add e a v]]))
+    [a :add e v] [[:db/add e a v]]
+    [a :retract e v] [[:db/retract e a v]]
+    [a :retract e] [[:db.fn/retractAttribute e a]]))
 
 (def blank
   (-> (d/empty-db)

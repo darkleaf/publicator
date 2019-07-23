@@ -6,17 +6,17 @@
 
 (t/deftest has-no-errors
   (let [agg (-> article/blank
-                (agg/with-msgs [[:publication/state :root :active]
-                                [:publication/stream-id :root 1]
-                                [:article/image-url :root "http://cats.com/cat.jpg"]
+                (agg/with-msgs [[:publication/state :add :root :active]
+                                [:publication/stream-id :add :root 1]
+                                [:article/image-url :add :root "http://cats.com/cat.jpg"]
 
                                 [:publication/add-translation "ru"]
-                                [:publication.translation/lang "ru" :ru]
-                                [:publication.translation/state "ru" :published]
-                                [:publication.translation/title "ru" "some title"]
-                                [:publication.translation/summary "ru" "some summary"]
-                                [:publication.translation/published-at "ru" #inst "2019-01-01"]
-                                [:article.translation/content "ru" "some content"]
+                                [:publication.translation/lang :add "ru" :ru]
+                                [:publication.translation/state :add "ru" :published]
+                                [:publication.translation/title :add "ru" "some title"]
+                                [:publication.translation/summary :add "ru" "some summary"]
+                                [:publication.translation/published-at :add "ru" #inst "2019-01-01"]
+                                [:article.translation/content :add "ru" "some content"]
 
                                 [:publication/add-related :article 1]])
                 (agg/validate))]
