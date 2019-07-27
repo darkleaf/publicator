@@ -24,10 +24,7 @@
 
 (defn- rules-impl [agg]
   '[[(root ?e)
-     [?e :db/ident :root]]
-    [(blank ?e)
-     (root ?e)
-     [(missing? $ ?e :root/id)]]])
+     [?e :db/ident :root]]])
 
 (defn- validate-impl [agg]
   agg)
