@@ -73,6 +73,13 @@
 (defn has-no-errors? [agg]
   (not (has-errors? agg)))
 
+(defn errors [agg]
+  (let [errs (q agg '[:find [(pull ?e [*]) ...]
+                      :where [?e :error/type _]])]
+    (->> errs
+         (map #(dissoc % :db/id))
+         (set))))
+
 (defn- normalize-rule-form [rule-or-form]
   (cond
     (symbol? rule-or-form) (list rule-or-form '?e)
