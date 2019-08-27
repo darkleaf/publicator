@@ -6,12 +6,12 @@
 
 (def allowed-msgs #{:user/login :user/password})
 
-(defn- !already-logged-in [session]
+(defn- already-logged-in [session]
   (when (-> session :current-user-id some?)
     {:reaction {:type :show-screen
                 :name :main}}))
 
-(defn- !has-additional-messages [msgs]
+(defn- has-additional-messages [msgs]
   (let [additional (->> msgs
                         (map first)
                         (remove allowed-msgs)
@@ -26,7 +26,7 @@
       (agg/with-msgs [[:user/state :add :root :active]])
       (user/fill-password-digest password->digest)))
 
-(defn- !has-validation-errors [user]
+(defn- has-validation-errors [user]
   (let [errors (-> user agg/validate agg/errors)]
     (when (not-empty errors)
       {:reaction {:type   :show-validation-errors
@@ -38,10 +38,10 @@
 
 (defn process [msgs session login->user-presence password->digest new-user-ids]
   (<<-
-   (or-some (!already-logged-in session))
-   (or-some (!has-additional-messages msgs))
+   (or-some (already-logged-in session))
+   (or-some (has-additional-messages msgs))
    (let [user (->user msgs password->digest)])
-   (or-some (!has-validation-errors user))
+   (or-some (has-validation-errors user))
    (let [user (fill-id user new-user-ids)
          id   (-> user agg/root :agg/id)])
    {:set-session (assoc session :current-user-id id)
