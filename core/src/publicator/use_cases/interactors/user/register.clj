@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.aggregates.user :as user]
    [publicator.domain.aggregate :as agg]
-   [publicator.util :as u]))
+   [publicator.util :refer [<<- or-some]]))
 
 (def allowed-msgs #{:user/login :user/password})
 
@@ -37,11 +37,11 @@
     (agg/with-msgs user [[:agg/id :add :root id]])))
 
 (defn process [msgs session login->user-presence password->digest new-user-ids]
-  (u/<<-
-   (or (!already-logged-in session))
-   (or (!has-additional-messages msgs))
+  (<<-
+   (or-some (!already-logged-in session))
+   (or-some (!has-additional-messages msgs))
    (let [user (->user msgs password->digest)])
-   (or (!has-validation-errors user))
+   (or-some (!has-validation-errors user))
    (let [user (fill-id user new-user-ids)
          id   (-> user agg/root :agg/id)])
    {:set-session (assoc session :current-user-id id)
