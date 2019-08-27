@@ -1,5 +1,11 @@
 (ns publicator.util)
 
+(defmacro <<- [& body]
+  `(->> ~@(reverse body)))
+
+(defmacro fn-> [& body]
+  `(fn [arg#] (-> arg# ~@body)))
+
 (defn distinct-coll? [coll]
   (= coll (distinct coll)))
 
