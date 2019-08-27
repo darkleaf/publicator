@@ -1,6 +1,6 @@
 (ns publicator.domain.aggregates.publication
   (:require
-   [publicator.util.coll :as u.coll]
+   [publicator.util :as u]
    [publicator.domain.aggregate :as agg]
    [publicator.domain.languages :as langs]
    [clojure.core.match :as m]))
@@ -38,7 +38,7 @@
                                  :where
                                  [?trans :publication.translation/publication ?e]
                                  [?trans :publication.translation/lang ?lang]]
-                               u.coll/distinct?)
+                               u/distinct-coll?)
 
       (agg/required-validator  'translation
                                #{:publication.translation/title

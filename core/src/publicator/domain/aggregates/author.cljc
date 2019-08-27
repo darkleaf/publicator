@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.aggregate :as agg]
    [publicator.domain.languages :as langs]
-   [publicator.util.coll :as u.coll]
+   [publicator.util :as u]
    [clojure.core.match :as m]))
 
 (def states #{:active :archived})
@@ -27,14 +27,14 @@
                                  :where
                                  [?trans :author.translation/author ?e]
                                  [?trans :author.translation/lang ?lang]]
-                               #(u.coll/match? % langs/languages))
+                               #(u/same-items? % langs/languages))
       (agg/query-validator     'root
                                '[:find [?stream-id ...]
                                  :with ?part
                                  :where
                                  [?part :author.stream-participation/author ?e]
                                  [?part :author.stream-participation/stream-id ?stream-id]]
-                               u.coll/distinct?)
+                               u/distinct-coll?)
 
       (agg/predicate-validator 'translation
                                {:author.translation/lang       langs/languages
