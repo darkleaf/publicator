@@ -1,6 +1,6 @@
-(ns publicator.use-cases.interactors.user.register-test
+(ns publicator.use-cases.user.register-test
   (:require
-   [publicator.use-cases.interactors.user.register :as register]
+   [publicator.use-cases.user.register :as register]
    [publicator.domain.aggregates.user :as user]
    [publicator.domain.aggregate :as agg]
    [clojure.test :as t]))

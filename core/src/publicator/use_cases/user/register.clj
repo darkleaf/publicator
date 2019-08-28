@@ -1,4 +1,4 @@
-(ns publicator.use-cases.interactors.user.register
+(ns publicator.use-cases.user.register
   (:require
    [publicator.domain.aggregates.user :as user]
    [publicator.domain.aggregate :as agg]

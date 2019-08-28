@@ -81,6 +81,14 @@
          (map #(dissoc % :db/id))
          (set))))
 
+(defn validate! [agg]
+  (let [agg  (validate agg)
+        errs (errors agg)]
+    (if (not-empty errs)
+      (throw (ex-info "Invalid aggregate"
+                      {:errors errs}))
+      agg)))
+
 (defn- normalize-rule-form [rule-or-form]
   (cond
     (symbol? rule-or-form) (list rule-or-form '?e)

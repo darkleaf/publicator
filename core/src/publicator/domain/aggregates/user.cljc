@@ -1,7 +1,6 @@
 (ns publicator.domain.aggregates.user
   (:require
-   [publicator.domain.aggregate :as agg]
-   [clojure.core.match :as m]))
+   [publicator.domain.aggregate :as agg]))
 
 (def states #{:active :archived})
 
