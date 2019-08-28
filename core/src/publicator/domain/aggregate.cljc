@@ -1,5 +1,6 @@
 (ns publicator.domain.aggregate
   (:require
+   [publicator.util :as u]
    [datascript.core :as d]
    [datascript.parser :as d.p]
    [clojure.core.match :as m]))
@@ -104,8 +105,7 @@
     (ifn? p)
     (p val)
 
-    #?(:clj  (instance? java.util.regex.Pattern p)
-       :cljs (regexp? p))
+    (u/regexp? p)
     (and (string? val)
          (re-matches p val))))
 
