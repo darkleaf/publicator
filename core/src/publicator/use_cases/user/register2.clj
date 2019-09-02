@@ -1,8 +1,8 @@
-(ns publicator.use-cases.user.register
+(ns publicator.use-cases.user.register2
   (:require
    [publicator.domain.aggregates.user :as user]
    [publicator.domain.aggregate :as agg]
-   [publicator.util :refer [<<- or-some]]))
+   [publicator.util :refer [linearize or-some]]))
 
 (def allowed-msgs #{:user/login :user/password})
 
@@ -20,11 +20,11 @@
       {:reaction {:type :show-additional-messages-error
                   :msgs additional}})))
 
-(defn- ->user [msgs password->digest]
+(defn- ->user [msgs]
   (-> user/new-blank
       (agg/with-msgs msgs)
-      (agg/with-msgs [[:user/state :add :root :active]])
-      (user/fill-password-digest password->digest)))
+      (agg/with-msgs [[:user/state :add :root :active]])))
+
 
 (defn- has-validation-errors [user]
   (let [errors (-> user agg/validate agg/errors)]
@@ -32,19 +32,24 @@
       {:reaction {:type   :show-validation-errors
                   :errors errors}})))
 
-(defn- fill-id [user new-user-ids]
-  (let [id (first new-user-ids)]
-    (agg/with-msgs user [[:agg/id :add :root id]])))
+(defn- fill-id [user id]
+  (agg/with-msgs user [[:agg/id :add :root id]]))
 
-(defn process [msgs session login->user-presence password->digest new-user-ids]
-  (<<-
-   (or-some (already-logged-in session))
+(defn fill-password-digest [user digest]
+  (agg/with-msgs user [[:user/password-digest :add :root digest]]))
+
+(defn process [msgs]
+  (linearize
    (or-some (has-additional-messages msgs))
-   (let [user (->user msgs password->digest)])
+   {:get-session {:callback (fn [session] <>)}}
+   (or-some (already-logged-in session))
+   (let [user (->user msgs)])
+   {:get-password-digest {:password (-> user agg/root :user/password)
+                          :callback (fn bind-password-digest [digest] <>)}}
+   (let [user (fill-password-digest user digest)])
    (or-some (has-validation-errors user))
-   (let [user (fill-id user new-user-ids)
-         id   (-> user agg/root :agg/id)])
-   #_"TODO: use login->user-presence"
+   {:get-user-id {:callback (fn bind-user-id [id] <>)}}
+   (let [user (fill-id user id)])
    {:set-session (assoc session :current-user-id id)
     :persist     [user]
     :reaction    {:type :show-screen

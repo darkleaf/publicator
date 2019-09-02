@@ -1,4 +1,19 @@
-(ns publicator.util)
+(ns publicator.util
+  (:require
+   [clojure.walk :as w]))
+
+(defn- inject* [next form]
+  (let [injected (w/prewalk-replace {'<> next} form)]
+    (cond
+      (not= form injected) injected
+      (seq? form) `(~@form ~next)
+      #_:else)))
+
+(defn- linearize* [body]
+  (reduce inject* (reverse body)))
+
+(defmacro linearize [& body]
+  (linearize* body))
 
 (defmacro <<- [& body]
   `(->> ~@(reverse body)))
