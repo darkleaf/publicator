@@ -10,26 +10,24 @@
 (t/deftest process-success
   (linearize
    (let [msgs    [[:user/login :add :root "john"]
-                  [:user/password :add :root "password"]]
-         effects (register/process msgs)])
-   (m/match effects
-     {:get-session {:callback (bind-session :guard ifn?)}})
+                  [:user/password :add :root "password"]]])
 
-   (let [session {}
-         effects (bind-session session)])
-   (m/match effects
+   (m/match (register/process msgs)
+     {:get-session {:callback bind-session}})
+
+   (m/match (bind-session {})
+     {:get-user-presence-by-login {:login    "john"
+                                   :callback bind-user-presence}})
+
+   (m/match (bind-user-presence false)
      {:get-password-digest {:password "password"
-                            :callback (bind-password-digest :guard ifn?)}})
+                            :callback bind-password-digest}})
 
-   (let [digest  "digest"
-         effects (bind-password-digest digest)])
-   (m/match effects
+   (m/match (bind-password-digest "digest")
      {:get-user-id {:callback (bind-user-id :guard ifn?)}})
 
-   (let [id      1
-         effects (bind-user-id id)])
-
-   (let [expected-effects {:set-session {:current-user-id 1}
+   (let [effects (bind-user-id 1)
+         expected-effects {:set-session {:current-user-id 1}
                            :persist     [(-> user/new-blank
                                              (agg/with-msgs msgs)
                                              (agg/with-msgs
@@ -90,3 +88,5 @@
 ;;         expected-effects     {:reaction {:type :show-screen
 ;;                                          :name :main}}]
 ;;     (t/is (= expected-effects effects))))
+
+;; already registered
