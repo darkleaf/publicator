@@ -54,3 +54,28 @@
     :persist     [user]
     :reaction    {:type :show-screen
                   :name :main}}))
+
+(comment
+  (or-some
+   (has-additional-messages msgs)
+   {:get-session
+    {:callback
+     (fn [session]
+       (or-some
+        (already-logged-in session)
+        (let [user (->user msgs)]
+          {:get-password-digest
+           {:password (-> user agg/root :user/password),
+            :callback
+            (fn bind-password-digest [digest]
+              (let [user (fill-password-digest user digest)]
+                (or-some
+                 (has-validation-errors user)
+                 {:get-user-id
+                  {:callback
+                   (fn bind-user-id [id]
+                     (let [user (fill-id user id)]
+                       {:set-session (assoc session :current-user-id id),
+                        :persist     [user],
+                        :reaction    {:type :show-screen,
+                                      :name :main}}))}})))}})))}}))
