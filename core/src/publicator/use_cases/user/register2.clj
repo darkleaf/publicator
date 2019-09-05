@@ -12,13 +12,11 @@
                         (remove allowed-msgs)
                         (set))]
     (when (not-empty additional)
-      {:reaction {:type :show-additional-messages-error
-                  :msgs additional}})))
+      [[:show-additional-messages-error additional]])))
 
 (defn- already-logged-in [session]
   (when (-> session :current-user-id some?)
-    {:reaction {:type :show-screen
-                :name :main}}))
+    [[:show-screen :main]]))
 
 (defn- ->user [msgs]
   (-> user/new-blank
@@ -27,14 +25,12 @@
 
 (defn- already-registered [presence]
   (when presence
-    {:reaction {:type :show-screen
-                :name :main}}))
+    [[:show-screen :main]]))
 
 (defn- has-validation-errors [user]
   (let [errors (-> user agg/validate agg/errors)]
     (when (not-empty errors)
-      {:reaction {:type   :show-validation-errors
-                  :errors errors}})))
+      [[:show-validation-errors errors]])))
 
 (defn- fill-id [user id]
   (agg/with-msgs user [[:agg/id :add :root id]]))
@@ -45,19 +41,16 @@
 (defn process [msgs]
   (linearize
    (or-some (has-additional-messages msgs))
-   {:get-session {:callback (fn [session] <>)}}
+   [[:get-session (fn [session] <>)]]
    (or-some (already-logged-in session))
    (let [user (->user msgs)])
-   {:get-user-presence-by-login {:login    (-> user agg/root :user/login)
-                                 :callback (fn [presence] <>)}}
+   [[:get-user-presence-by-login (-> user agg/root :user/login) (fn [presence] <>)]]
    (or-some (already-registered presence))
-   {:get-password-digest {:password (-> user agg/root :user/password)
-                          :callback (fn [digest] <>)}}
+   [[:get-password-digest (-> user agg/root :user/password) (fn [digest] <>)]]
    (let [user (fill-password-digest user digest)])
    (or-some (has-validation-errors user))
-   {:get-user-id {:callback (fn [id] <>)}}
+   [[:get-new-user-id (fn [id] <>)]]
    (let [user (fill-id user id)])
-   {:set-session (assoc session :current-user-id id)
-    :persist     [user]
-    :reaction    {:type :show-screen
-                  :name :main}}))
+   [[:set-session (assoc session :current-user-id id)]
+    [:persist user]
+    [:show-screen :main]]))

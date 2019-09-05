@@ -13,29 +13,26 @@
                [:user/password :add :root "password"]]])
 
    (m/match (register/process msgs)
-     {:get-session {:callback bind-session}})
+     [[:get-session bind-session]])
 
    (m/match (bind-session {})
-     {:get-user-presence-by-login {:login    "john"
-                                   :callback bind-user-presence}})
+     [[:get-user-presence-by-login "john" bind-user-presence]])
 
    (m/match (bind-user-presence false)
-     {:get-password-digest {:password "password"
-                            :callback bind-password-digest}})
+     [[:get-password-digest "password" bind-password-digest]])
 
    (m/match (bind-password-digest "digest")
-     {:get-user-id {:callback bind-user-id}})
+     [[:get-new-user-id bind-new-user-id]])
 
-   (let [effects          (bind-user-id 1)
-         expected-effects {:set-session {:current-user-id 1}
-                           :persist     [(-> user/new-blank
-                                             (agg/with-msgs msgs)
-                                             (agg/with-msgs
-                                               [[:agg/id :add :root 1]
-                                                [:user/password-digest :add :root "digest"]
-                                                [:user/state :add :root :active]]))]
-                           :reaction    {:type :show-screen
-                                         :name :main}}])
+   (let [effects          (bind-new-user-id 1)
+         expected-effects [[:set-session {:current-user-id 1}]
+                           [:persist (-> user/new-blank
+                                         (agg/with-msgs msgs)
+                                         (agg/with-msgs
+                                           [[:agg/id :add :root 1]
+                                            [:user/password-digest :add :root "digest"]
+                                            [:user/state :add :root :active]]))]
+                           [:show-screen :main]]])
    (t/is (= expected-effects effects))))
 
 (t/deftest process-additional-msgs
@@ -45,8 +42,7 @@
                [:user/state :add :root :archived]]])
 
    (let [effects          (register/process msgs)
-         expected-effects {:reaction {:type :show-additional-messages-error
-                                      :msgs #{:user/state}}}])
+         expected-effects [[:show-additional-messages-error #{:user/state}]]])
    (t/is (= expected-effects effects))))
 
 (t/deftest process-already-logged-in
@@ -55,11 +51,10 @@
                [:user/password :add :root "password"]]])
 
    (m/match (register/process msgs)
-     {:get-session {:callback bind-session}})
+     [[:get-session bind-session]])
 
    (let [effects          (bind-session {:current-user-id 1})
-         expected-effects {:reaction {:type :show-screen
-                                      :name :main}}])
+         expected-effects [[:show-screen :main]]])
    (t/is (= expected-effects effects))))
 
 (t/deftest process-already-registered
@@ -68,15 +63,13 @@
                [:user/password :add :root "password"]]])
 
    (m/match (register/process msgs)
-     {:get-session {:callback bind-session}})
+     [[:get-session bind-session]])
 
    (m/match (bind-session {})
-     {:get-user-presence-by-login {:login    "john"
-                                   :callback bind-user-presence}})
+     [[:get-user-presence-by-login "john" bind-user-presence]])
 
    (let [effects          (bind-user-presence true)
-         expected-effects {:reaction {:type :show-screen
-                                      :name :main}}])
+         expected-effects [[:show-screen :main]]])
    (t/is (= expected-effects effects))))
 
 (t/deftest process-with-errr
@@ -84,20 +77,17 @@
    (let [msgs [[:user/login :add  :root "john"]]])
 
    (m/match (register/process msgs)
-     {:get-session {:callback bind-session}})
+     [[:get-session bind-session]])
 
    (m/match (bind-session {})
-     {:get-user-presence-by-login {:login    "john"
-                                   :callback bind-user-presence}})
+     [[:get-user-presence-by-login "john" bind-user-presence]])
 
    (m/match (bind-user-presence false)
-     {:get-password-digest {:password nil
-                            :callback bind-password-digest}})
+     [[:get-password-digest nil bind-password-digest]])
 
    (let [effects          (bind-password-digest "digest")
-         expected-effects {:reaction {:type   :show-validation-errors
-                                      :errors #{{:error/type   :required
-                                                 :error/entity 1
-                                                 :error/attr   :user/password
-                                                 :error/rule   'root}}}}])
+         expected-effects [[:show-validation-errors  #{{:error/type   :required
+                                                        :error/entity 1
+                                                        :error/attr   :user/password
+                                                        :error/rule   'root}}]]])
    (t/is (= expected-effects effects))))

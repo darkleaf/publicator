@@ -7,7 +7,7 @@
     (cond
       (not= form injected) injected
       (seq? form) `(~@form ~next)
-      #_:else)))
+      :else                (throw (ex-info "This form must contain <> or be a seq")))))
 
 (defn- linearize* [body]
   (reduce inject* (reverse body)))
