@@ -41,16 +41,18 @@
 (defn process [msgs]
   (linearize
    (or-some (has-additional-messages msgs))
-   [[:get-session (fn [session] <>)]]
+   [[:get-session] (fn [session] <>)]
    (or-some (already-logged-in session))
    (let [user (->user msgs)])
-   [[:get-user-presence-by-login (-> user agg/root :user/login) (fn [presence] <>)]]
+   [[:get-user-presence-by-login (-> user agg/root :user/login)] (fn [presence] <>)]
    (or-some (already-registered presence))
-   [[:get-password-digest (-> user agg/root :user/password) (fn [digest] <>)]]
+   [[:get-password-digest (-> user agg/root :user/password)] (fn [digest] <>)]
    (let [user (fill-password-digest user digest)])
    (or-some (has-validation-errors user))
-   [[:get-new-user-id (fn [id] <>)]]
+   [[:get-new-user-id] (fn [id] <>)]
    (let [user (fill-id user id)])
-   [[:set-session (assoc session :current-user-id id)]
-    [:persist user]
-    [:show-screen :main]]))
+   [[:do
+     [:set-session (assoc session :current-user-id id)]
+     [:persist user]]
+    (fn [_] <>)]
+   [[:show-screen :main]]))
