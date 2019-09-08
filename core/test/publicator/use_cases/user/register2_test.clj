@@ -58,12 +58,15 @@
     (check-with-script script register/process msgs)))
 
 (t/deftest process-with-errr
-  (let [msgs [[:user/login :add  :root "john"]]
+  (let [msgs   [[:user/login :add :root "john"]
+                [:user/password :add :root ""]]
         script [[[:get-session] {}]
                 [[:get-user-presence-by-login "john"] false]
-                [[:get-password-digest nil] "digest"]
-                [[:show-validation-errors #{{:error/type   :required
-                                             :error/entity 1
-                                             :error/attr   :user/password
-                                             :error/rule   'root}}]]]]
+                [[:get-password-digest ""] "digest"]
+                [[:show-validation-errors #{{:error/type      :predicate
+                                             :error/entity    1
+                                             :error/attr      :user/password
+                                             :error/value     ""
+                                             :error/pred-name "#\".{8,255}\""
+                                             :error/rule      'root}}]]]]
     (check-with-script script register/process msgs)))
