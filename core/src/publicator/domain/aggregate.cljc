@@ -117,6 +117,10 @@
     (and (string? val)
          (re-matches p val))))
 
+(defn- pred-name [p]
+  (or (-> p meta :name)
+      (pr-str p)))
+
 (defn predicate-validator [agg rule-or-form pred-map]
   (if (has-errors? agg)
     agg
@@ -128,13 +132,14 @@
           query     (update query :where #(into [rule-form] %))
           data      (q agg query apply-predicate pred-map)
           tx-data   (for [[e a v pred] data]
-                      {:error/type   :predicate
-                       :error/entity e
-                       :error/attr   a
-                       :error/value  v
-                       :error/pred   pred
-                       :error/rule   (first rule-form)})]
+                      {:error/type      :predicate
+                       :error/entity    e
+                       :error/attr      a
+                       :error/value     v
+                       :error/pred-name (pred-name pred)
+                       :error/rule      (first rule-form)})]
       (with agg tx-data))))
+
 
 (defn query-validator [agg rule-or-form query predicate]
   (if (has-errors? agg)
@@ -150,7 +155,7 @@
                         {:error/type      :query
                          :error/entity    e
                          :error/result    res
-                         :error/predicate predicate
+                         :error/pred-name (pred-name predicate)
                          :error/rule      (first rule-form)
                          :error/query     query}))]
       (with agg tx-data))))
