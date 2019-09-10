@@ -47,7 +47,7 @@
 
       (agg/predicate-validator 'stream-participation
                                {:author.stream-participation/role      stream-participation-roles
-                                :author.stream-participation/stream-id pos-int?})
+                                :author.stream-participation/stream-id #'pos-int?})
       (agg/required-validator  'stream-participation
                                #{:author.stream-participation/role
                                  :author.stream-participation/stream-id})))

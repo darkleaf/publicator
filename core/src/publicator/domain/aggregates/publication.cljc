@@ -29,7 +29,7 @@
                                #{:publication/state})
       (agg/predicate-validator 'root
                                {:publication/state     states
-                                :publication/stream-id pos-int?})
+                                :publication/stream-id #'pos-int?})
       (agg/required-validator  'published
                                #{:publication/stream-id})
       (agg/query-validator     'root
@@ -50,7 +50,7 @@
                                 :publication.translation/title        #".{1,255}"
                                 :publication.translation/summary      #".{1,255}"
                                 :publication.translation/tags         #".{1,255}"
-                                :publication.translation/published-at inst?})
+                                :publication.translation/published-at #'inst?})
 
       (agg/required-validator  'published-translation
                                #{:publication.translation/title
@@ -61,8 +61,8 @@
                                #{:publication.related/id
                                  :publication.related/type})
       (agg/predicate-validator 'related
-                               {:publication.related/id   pos-int?
-                                :publication.related/type keyword?})))
+                               {:publication.related/id   #'pos-int?
+                                :publication.related/type #'keyword?})))
 
 (defn- msg->tx-d [super agg msg]
   (m/match msg

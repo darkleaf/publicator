@@ -72,7 +72,7 @@
   (t/testing "predicate"
     (let [validate-d (fn [super agg]
                        (-> (super agg)
-                           (agg/predicate-validator 'root {:test-agg/attr int?})))
+                           (agg/predicate-validator 'root {:test-agg/attr #'int?})))
           decorators {`agg/validate validate-d}
           agg        (-> agg/blank
                          (agg/with [[:db/add :root :test-agg/attr :wrong]])
@@ -86,7 +86,7 @@
                             'root
                             '[:find ?v .
                               :where [?e :test-agg/attr ?v]]
-                            int?)))
+                            #'int?)))
           decorators {`agg/validate validate-d}
           agg        (-> agg/blank
                          (agg/with [[:db/add :root :test-agg/attr :wrong]])

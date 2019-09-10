@@ -46,7 +46,3 @@
 
 (defn reverse-merge [& maps]
   (apply merge (reverse maps)))
-
-(defn regexp? [x]
-  #?(:clj  (instance? java.util.regex.Pattern x)
-     :cljs (instance? js/RegExp x)))

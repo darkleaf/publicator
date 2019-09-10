@@ -63,10 +63,10 @@
         script [[[:get-session] {}]
                 [[:get-user-presence-by-login "john"] false]
                 [[:get-password-digest ""] "digest"]
-                [[:show-validation-errors #{{:error/type      :predicate
-                                             :error/entity    1
-                                             :error/attr      :user/password
-                                             :error/value     ""
-                                             :error/pred-name "#\".{8,255}\""
-                                             :error/rule      'root}}]]]]
+                [[:show-validation-errors #{{:error/type   :predicate
+                                             :error/entity 1
+                                             :error/attr   :user/password
+                                             :error/value  ""
+                                             :error/pred   ".{8,255}"
+                                             :error/rule   'root}}]]]]
     (check-with-script script register/process msgs)))

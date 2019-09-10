@@ -108,18 +108,9 @@
                      :error/rule   (first rule-form)})]
     (with agg tx-data)))
 
-(defn- apply-predicate [p val]
-  (cond
-    (ifn? p)
-    (p val)
-
-    (u/regexp? p)
-    (and (string? val)
-         (re-matches p val))))
-
-(defn- pred-name [p]
-  (or (-> p meta :name)
-      (pr-str p)))
+(defprotocol Predicate
+  (apply-predicate [p x])
+  (predicate-as-data [p]))
 
 (defn predicate-validator [agg rule-or-form pred-map]
   (if (has-errors? agg)
@@ -132,14 +123,13 @@
           query     (update query :where #(into [rule-form] %))
           data      (q agg query apply-predicate pred-map)
           tx-data   (for [[e a v pred] data]
-                      {:error/type      :predicate
-                       :error/entity    e
-                       :error/attr      a
-                       :error/value     v
-                       :error/pred-name (pred-name pred)
-                       :error/rule      (first rule-form)})]
+                      {:error/type   :predicate
+                       :error/entity e
+                       :error/attr   a
+                       :error/value  v
+                       :error/pred   (predicate-as-data pred)
+                       :error/rule   (first rule-form)})]
       (with agg tx-data))))
-
 
 (defn query-validator [agg rule-or-form query predicate]
   (if (has-errors? agg)
@@ -152,10 +142,28 @@
           tx-data   (for [e    entities
                           :let [res (q agg query e)]]
                       (if (not (predicate res))
-                        {:error/type      :query
-                         :error/entity    e
-                         :error/result    res
-                         :error/pred-name (pred-name predicate)
-                         :error/rule      (first rule-form)
-                         :error/query     query}))]
+                        {:error/type   :query
+                         :error/entity e
+                         :error/result res
+                         :error/pred   (predicate-as-data predicate)
+                         :error/rule   (first rule-form)
+                         :error/query  query}))]
       (with agg tx-data))))
+
+(extend-protocol Predicate
+  #?(:clj  clojure.lang.PersistentHashSet
+     :cljs cljs.core/PersistentHashSet)
+  (apply-predicate [p x] (p x))
+  (predicate-as-data [p] p)
+
+  #?(:clj  clojure.lang.Var
+     :cljs cljs.core/Var)
+  (apply-predicate [p x] (p x))
+  (predicate-as-data [p] (symbol p))
+
+  #?(:clj  java.util.regex.Pattern
+     :cljs js/RegExp)
+  (apply-predicate [p x]
+    (and (string? x)
+         (re-matches p x)))
+  (predicate-as-data [p] (str p)))
