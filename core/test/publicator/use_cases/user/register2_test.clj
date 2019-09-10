@@ -35,9 +35,8 @@
                                           (agg/with-msgs
                                             [[:agg/id :add :root 1]
                                              [:user/password-digest :add :root "digest"]
-                                             [:user/state :add :root :active]]))]]
-                 :coeffect [nil nil]}
-                {:effect [:show-screen :main]}]]
+                                             [:user/state :add :root :active]]))]
+                            [:show-screen :main]]}]]
     (check-with-script register/process script)))
 
 (t/deftest process-additional-msgs

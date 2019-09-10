@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.aggregates.user :as user]
    [publicator.domain.aggregate :as agg]
-   [publicator.util :refer [linearize or-some]]))
+   [publicator.util :as u]))
 
 (def allowed-msgs #{:user/login :user/password})
 
@@ -39,20 +39,19 @@
   (agg/with-msgs user [[:user/password-digest :add :root digest]]))
 
 (defn process [msgs]
-  (linearize
-   (or-some (has-additional-messages msgs))
+  (u/linearize
+   (or (has-additional-messages msgs))
    [[:get-session] (fn [session] <>)]
-   (or-some (already-logged-in session))
+   (or (already-logged-in session))
    (let [user (->user msgs)])
    [[:get-user-presence-by-login (-> user agg/root :user/login)] (fn [presence] <>)]
-   (or-some (already-registered presence))
+   (or (already-registered presence))
    [[:get-password-digest (-> user agg/root :user/password)] (fn [digest] <>)]
    (let [user (fill-password-digest user digest)])
-   (or-some (has-validation-errors user))
+   (or (has-validation-errors user))
    [[:get-new-user-id] (fn [id] <>)]
    (let [user (fill-id user id)])
    [[:do
      [:set-session (assoc session :current-user-id id)]
-     [:persist user]]
-    (fn [_] <>)]
-   [[:show-screen :main]]))
+     [:persist user]
+     [:show-screen :main]]]))

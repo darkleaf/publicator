@@ -22,11 +22,6 @@
 (defmacro fn-> [& body]
   `(fn [arg#] (-> arg# ~@body)))
 
-(defmacro or-some
-  ([] nil)
-  ([x] x)
-  ([x & next] `(if-some [or# ~x] or# (or-some ~@next))))
-
 (defn distinct-coll? [coll]
   (= coll (distinct coll)))
 
