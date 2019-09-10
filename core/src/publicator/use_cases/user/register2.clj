@@ -6,7 +6,7 @@
 
 (def allowed-msgs #{:user/login :user/password})
 
-(defn- has-additional-messages [msgs]
+(defn- check-additional-messages [msgs]
   (let [additional (->> msgs
                         (map first)
                         (remove allowed-msgs)
@@ -14,44 +14,54 @@
     (when (not-empty additional)
       [[:show-additional-messages-error additional]])))
 
-(defn- already-logged-in [session]
-  (when (-> session :current-user-id some?)
-    [[:show-screen :main]]))
+(defn- check-session [next]
+  (u/linearize
+   [[:get-session] (fn [session] <>)]
+   (if (-> session :current-user-id some?)
+     [[:show-screen :main]])
+   (next nil)))
 
-(defn- ->user [msgs]
+(defn- user-from-msgs [msgs]
   (-> user/new-blank
       (agg/with-msgs msgs)
       (agg/with-msgs [[:user/state :add :root :active]])))
 
-(defn- already-registered [presence]
-  (when presence
-    [[:show-screen :main]]))
+(defn- check-registration [user next]
+  (u/linearize
+   [[:get-user-presence-by-login (-> user agg/root :user/login)] (fn [presence] <>)]
+   (if presence
+     [[:show-screen :main]])
+   (next nil)))
 
-(defn- has-validation-errors [user]
+(defn- check-validation-errors [user]
   (let [errors (-> user agg/validate agg/errors)]
     (when (not-empty errors)
       [[:show-validation-errors errors]])))
 
-(defn- fill-id [user id]
-  (agg/with-msgs user [[:agg/id :add :root id]]))
+(defn- fill-id [user next]
+  (u/linearize
+   [[:get-new-user-id] (fn [id] <>)]
+   (-> user
+       (agg/with-msgs [[:agg/id :add :root id]])
+       (next))))
 
-(defn fill-password-digest [user digest]
-  (agg/with-msgs user [[:user/password-digest :add :root digest]]))
+(defn fill-password-digest [user next]
+  (u/linearize
+   [[:get-password-digest (-> user agg/root :user/password)] (fn [digest] <>)]
+   (-> user
+       (agg/with-msgs [[:user/password-digest :add :root digest]])
+       (next))))
 
 (defn process [msgs]
   (u/linearize
-   (or (has-additional-messages msgs))
-   [[:get-session] (fn [session] <>)]
-   (or (already-logged-in session))
-   (let [user (->user msgs)])
-   [[:get-user-presence-by-login (-> user agg/root :user/login)] (fn [presence] <>)]
-   (or (already-registered presence))
-   [[:get-password-digest (-> user agg/root :user/password)] (fn [digest] <>)]
-   (let [user (fill-password-digest user digest)])
-   (or (has-validation-errors user))
-   [[:get-new-user-id] (fn [id] <>)]
-   (let [user (fill-id user id)])
+   (or (check-additional-messages msgs))
+   (check-session (fn [_] <>))
+   (let [user (user-from-msgs msgs)])
+   (check-registration user (fn [_] <>))
+   (fill-password-digest user (fn [user] <>))
+   (or (check-validation-errors user))
+   (fill-id user (fn [user] <>))
    [[:do
-     [:set-session (assoc session :current-user-id id)]
+     [:assoc-session :current-user-id (-> user agg/root :agg/id)]
      [:persist user]
      [:show-screen :main]]]))

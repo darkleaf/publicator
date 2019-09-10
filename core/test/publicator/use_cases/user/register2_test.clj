@@ -29,7 +29,7 @@
                 {:effect   [:get-new-user-id]
                  :coeffect 1}
                 {:effect   [:do
-                            [:set-session {:current-user-id 1}]
+                            [:assoc-session :current-user-id 1]
                             [:persist (-> user/new-blank
                                           (agg/with-msgs msgs)
                                           (agg/with-msgs
