@@ -2,19 +2,21 @@
   (:require
    [publicator.domain.aggregate :as agg]
    [publicator.domain.languages :as langs]
-   [publicator.util :as u]))
+   [publicator.util :as u]
+   [darkleaf.multidecorators :as md]))
 
 (def states #{:active :archived})
 (def stream-participation-roles #{:regular :admin})
 
-(defn- rules-d [super agg]
+(defn rules-decorator [super agg]
   (conj (super agg)
         '[(translation ?e)
           [?e :author.translation/author :root]]
         '[(stream-participation ?e)
           [?e :author.stream-participation/author :root]]))
+(md/decorate agg/rules :agg/author #'rules-decorator)
 
-(defn- validate-d [super agg]
+(defn validate-decorator [super agg]
   (-> (super agg)
       (agg/predicate-validator 'root
                                {:author/state states})
@@ -26,7 +28,7 @@
                                  :where
                                  [?trans :author.translation/author ?e]
                                  [?trans :author.translation/lang ?lang]]
-                               #(u/same-items? % langs/languages))
+                               #'langs/all-languages?)
       (agg/query-validator     'root
                                '[:find [?stream-id ...]
                                  :with ?part
@@ -50,11 +52,10 @@
       (agg/required-validator  'stream-participation
                                #{:author.stream-participation/role
                                  :author.stream-participation/stream-id})))
+(md/decorate agg/validate :agg/author #'validate-decorator)
 
 (def blank
   (-> agg/blank
       (vary-meta assoc :type :agg/author)
       (agg/extend-schema {:author.translation/author          {:db/valueType :db.type/ref}
-                          :author.stream-participation/author {:db/valueType :db.type/ref}})
-      (agg/decorate {`agg/rules    #'rules-d
-                     `agg/validate #'validate-d})))
+                          :author.stream-participation/author {:db/valueType :db.type/ref}})))

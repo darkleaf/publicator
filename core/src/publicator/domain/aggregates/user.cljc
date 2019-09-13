@@ -1,10 +1,11 @@
 (ns publicator.domain.aggregates.user
   (:require
-   [publicator.domain.aggregate :as agg]))
+   [publicator.domain.aggregate :as agg]
+   [darkleaf.multidecorators :as md]))
 
 (def states #{:active :archived})
 
-(defn- validate-d [super agg]
+(defn validate-decorator [super agg]
   (-> (super agg)
       (agg/predicate-validator 'root
                                {:user/login    #"\w{3,255}"
@@ -15,17 +16,20 @@
                                  :user/state})
       #?(:clj (agg/predicate-validator 'root  {:user/password-digest #".{1,255}"}))
       #?(:clj (agg/required-validator  'root #{:user/password-digest}))))
+(md/decorate agg/validate :agg/user #'validate-decorator)
 
 (def blank
   (-> agg/blank
-      (vary-meta assoc :type :agg/user)
-      (agg/decorate {`agg/validate #'validate-d})))
+      (vary-meta assoc :type :agg/user)))
 
-(defn- new-validate-d [super agg]
+(defn new-validate-decorator [super agg]
   (-> (super agg)
       (agg/required-validator 'root
                               #{:user/password})))
+(md/decorate agg/validate :agg/new-user #'new-validate-decorator)
+
+(derive :agg/new-user :agg/user)
 
 (def new-blank
   (-> blank
-      (agg/decorate {`agg/validate #'new-validate-d})))
+      (vary-meta assoc :type :agg/new-user)))

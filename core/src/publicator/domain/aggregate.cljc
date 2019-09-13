@@ -2,12 +2,18 @@
   (:require
    [publicator.util :as u]
    [datascript.core :as d]
-   [datascript.parser :as d.p]))
+   [datascript.parser :as d.p]
+   [darkleaf.multidecorators :as md]))
 
-(defprotocol Aggregate
-  :extend-via-metadata true
-  (rules [agg])
-  (validate [agg]))
+(defn- rules-initial [agg]
+  '[[(root ?e)
+     [?e :db/ident :root]]])
+
+(defn- validate-initial [agg]
+  agg)
+
+(defonce rules (md/multi u/type #'rules-initial))
+(defonce validate (md/multi u/type #'validate-initial))
 
 (defn extend-schema [agg ext]
   (let [schema   (merge ext (:schema agg))
@@ -17,24 +23,9 @@
         (d/init-db schema)
         (with-meta metadata))))
 
-(defn decorate [agg decorators-map]
-  (vary-meta agg #(merge-with (fn [f decorator] (partial decorator f))
-                              % decorators-map)))
-
-(defn- rules-impl [agg]
-  '[[(root ?e)
-     [?e :db/ident :root]]])
-
-(defn- validate-impl [agg]
-  agg)
-
-
 (def blank
   (-> (d/empty-db)
-      (d/db-with [[:db/add 1 :db/ident :root]])
-      (with-meta
-        {`rules    #'rules-impl
-         `validate #'validate-impl})))
+      (d/db-with [[:db/add 1 :db/ident :root]])))
 
 (defn root [agg]
   (d/entity agg :root))
@@ -129,12 +120,12 @@
           tx-data   (for [e    entities
                           :let [res (q agg query e)]]
                       (if (not (predicate res))
-                        {:error/type   :query
-                         :error/entity e
-                         :error/result res
-                         :error/pred   (predicate-as-data predicate)
-                         :error/rule   (first rule-form)
-                         :error/query  query}))]
+                        (cond-> {:error/type   :query
+                                 :error/entity e
+                                 :error/pred   (predicate-as-data predicate)
+                                 :error/rule   (first rule-form)
+                                 :error/query  query}
+                          (some? res) (assoc :error/result res))))]
       (with agg tx-data))))
 
 (extend-protocol Predicate

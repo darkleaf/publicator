@@ -1,7 +1,27 @@
 (ns publicator.domain.aggregate-test
   (:require
    [publicator.domain.aggregate :as agg]
+   [darkleaf.multidecorators :as md]
    [clojure.test :as t]))
+
+(def agg (-> agg/blank
+             (with-meta {:type :agg/test-agg})))
+
+(defn rules-decorator [super agg]
+  (conj (super agg)
+        '[(attr ?v)
+          [:root :test-agg/attr ?v]]))
+(md/decorate agg/rules :agg/test-agg #'rules-decorator)
+
+(defn validate-decorator [super agg]
+  (-> (super agg)
+      (agg/required-validator 'root #{:test-agg/attr})
+      (agg/predicate-validator 'root {:test-agg/attr #'int?})
+      (agg/query-validator 'root
+                           '[:find ?v .
+                             :where [?e :test-agg/attr2 ?v]]
+                           #'int?)))
+(md/decorate agg/validate :agg/test-agg #'validate-decorator)
 
 (t/deftest blank
   (t/is (some? agg/blank))
@@ -17,27 +37,12 @@
     (t/is (= (meta agg/blank)
              (meta agg)))))
 
-(t/deftest decorate
-  (let [decorators {`agg/rules (fn [super agg]
-                                 (conj (super agg)
-                                       '[(attr ?v)
-                                         [:root :test-agg/attr ?v]]))}
-        agg        (agg/decorate agg/blank decorators)]
-    (t/is (= 'attr (-> agg agg/rules last first first)))))
-
 (t/deftest q
   (t/testing "rules"
-    (let [rules-d    (fn [super agg]
-                       (conj (super agg)
-                             '[(attr ?v)
-                               [:root :test-agg/attr ?v]]))
-          decorators {`agg/rules rules-d}
-          agg        (-> agg/blank
-                         (agg/decorate decorators)
-                         (agg/with [[:db/add :root :test-agg/attr :foo]]))]
+    (let [agg (agg/with agg [[:db/add :root :test-agg/attr :foo]])]
       (t/is (= :foo (agg/q agg '[:find ?v . :where (attr ?v)])))))
   (t/testing "bindings"
-    (let [agg (agg/with agg/blank [[:db/add :root :test-agg/attr :foo]])]
+    (let [agg (agg/with agg [[:db/add :root :test-agg/attr :foo]])]
       (t/is (= :foo (agg/q agg
                            '[:find ?v .
                              :in ?attr
@@ -45,46 +50,32 @@
                            :test-agg/attr))))))
 
 (t/deftest validate
-  (t/testing "generic"
-    (let [validate-d (fn [super agg]
-                       (-> (super agg)
-                           (agg/with [{:error/enitiy 1
-                                       :error/type   :generic}])))
-          decorators {`agg/validate validate-d}
-          agg        (-> agg/blank
-                         (agg/decorate decorators)
-                         (agg/validate))]
-      (t/is (agg/has-errors? agg))))
   (t/testing "required"
-    (let [validate-d (fn [super agg]
-                       (-> (super agg)
-                           (agg/required-validator 'root #{:test-att/attr})))
-          decorators {`agg/validate validate-d}
-          agg        (-> agg/blank
-                         (agg/decorate decorators)
-                         (agg/validate))]
-      (t/is (agg/has-errors? agg))))
+    (let [agg (-> agg
+                  (agg/validate))]
+      (t/is (= #{{:error/entity 1
+                  :error/attr   :test-agg/attr
+                  :error/rule   'root
+                  :error/type   :required}}
+               (agg/errors agg)))))
   (t/testing "predicate"
-    (let [validate-d (fn [super agg]
-                       (-> (super agg)
-                           (agg/predicate-validator 'root {:test-agg/attr #'int?})))
-          decorators {`agg/validate validate-d}
-          agg        (-> agg/blank
-                         (agg/with [[:db/add :root :test-agg/attr :wrong]])
-                         (agg/decorate decorators)
-                         (agg/validate))]
-      (t/is (agg/has-errors? agg))))
+    (let [agg (-> agg
+                  (agg/with [[:db/add :root :test-agg/attr :wrong]])
+                  (agg/validate))]
+      (t/is (= #{{:error/entity 1
+                  :error/attr   :test-agg/attr
+                  :error/value  :wrong
+                  :error/pred   `int?
+                  :error/rule   'root
+                  :error/type   :predicate}}
+               (agg/errors agg)))))
   (t/testing "query"
-    (let [validate-d (fn [super agg]
-                       (-> (super agg)
-                           (agg/query-validator
-                            'root
-                            '[:find ?v .
-                              :where [?e :test-agg/attr ?v]]
-                            #'int?)))
-          decorators {`agg/validate validate-d}
-          agg        (-> agg/blank
-                         (agg/with [[:db/add :root :test-agg/attr :wrong]])
-                         (agg/decorate decorators)
-                         (agg/validate))]
-      (t/is (agg/has-errors? agg)))))
+    (let [agg (-> agg
+                  (agg/with [[:db/add :root :test-agg/attr 1]])
+                  (agg/validate))]
+      (t/is (= #{{:error/entity 1
+                  :error/rule   'root
+                  :error/pred   `int?
+                  :error/query  '{:find [?v .], :where [[?e :test-agg/attr2 ?v]], :in [?e]}
+                  :error/type   :query}}
+               (agg/errors agg))))))

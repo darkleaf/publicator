@@ -2,12 +2,13 @@
   (:require
    [publicator.util :as u]
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.languages :as langs]))
+   [publicator.domain.languages :as langs]
+   [darkleaf.multidecorators :as md]))
 
 (def states #{:active :archived})
 (def translation-states #{:draft :published})
 
-(defn- rules-d [super agg]
+(defn rules-decorator [super agg]
   (conj (super agg)
         '[(published ?e)
           [?e :db/ident :root]
@@ -20,8 +21,9 @@
           [?e :publication.translation/state :published]]
         '[(related ?e)
           [?e :publication.related/publication :root]]))
+(md/decorate agg/rules :agg/publication #'rules-decorator)
 
-(defn- validate-d [super agg]
+(defn validate-decorator [super agg]
   (-> (super agg)
 
       (agg/required-validator  'root
@@ -62,11 +64,11 @@
       (agg/predicate-validator 'related
                                {:publication.related/id   #'pos-int?
                                 :publication.related/type #'keyword?})))
+(md/decorate agg/validate :agg/publication #'validate-decorator)
 
 (def blank
   (-> agg/blank
+      (vary-meta assoc :type :agg/publication)
       (agg/extend-schema {:publication.related/publication     {:db/valueType :db.type/ref}
                           :publication.translation/publication {:db/valueType :db.type/ref}
-                          :publication.translation/tags        {:db/cardinality :db.cardinality/many}})
-      (agg/decorate {`agg/rules    #'rules-d
-                     `agg/validate #'validate-d})))
+                          :publication.translation/tags        {:db/cardinality :db.cardinality/many}})))

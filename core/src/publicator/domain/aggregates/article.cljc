@@ -1,9 +1,12 @@
 (ns publicator.domain.aggregates.article
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.aggregates.publication :as publication]))
+   [publicator.domain.aggregates.publication :as publication]
+   [darkleaf.multidecorators :as md]))
 
-(defn- validate-d [super agg]
+(derive :agg/article :agg/publication)
+
+(defn validate-decorator [super agg]
   (-> (super agg)
       (agg/predicate-validator 'root
                                {:article/image-url #".{1,255}"})
@@ -14,8 +17,8 @@
                                {:article.translation/content #".{1,}"})
       (agg/required-validator  'published-translation
                                #{:article.translation/content})))
+(md/decorate agg/validate :agg/article #'validate-decorator)
 
 (def blank
   (-> publication/blank
-      (vary-meta assoc :type :agg/article)
-      (agg/decorate {`agg/validate #'validate-d})))
+      (vary-meta assoc :type :agg/article)))

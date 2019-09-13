@@ -1,4 +1,5 @@
 (ns publicator.util
+  (:refer-clojure :exclude [type])
   (:require
    [clojure.walk :as w]))
 
@@ -41,3 +42,6 @@
 
 (defn reverse-merge [& maps]
   (apply merge (reverse maps)))
+
+(defn type [x]
+  (-> x meta :type))
