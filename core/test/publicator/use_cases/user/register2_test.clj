@@ -4,7 +4,6 @@
    [publicator.domain.aggregates.user :as user]
    [publicator.domain.aggregate :as agg]
    [publicator.util :refer [linearize]]
-   [clojure.core.match :as m]
    [clojure.test :as t]))
 
 (defn- check-with-script [continuation script]

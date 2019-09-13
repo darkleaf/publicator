@@ -2,8 +2,7 @@
   (:require
    [publicator.domain.aggregate :as agg]
    [publicator.domain.languages :as langs]
-   [publicator.util :as u]
-   [clojure.core.match :as m]))
+   [publicator.util :as u]))
 
 (def states #{:active :archived})
 (def stream-participation-roles #{:regular :admin})
@@ -52,21 +51,10 @@
                                #{:author.stream-participation/role
                                  :author.stream-participation/stream-id})))
 
-(defn- msg->tx-d [super agg msg]
-  (m/match msg
-    [:author/add-translation tmp-id]
-    [[:db/add tmp-id :author.translation/author :root]]
-
-    [:author/add-stream-participation tmp-id]
-    [[:db/add tmp-id :author.stream-participation/author :root]]
-
-    :else (super agg msg)))
-
 (def blank
   (-> agg/blank
       (vary-meta assoc :type :agg/author)
       (agg/extend-schema {:author.translation/author          {:db/valueType :db.type/ref}
                           :author.stream-participation/author {:db/valueType :db.type/ref}})
       (agg/decorate {`agg/rules    #'rules-d
-                     `agg/validate #'validate-d
-                     `agg/msg->tx  #'msg->tx-d})))
+                     `agg/validate #'validate-d})))

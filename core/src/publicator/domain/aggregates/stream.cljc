@@ -2,8 +2,7 @@
   (:require
    [publicator.domain.aggregate :as agg]
    [publicator.domain.languages :as langs]
-   [publicator.util :as u]
-   [clojure.core.match :as m]))
+   [publicator.util :as u]))
 
 (def states #{:active :archived})
 
@@ -33,17 +32,9 @@
                                #{:stream.translation/lang
                                  :stream.translation/name})))
 
-(defn- msg->tx-d [super agg msg]
-  (m/match msg
-    [:stream/add-translation tmp-id]
-    [[:db/add tmp-id :stream.translation/stream :root]]
-
-    :else (super agg msg)))
-
 (def blank
   (-> agg/blank
       (vary-meta assoc :type :agg/stream)
       (agg/extend-schema {:stream.translation/stream {:db/valueType :db.type/ref}})
       (agg/decorate {`agg/rules    #'rules-d
-                     `agg/validate #'validate-d
-                     `agg/msg->tx  #'msg->tx-d})))
+                     `agg/validate #'validate-d})))

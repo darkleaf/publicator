@@ -6,14 +6,13 @@
 
 (t/deftest has-no-errors
   (let [agg (-> stream/blank
-                (agg/with-msgs [[:stream/state :add :root :active]
-
-                                [:stream/add-translation "en"]
-                                [:stream.translation/lang :add "en" :en]
-                                [:stream.translation/name :add "en" "Stream"]
-
-                                [:stream/add-translation "ru"]
-                                [:stream.translation/lang :add "ru" :ru]
-                                [:stream.translation/name :add "ru" "Поток"]])
+                (agg/with [{:db/ident :root
+                            :stream/state :active}
+                           {:stream.translation/stream :root
+                            :stream.translation/lang :en
+                            :stream.translation/name "Stream"}
+                           {:stream.translation/stream :root
+                            :stream.translation/lang  :ru
+                            :stream.translation/name "Поток"}])
                 (agg/validate))]
     (t/is (agg/has-no-errors? agg))))

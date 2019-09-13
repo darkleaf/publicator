@@ -29,8 +29,3 @@
 (def new-blank
   (-> blank
       (agg/decorate {`agg/validate #'new-validate-d})))
-
-(defn fill-password-digest [user password->digest]
-  (let [password (agg/q user '[:find ?pass . :where [:root :user/password ?pass]])
-        digest   (password->digest password)]
-    (agg/with-msgs user [[:user/password-digest :add :root digest]])))

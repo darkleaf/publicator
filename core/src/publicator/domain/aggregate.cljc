@@ -2,14 +2,12 @@
   (:require
    [publicator.util :as u]
    [datascript.core :as d]
-   [datascript.parser :as d.p]
-   [clojure.core.match :as m]))
+   [datascript.parser :as d.p]))
 
 (defprotocol Aggregate
   :extend-via-metadata true
   (rules [agg])
-  (validate [agg])
-  (msg->tx [agg msg]))
+  (validate [agg]))
 
 (defn extend-schema [agg ext]
   (let [schema   (merge ext (:schema agg))
@@ -30,19 +28,13 @@
 (defn- validate-impl [agg]
   agg)
 
-(defn- msg->tx-impl [agg msg]
-  (m/match msg
-    [a :add e v] [[:db/add e a v]]
-    [a :retract e v] [[:db/retract e a v]]
-    [a :retract e] [[:db.fn/retractAttribute e a]]))
 
 (def blank
   (-> (d/empty-db)
       (d/db-with [[:db/add 1 :db/ident :root]])
       (with-meta
         {`rules    #'rules-impl
-         `validate #'validate-impl
-         `msg->tx  #'msg->tx-impl})))
+         `validate #'validate-impl})))
 
 (defn root [agg]
   (d/entity agg :root))
@@ -59,11 +51,6 @@
         query  (update query :in (fn [in] (concat '[$ %] in)))
         inputs (concat [agg (rules agg)] inputs)]
     (apply d/q query inputs)))
-
-(defn with-msgs [agg msgs]
-  (let [tx-data (map (fn [msg] [:db.fn/call msg->tx msg])
-                     msgs)]
-    (with agg tx-data)))
 
 (defn has-errors? [agg]
   (boolean

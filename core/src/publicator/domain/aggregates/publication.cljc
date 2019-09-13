@@ -2,8 +2,7 @@
   (:require
    [publicator.util :as u]
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.languages :as langs]
-   [clojure.core.match :as m]))
+   [publicator.domain.languages :as langs]))
 
 (def states #{:active :archived})
 (def translation-states #{:draft :published})
@@ -64,19 +63,10 @@
                                {:publication.related/id   #'pos-int?
                                 :publication.related/type #'keyword?})))
 
-(defn- msg->tx-d [super agg msg]
-  (m/match msg
-    [:publication/add-translation tmp-id] [[:db/add tmp-id :publication.translation/publication :root]]
-    [:publication/add-related type id] [{:publication.related/publication :root
-                                         :publication.related/type        type
-                                         :publication.related/id          id}]
-    :else (super agg msg)))
-
 (def blank
   (-> agg/blank
       (agg/extend-schema {:publication.related/publication     {:db/valueType :db.type/ref}
                           :publication.translation/publication {:db/valueType :db.type/ref}
                           :publication.translation/tags        {:db/cardinality :db.cardinality/many}})
       (agg/decorate {`agg/rules    #'rules-d
-                     `agg/validate #'validate-d
-                     `agg/msg->tx  #'msg->tx-d})))
+                     `agg/validate #'validate-d})))
