@@ -5,7 +5,7 @@
    [clojure.test :as t]))
 
 (t/deftest has-no-errors
-  (let [agg (-> user/new-blank
+  (let [agg (-> (agg/allocate :agg/new-user)
                 (agg/with [{:db/ident             :root
                             :user/state           :active
                             :user/login           "john"

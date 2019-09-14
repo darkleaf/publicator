@@ -12,19 +12,16 @@
 (defn- validate-initial [agg]
   agg)
 
+(defn- schema-initial [type]
+  {})
+
 (defonce rules (md/multi u/type #'rules-initial))
 (defonce validate (md/multi u/type #'validate-initial))
+(defonce schema (md/multi identity #'schema-initial))
 
-(defn extend-schema [agg ext]
-  (let [schema   (merge ext (:schema agg))
-        metadata (meta agg)]
-    (-> agg
-        (d/datoms :eavt)
-        (d/init-db schema)
-        (with-meta metadata))))
-
-(def blank
-  (-> (d/empty-db)
+(defn allocate [type]
+  (-> (d/empty-db (schema type))
+      (with-meta {:type type})
       (d/db-with [[:db/add 1 :db/ident :root]])))
 
 (defn root [agg]

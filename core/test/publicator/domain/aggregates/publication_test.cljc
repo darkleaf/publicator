@@ -5,7 +5,7 @@
    [clojure.test :as t]))
 
 (t/deftest has-no-errors
-  (let [agg (-> publication/blank
+  (let [agg (-> (agg/allocate :agg/publication)
                 (agg/with [{:db/ident              :root
                             :publication/state     :active
                             :publication/stream-id 1}

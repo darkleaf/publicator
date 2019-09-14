@@ -5,7 +5,7 @@
    [clojure.test :as t]))
 
 (t/deftest has-no-errors
-  (let [agg (-> author/blank
+  (let [agg (-> (agg/allocate :agg/author)
                 (agg/with [{:db/ident     :root
                             :author/state :active}
                            {:author.translation/author     :root

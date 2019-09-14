@@ -1,7 +1,6 @@
 (ns publicator.domain.aggregates.article
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.aggregates.publication :as publication]
    [darkleaf.multidecorators :as md]))
 
 (derive :agg/article :agg/publication)
@@ -18,7 +17,3 @@
       (agg/required-validator  'published-translation
                                #{:article.translation/content})))
 (md/decorate agg/validate :agg/article #'validate-decorator)
-
-(def blank
-  (-> publication/blank
-      (vary-meta assoc :type :agg/article)))

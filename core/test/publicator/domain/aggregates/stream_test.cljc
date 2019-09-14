@@ -5,7 +5,7 @@
    [clojure.test :as t]))
 
 (t/deftest has-no-errors
-  (let [agg (-> stream/blank
+  (let [agg (-> (agg/allocate :agg/stream)
                 (agg/with [{:db/ident :root
                             :stream/state :active}
                            {:stream.translation/stream :root

@@ -66,9 +66,9 @@
                                 :publication.related/type #'keyword?})))
 (md/decorate agg/validate :agg/publication #'validate-decorator)
 
-(def blank
-  (-> agg/blank
-      (vary-meta assoc :type :agg/publication)
-      (agg/extend-schema {:publication.related/publication     {:db/valueType :db.type/ref}
-                          :publication.translation/publication {:db/valueType :db.type/ref}
-                          :publication.translation/tags        {:db/cardinality :db.cardinality/many}})))
+(defn schema-decorator [super tag]
+  (assoc (super tag)
+         :publication.related/publication     {:db/valueType :db.type/ref}
+         :publication.translation/publication {:db/valueType :db.type/ref}
+         :publication.translation/tags        {:db/cardinality :db.cardinality/many}))
+(md/decorate agg/schema :agg/publication #'schema-decorator)

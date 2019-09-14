@@ -35,7 +35,7 @@
                                  :stream.translation/name})))
 (md/decorate agg/validate :agg/stream #'validate-decorator)
 
-(def blank
-  (-> agg/blank
-      (vary-meta assoc :type :agg/stream)
-      (agg/extend-schema {:stream.translation/stream {:db/valueType :db.type/ref}})))
+(defn schema-decorator [super agg]
+  (assoc (super agg)
+         :stream.translation/stream {:db/valueType :db.type/ref}))
+(md/decorate agg/schema :agg/stream #'schema-decorator)

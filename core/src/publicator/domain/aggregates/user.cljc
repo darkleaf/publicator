@@ -18,18 +18,10 @@
       #?(:clj (agg/required-validator  'root #{:user/password-digest}))))
 (md/decorate agg/validate :agg/user #'validate-decorator)
 
-(def blank
-  (-> agg/blank
-      (vary-meta assoc :type :agg/user)))
+(derive :agg/new-user :agg/user)
 
 (defn new-validate-decorator [super agg]
   (-> (super agg)
       (agg/required-validator 'root
                               #{:user/password})))
 (md/decorate agg/validate :agg/new-user #'new-validate-decorator)
-
-(derive :agg/new-user :agg/user)
-
-(def new-blank
-  (-> blank
-      (vary-meta assoc :type :agg/new-user)))

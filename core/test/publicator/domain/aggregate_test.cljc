@@ -4,9 +4,6 @@
    [darkleaf.multidecorators :as md]
    [clojure.test :as t]))
 
-(def agg (-> agg/blank
-             (with-meta {:type :agg/test-agg})))
-
 (defn rules-decorator [super agg]
   (conj (super agg)
         '[(attr ?v)
@@ -23,26 +20,25 @@
                            #'int?)))
 (md/decorate agg/validate :agg/test-agg #'validate-decorator)
 
-(t/deftest blank
-  (t/is (some? agg/blank))
-  (t/is (not (agg/has-errors? agg/blank)))
-  (t/is (some? (agg/root agg/blank)))
-  (t/is (= 1 (agg/q agg/blank '[:find ?e . :where (root ?e)]))))
+(defn schema-decorator [super type]
+  (assoc (super type)
+         :test-agg/many {:db/cardinality :db.cardinality/many}))
+(md/decorate agg/schema :agg/test-agg #'schema-decorator)
 
-(t/deftest extend-schema
-  (let [agg (-> agg/blank
-                (agg/extend-schema {:test-agg/many {:db/cardinality :db.cardinality/many}}))]
+(t/deftest allocate
+  (let [agg (agg/allocate :agg/test-agg)]
+    (t/is (some? agg))
+    (t/is (not (agg/has-errors? agg)))
     (t/is (some? (agg/root agg)))
-    (t/is (-> agg :schema (contains? :test-agg/many)))
-    (t/is (= (meta agg/blank)
-             (meta agg)))))
+    (t/is (= 1 (agg/q agg '[:find ?e . :where (root ?e)])))
+    (t/is (-> agg :schema (contains? :test-agg/many)))))
 
 (t/deftest q
-  (t/testing "rules"
-    (let [agg (agg/with agg [[:db/add :root :test-agg/attr :foo]])]
-      (t/is (= :foo (agg/q agg '[:find ?v . :where (attr ?v)])))))
-  (t/testing "bindings"
-    (let [agg (agg/with agg [[:db/add :root :test-agg/attr :foo]])]
+  (let [agg (-> (agg/allocate :agg/test-agg)
+                (agg/with [[:db/add :root :test-agg/attr :foo]]))]
+    (t/testing "rules"
+      (t/is (= :foo (agg/q agg '[:find ?v . :where (attr ?v)]))))
+    (t/testing "bindings"
       (t/is (= :foo (agg/q agg
                            '[:find ?v .
                              :in ?attr
@@ -50,32 +46,32 @@
                            :test-agg/attr))))))
 
 (t/deftest validate
-  (t/testing "required"
-    (let [agg (-> agg
-                  (agg/validate))]
-      (t/is (= #{{:error/entity 1
-                  :error/attr   :test-agg/attr
-                  :error/rule   'root
-                  :error/type   :required}}
-               (agg/errors agg)))))
-  (t/testing "predicate"
-    (let [agg (-> agg
-                  (agg/with [[:db/add :root :test-agg/attr :wrong]])
-                  (agg/validate))]
-      (t/is (= #{{:error/entity 1
-                  :error/attr   :test-agg/attr
-                  :error/value  :wrong
-                  :error/pred   `int?
-                  :error/rule   'root
-                  :error/type   :predicate}}
-               (agg/errors agg)))))
-  (t/testing "query"
-    (let [agg (-> agg
-                  (agg/with [[:db/add :root :test-agg/attr 1]])
-                  (agg/validate))]
-      (t/is (= #{{:error/entity 1
-                  :error/rule   'root
-                  :error/pred   `int?
-                  :error/query  '{:find [?v .], :where [[?e :test-agg/attr2 ?v]], :in [?e]}
-                  :error/type   :query}}
-               (agg/errors agg))))))
+  (let [agg (agg/allocate :agg/test-agg)]
+    (t/testing "required"
+      (let [agg (agg/validate agg)]
+        (t/is (= #{{:error/entity 1
+                    :error/attr   :test-agg/attr
+                    :error/rule   'root
+                    :error/type   :required}}
+                 (agg/errors agg)))))
+    (t/testing "predicate"
+      (let [agg (-> agg
+                    (agg/with [[:db/add :root :test-agg/attr :wrong]])
+                    (agg/validate))]
+        (t/is (= #{{:error/entity 1
+                    :error/attr   :test-agg/attr
+                    :error/value  :wrong
+                    :error/pred   `int?
+                    :error/rule   'root
+                    :error/type   :predicate}}
+                 (agg/errors agg)))))
+    (t/testing "query"
+      (let [agg (-> agg
+                    (agg/with [[:db/add :root :test-agg/attr 1]])
+                    (agg/validate))]
+        (t/is (= #{{:error/entity 1
+                    :error/rule   'root
+                    :error/pred   `int?
+                    :error/query  '{:find [?v .], :where [[?e :test-agg/attr2 ?v]], :in [?e]}
+                    :error/type   :query}}
+                 (agg/errors agg)))))))

@@ -54,8 +54,8 @@
                                  :author.stream-participation/stream-id})))
 (md/decorate agg/validate :agg/author #'validate-decorator)
 
-(def blank
-  (-> agg/blank
-      (vary-meta assoc :type :agg/author)
-      (agg/extend-schema {:author.translation/author          {:db/valueType :db.type/ref}
-                          :author.stream-participation/author {:db/valueType :db.type/ref}})))
+(defn schema-decorator [super tag]
+  (assoc (super tag)
+         :author.translation/author          {:db/valueType :db.type/ref}
+         :author.stream-participation/author {:db/valueType :db.type/ref}))
+(md/decorate agg/schema :agg/author #'schema-decorator)
