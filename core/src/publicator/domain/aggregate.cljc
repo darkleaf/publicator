@@ -5,6 +5,9 @@
    [datascript.parser :as d.p]
    [darkleaf.multidecorators :as md]))
 
+(def ^{:arglists '([agg tx-data])} agg-with d/db-with)
+(def ^{:arglists '([agg tx-data])} with d/with)
+
 (defn- rules-initial [type]
   '[[(root ?e)
      [?e :db/ident :root]]])
@@ -22,12 +25,10 @@
 (defn allocate [type]
   (-> (d/empty-db (schema type))
       (with-meta {:type type})
-      (d/db-with [[:db/add 1 :db/ident :root]])))
+      (agg-with [[:db/add 1 :db/ident :root]])))
 
 (defn root [agg]
   (d/entity agg :root))
-
-(def ^{:arglists '([agg tx-data])} with d/db-with)
 
 (defn- normalize-query [query]
   (cond
@@ -81,7 +82,7 @@
                      :error/entity e
                      :error/attr   a
                      :error/rule   (first rule-form)})]
-    (with agg tx-data)))
+    (agg-with agg tx-data)))
 
 (defprotocol Predicate
   (apply-predicate [p x])
@@ -104,7 +105,7 @@
                        :error/value  v
                        :error/pred   (predicate-as-data pred)
                        :error/rule   (first rule-form)})]
-      (with agg tx-data))))
+      (agg-with agg tx-data))))
 
 (defn ^{:style/indent :defn} query-validator [agg rule-or-form query predicate]
   (if (has-errors? agg)
@@ -123,7 +124,7 @@
                                  :error/rule   (first rule-form)
                                  :error/query  query}
                           (some? res) (assoc :error/result res))))]
-      (with agg tx-data))))
+      (agg-with agg tx-data))))
 
 (extend-protocol Predicate
   #?(:clj  clojure.lang.PersistentHashSet

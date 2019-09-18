@@ -37,7 +37,7 @@
 
 (t/deftest q
   (let [agg (-> (agg/allocate :agg/test-agg)
-                (agg/with [[:db/add :root :test-agg/attr :foo]]))]
+                (agg/agg-with [[:db/add :root :test-agg/attr :foo]]))]
     (t/testing "rules"
       (t/is (= :foo (agg/q agg '[:find ?v . :where (attr ?v)]))))
     (t/testing "bindings"
@@ -58,7 +58,7 @@
                  (agg/errors agg)))))
     (t/testing "predicate"
       (let [agg (-> agg
-                    (agg/with [[:db/add :root :test-agg/attr :wrong]])
+                    (agg/agg-with [[:db/add :root :test-agg/attr :wrong]])
                     (agg/validate))]
         (t/is (= #{{:error/entity 1
                     :error/attr   :test-agg/attr
@@ -69,7 +69,7 @@
                  (agg/errors agg)))))
     (t/testing "query"
       (let [agg (-> agg
-                    (agg/with [[:db/add :root :test-agg/attr 1]])
+                    (agg/agg-with [[:db/add :root :test-agg/attr 1]])
                     (agg/validate))]
         (t/is (= #{{:error/entity 1
                     :error/rule   'root
