@@ -1,7 +1,6 @@
 (ns publicator.domain.aggregates.gallery-test
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.aggregates.gallery :as gallery]
    [clojure.test :as t]))
 
 (t/deftest has-no-errors

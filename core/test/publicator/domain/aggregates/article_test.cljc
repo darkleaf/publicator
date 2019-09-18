@@ -1,7 +1,6 @@
 (ns publicator.domain.aggregates.article-test
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.aggregates.article :as article]
    [clojure.test :as t]))
 
 (t/deftest has-no-errors

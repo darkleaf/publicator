@@ -1,7 +1,6 @@
 (ns publicator.domain.aggregates.user-test
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.aggregates.user :as user]
    [clojure.test :as t]))
 
 (t/deftest has-no-errors

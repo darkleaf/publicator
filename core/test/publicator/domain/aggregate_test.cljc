@@ -4,26 +4,26 @@
    [darkleaf.multidecorators :as md]
    [clojure.test :as t]))
 
-(defn rules-decorator [super agg]
-  (conj (super agg)
-        '[(attr ?v)
-          [:root :test-agg/attr ?v]]))
-(md/decorate agg/rules :agg/test-agg #'rules-decorator)
+(md/decorate agg/rules :agg/test-agg
+  (fn [super type]
+    (conj (super type)
+          '[(attr ?v)
+            [:root :test-agg/attr ?v]])))
 
-(defn validate-decorator [super agg]
-  (-> (super agg)
-      (agg/required-validator 'root #{:test-agg/attr})
-      (agg/predicate-validator 'root {:test-agg/attr #'int?})
-      (agg/query-validator 'root
-                           '[:find ?v .
-                             :where [?e :test-agg/attr2 ?v]]
-                           #'int?)))
-(md/decorate agg/validate :agg/test-agg #'validate-decorator)
+(md/decorate agg/validate :agg/test-agg
+  (fn [super agg]
+    (-> (super agg)
+        (agg/required-validator 'root #{:test-agg/attr})
+        (agg/predicate-validator 'root {:test-agg/attr #'int?})
+        (agg/query-validator 'root
+                             '[:find ?v .
+                               :where [?e :test-agg/attr2 ?v]]
+                             #'int?))))
 
-(defn schema-decorator [super type]
-  (assoc (super type)
-         :test-agg/many {:db/cardinality :db.cardinality/many}))
-(md/decorate agg/schema :agg/test-agg #'schema-decorator)
+(md/decorate agg/schema :agg/test-agg
+  (fn [super type]
+    (assoc (super type)
+           :test-agg/many {:db/cardinality :db.cardinality/many})))
 
 (t/deftest allocate
   (let [agg (agg/allocate :agg/test-agg)]

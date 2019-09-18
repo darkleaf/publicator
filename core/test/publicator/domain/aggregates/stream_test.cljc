@@ -1,7 +1,6 @@
 (ns publicator.domain.aggregates.stream-test
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.domain.aggregates.stream :as stream]
    [clojure.test :as t]))
 
 (t/deftest has-no-errors

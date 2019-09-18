@@ -5,7 +5,7 @@
    [datascript.parser :as d.p]
    [darkleaf.multidecorators :as md]))
 
-(defn- rules-initial [agg]
+(defn- rules-initial [type]
   '[[(root ?e)
      [?e :db/ident :root]]])
 
@@ -15,7 +15,7 @@
 (defn- schema-initial [type]
   {})
 
-(defonce rules (md/multi u/type #'rules-initial))
+(defonce rules (md/multi identity #'rules-initial))
 (defonce validate (md/multi u/type #'validate-initial))
 (defonce schema (md/multi identity #'schema-initial))
 
@@ -37,7 +37,7 @@
 (defn q [agg query & inputs]
   (let [query  (normalize-query query)
         query  (update query :in (fn [in] (concat '[$ %] in)))
-        inputs (concat [agg (rules agg)] inputs)]
+        inputs (concat [agg (-> agg u/type rules)] inputs)]
     (apply d/q query inputs)))
 
 (defn has-errors? [agg]
