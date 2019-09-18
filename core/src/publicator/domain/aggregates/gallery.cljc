@@ -9,9 +9,9 @@
   (fn [super agg]
     (-> (super agg)
         (agg/predicate-validator 'root
-                                 {:gallery/image-urls #".{1,255}"})
+          {:gallery/image-urls #".{1,255}"})
         (agg/required-validator  'published
-                                 #{:gallery/image-urls}))))
+          #{:gallery/image-urls}))))
 
 (md/decorate agg/schema :agg/gallery
   (fn [super tag]

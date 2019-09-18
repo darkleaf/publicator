@@ -69,7 +69,7 @@
     (symbol? rule-or-form) (list rule-or-form '?e)
     (list? rule-or-form)   rule-or-form))
 
-(defn required-validator [agg rule-or-form attrs]
+(defn ^{:style/indent :defn} required-validator [agg rule-or-form attrs]
   (let [rule-form (normalize-rule-form rule-or-form)
         query     '{:find  [?e ?a]
                     :in    [[?a ...]]
@@ -87,7 +87,7 @@
   (apply-predicate [p x])
   (predicate-as-data [p]))
 
-(defn predicate-validator [agg rule-or-form pred-map]
+(defn ^{:style/indent :defn} predicate-validator [agg rule-or-form pred-map]
   (if (has-errors? agg)
     agg
     (let [rule-form (normalize-rule-form rule-or-form)
@@ -106,7 +106,7 @@
                        :error/rule   (first rule-form)})]
       (with agg tx-data))))
 
-(defn query-validator [agg rule-or-form query predicate]
+(defn ^{:style/indent :defn} query-validator [agg rule-or-form query predicate]
   (if (has-errors? agg)
     agg
     (let [rule-form (normalize-rule-form rule-or-form)

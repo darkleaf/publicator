@@ -20,39 +20,39 @@
   (fn [super agg]
     (-> (super agg)
         (agg/predicate-validator 'root
-                                 {:author/state states})
-        (agg/required-validator  'root
-                                 #{:author/state})
-        (agg/query-validator     'root
-                                 '[:find [?lang ...]
-                                   :with ?trans
-                                   :where
-                                   [?trans :author.translation/author ?e]
-                                   [?trans :author.translation/lang ?lang]]
-                                 #'langs/all-languages?)
-        (agg/query-validator     'root
-                                 '[:find [?stream-id ...]
-                                   :with ?part
-                                   :where
-                                   [?part :author.stream-participation/author ?e]
-                                   [?part :author.stream-participation/stream-id ?stream-id]]
-                                 u/distinct-coll?)
+          {:author/state states})
+        (agg/required-validator 'root
+          #{:author/state})
+        (agg/query-validator 'root
+          '[:find [?lang ...]
+            :with ?trans
+            :where
+            [?trans :author.translation/author ?e]
+            [?trans :author.translation/lang ?lang]]
+          #'langs/all-languages?)
+        (agg/query-validator 'root
+          '[:find [?stream-id ...]
+            :with ?participation
+            :where
+            [?participation :author.stream-participation/author ?e]
+            [?participation :author.stream-participation/stream-id ?stream-id]]
+          u/distinct-coll?)
 
         (agg/predicate-validator 'translation
-                                 {:author.translation/lang       langs/languages
-                                  :author.translation/first-name #".{1,255}"
-                                  :author.translation/last-name  #".{1,255}"})
-        (agg/required-validator  'translation
-                                 #{:author.translation/lang
-                                   :author.translation/first-name
-                                   :author.translation/last-name})
+          {:author.translation/lang       langs/languages
+           :author.translation/first-name #".{1,255}"
+           :author.translation/last-name  #".{1,255}"})
+        (agg/required-validator 'translation
+          #{:author.translation/lang
+            :author.translation/first-name
+            :author.translation/last-name})
 
         (agg/predicate-validator 'stream-participation
-                                 {:author.stream-participation/role      stream-participation-roles
-                                  :author.stream-participation/stream-id #'pos-int?})
-        (agg/required-validator  'stream-participation
-                                 #{:author.stream-participation/role
-                                   :author.stream-participation/stream-id}))))
+          {:author.stream-participation/role      stream-participation-roles
+           :author.stream-participation/stream-id #'pos-int?})
+        (agg/required-validator 'stream-participation
+          #{:author.stream-participation/role
+            :author.stream-participation/stream-id}))))
 
 (md/decorate agg/schema :agg/author
   (fn [super type]

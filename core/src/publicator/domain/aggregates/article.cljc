@@ -9,11 +9,11 @@
   (fn [super agg]
     (-> (super agg)
         (agg/predicate-validator 'root
-                                 {:article/image-url #".{1,255}"})
+          {:article/image-url #".{1,255}"})
         (agg/required-validator  'published
-                                 #{:article/image-url})
+          #{:article/image-url})
 
         (agg/predicate-validator 'translation
-                                 {:article.translation/content #".{1,}"})
+          {:article.translation/content #".{1,}"})
         (agg/required-validator  'published-translation
-                                 #{:article.translation/content}))))
+          #{:article.translation/content}))))

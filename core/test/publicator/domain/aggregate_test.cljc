@@ -13,12 +13,14 @@
 (md/decorate agg/validate :agg/test-agg
   (fn [super agg]
     (-> (super agg)
-        (agg/required-validator 'root #{:test-agg/attr})
-        (agg/predicate-validator 'root {:test-agg/attr #'int?})
+        (agg/required-validator 'root
+          #{:test-agg/attr})
+        (agg/predicate-validator 'root
+          {:test-agg/attr #'int?})
         (agg/query-validator 'root
-                             '[:find ?v .
-                               :where [?e :test-agg/attr2 ?v]]
-                             #'int?))))
+          '[:find ?v .
+            :where [?e :test-agg/attr2 ?v]]
+          #'int?))))
 
 (md/decorate agg/schema :agg/test-agg
   (fn [super type]

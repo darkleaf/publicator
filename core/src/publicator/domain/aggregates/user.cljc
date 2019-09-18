@@ -9,12 +9,12 @@
   (fn [super agg]
     (-> (super agg)
         (agg/predicate-validator 'root
-                                 {:user/login    #"\w{3,255}"
-                                  :user/password #".{8,255}"
-                                  :user/state    states})
+          {:user/login    #"\w{3,255}"
+           :user/password #".{8,255}"
+           :user/state    states})
         (agg/required-validator  'root
-                                 #{:user/login
-                                   :user/state})
+          #{:user/login
+            :user/state})
         #?(:clj (agg/predicate-validator 'root  {:user/password-digest #".{1,255}"}))
         #?(:clj (agg/required-validator  'root #{:user/password-digest})))))
 
@@ -24,4 +24,4 @@
   (fn [super agg]
     (-> (super agg)
         (agg/required-validator 'root
-                                #{:user/password}))))
+          #{:user/password}))))

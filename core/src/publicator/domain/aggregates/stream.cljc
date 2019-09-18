@@ -17,23 +17,23 @@
   (fn [super agg]
     (-> (super agg)
         (agg/predicate-validator 'root
-                                 {:stream/state states})
-        (agg/required-validator  'root
-                                 #{:stream/state})
-        (agg/query-validator     'root
-                                 '[:find [?lang ...]
-                                   :with ?trans
-                                   :where
-                                   [?trans :stream.translation/stream ?e]
-                                   [?trans :stream.translation/lang ?lang]]
-                                 #'langs/all-languages?)
+          {:stream/state states})
+        (agg/required-validator 'root
+          #{:stream/state})
+        (agg/query-validator 'root
+          '[:find [?lang ...]
+            :with ?trans
+            :where
+            [?trans :stream.translation/stream ?e]
+            [?trans :stream.translation/lang ?lang]]
+          #'langs/all-languages?)
 
         (agg/predicate-validator 'translation
-                                 {:stream.translation/lang langs/languages
-                                  :stream.translation/name #".{1,255}"})
-        (agg/required-validator  'translation
-                                 #{:stream.translation/lang
-                                   :stream.translation/name}))))
+          {:stream.translation/lang langs/languages
+           :stream.translation/name #".{1,255}"})
+        (agg/required-validator 'translation
+          #{:stream.translation/lang
+            :stream.translation/name}))))
 
 (md/decorate agg/schema :agg/stream
   (fn [super type]
