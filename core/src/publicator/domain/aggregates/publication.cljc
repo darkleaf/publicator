@@ -34,7 +34,7 @@
            :publication/stream-id #'pos-int?})
         (agg/required-validator 'published
           #{:publication/stream-id})
-        (agg/query-validator     'root
+        (agg/query-validator 'root
           '[:find [?lang ...]
             :with ?trans
             :where

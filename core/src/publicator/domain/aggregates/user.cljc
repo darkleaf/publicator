@@ -12,7 +12,7 @@
           {:user/login    #"\w{3,255}"
            :user/password #".{8,255}"
            :user/state    states})
-        (agg/required-validator  'root
+        (agg/required-validator 'root
           #{:user/login
             :user/state})
         #?(:clj (agg/predicate-validator 'root  {:user/password-digest #".{1,255}"}))

@@ -10,10 +10,10 @@
     (-> (super agg)
         (agg/predicate-validator 'root
           {:gallery/image-urls #".{1,255}"})
-        (agg/required-validator  'published
+        (agg/required-validator 'published
           #{:gallery/image-urls}))))
 
 (md/decorate agg/schema :agg/gallery
-  (fn [super tag]
-    (assoc (super tag)
+  (fn [super type]
+    (assoc (super type)
            :gallery/image-urls {:db/cardinality :db.cardinality/many})))
