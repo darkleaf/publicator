@@ -13,7 +13,8 @@
                                            {:form form, :next next})))))
 
 (defn- linearize* [body]
-  (reduce inject* (reverse body)))
+  (when (seq body)
+    (reduce inject* (reverse body))))
 
 (defmacro linearize [& body]
   (linearize* body))
@@ -50,8 +51,8 @@
 (defn test-with-script [continuation script]
   (loop [[actual-effect continuation]       [nil continuation]
          [{:keys [effect coeffect]} & tail] script]
-    (t/is (= effect actual-effect))
-    (if (nil? continuation)
-      (t/is (empty? tail))
-      (recur (continuation coeffect)
-             tail))))
+    (cond
+      (not= effect actual-effect) (t/is (= effect actual-effect)) ;; fail fast
+      (nil? continuation)         (t/is (empty? tail))
+      :else                       (recur (continuation coeffect)
+                                         tail))))
