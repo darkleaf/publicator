@@ -3,15 +3,15 @@
    [publicator.domain.aggregate :as agg]
    [publicator.util :as u]))
 
-(def allowed-msgs #{:user/login :user/password})
+(def allowed-attrs #{:user/login :user/password})
 
 (defn- check-additional-attrs [datoms]
   (let [additional (->> datoms
                         (map :a)
-                        (remove allowed-msgs)
+                        (remove allowed-attrs)
                         (set))]
     (when (not-empty additional)
-      [[:show-additional-messages-error additional]])))
+      [[:show-additional-attributes-error additional]])))
 
 (defn- check-session [next]
   (u/linearize
@@ -20,15 +20,15 @@
      [[:show-screen :main]])
    (next nil)))
 
-(defn- user-from-tx-data [tx-data next]
+(defn- user-from-tx-data [tx-data]
   (let [report  (-> (agg/allocate :agg/user)
                     (agg/with tx-data))
         user    (:db-after report)
         tx-data (:tx-data report)]
-    (or (check-additional-attrs tx-data)
-        (-> user
-            (agg/agg-with [[:db/add :root :user/state :active]])
-            (next)))))
+    [user tx-data]))
+
+(defn- fill-user-defaults [user]
+  (agg/agg-with user [[:db/add :root :user/state :active]]))
 
 (defn- check-registration [user next]
   (u/linearize
@@ -58,7 +58,9 @@
 
 (defn process [tx-data]
   (u/linearize
-   (user-from-tx-data tx-data (fn [user] <>))
+   (let [[user datoms] (user-from-tx-data tx-data)])
+   (or (check-additional-attrs datoms))
+   (let [user (fill-user-defaults user)])
    (check-session (fn [_] <>))
    (check-registration user (fn [_] <>))
    (fill-password-digest user (fn [user] <>))

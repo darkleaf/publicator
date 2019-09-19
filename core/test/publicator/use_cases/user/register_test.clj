@@ -37,12 +37,12 @@
                            [:show-screen :main]]}]]
     (check-with-script register/process script)))
 
-(t/deftest process-additional-msgs
+(t/deftest process-additional-attrs
   (let [script [{:coeffect [{:db/ident      :root
                              :user/login    "john"
                              :user/password "password"
                              :user/state    :archived}]}
-                {:effect [:show-additional-messages-error #{:user/state}]}]]
+                {:effect [:show-additional-attributes-error #{:user/state}]}]]
     (check-with-script register/process script)))
 
 (t/deftest process-already-logged-in
