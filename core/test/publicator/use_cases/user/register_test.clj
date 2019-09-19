@@ -2,16 +2,8 @@
   (:require
    [publicator.use-cases.user.register :as register]
    [publicator.domain.aggregate :as agg]
+   [publicator.util :as u]
    [clojure.test :as t]))
-
-(defn- check-with-script [continuation script]
-  (loop [[actual-effect continuation]       [nil continuation]
-         [{:keys [effect coeffect]} & tail] script]
-    (t/is (= effect actual-effect))
-    (if (nil? continuation)
-      (t/is (empty? tail))
-      (recur (continuation coeffect)
-             tail))))
 
 (t/deftest process-success
   (let [tx-data [{:db/ident      :root
@@ -35,7 +27,7 @@
                                                          :user/password-digest "digest"
                                                          :user/state           :active}]))]
                            [:show-screen :main]]}]]
-    (check-with-script register/process script)))
+    (u/test-with-script register/process script)))
 
 (t/deftest process-additional-attrs
   (let [script [{:coeffect [{:db/ident      :root
@@ -43,7 +35,7 @@
                              :user/password "password"
                              :user/state    :archived}]}
                 {:effect [:show-additional-attributes-error #{:user/state}]}]]
-    (check-with-script register/process script)))
+    (u/test-with-script register/process script)))
 
 (t/deftest process-already-logged-in
   (let [script [{:coeffect [{:db/ident      :root
@@ -52,7 +44,7 @@
                 {:effect   [:get-session]
                  :coeffect {:current-user-id 1}}
                 {:effect [:show-screen :main]}]]
-    (check-with-script register/process script)))
+    (u/test-with-script register/process script)))
 
 (t/deftest process-already-registered
   (let [script [{:coeffect [{:db/ident      :root
@@ -63,7 +55,7 @@
                 {:effect   [:get-user-presence-by-login "john"]
                  :coeffect true}
                 {:effect [:show-screen :main]}]]
-    (check-with-script register/process script)))
+    (u/test-with-script register/process script)))
 
 (t/deftest process-with-errr
   (let [script [{:coeffect [{:db/ident      :root
@@ -81,4 +73,4 @@
                                                      :error/value  ""
                                                      :error/pred   ".{8,255}"
                                                      :error/rule   'root}}]}]]
-    (check-with-script register/process script)))
+    (u/test-with-script register/process script)))

@@ -1,7 +1,8 @@
 (ns publicator.util
   (:refer-clojure :exclude [type])
   (:require
-   [clojure.walk :as w]))
+   [clojure.walk :as w]
+   [clojure.test :as t]))
 
 (defn- inject* [next form]
   (let [injected (w/prewalk-replace {'<> next} form)]
@@ -45,3 +46,12 @@
 
 (defn type [x]
   (-> x meta :type))
+
+(defn test-with-script [continuation script]
+  (loop [[actual-effect continuation]       [nil continuation]
+         [{:keys [effect coeffect]} & tail] script]
+    (t/is (= effect actual-effect))
+    (if (nil? continuation)
+      (t/is (empty? tail))
+      (recur (continuation coeffect)
+             tail))))
