@@ -18,7 +18,7 @@
    [[:get-session] (fn [session] <>)]
    (if (-> session :current-user-id some?)
      [[:show-screen :main]])
-   (next nil)))
+   (next)))
 
 (defn- user-from-tx-data [tx-data]
   (let [report  (-> (agg/allocate :agg/user)
@@ -35,7 +35,7 @@
    [[:get-user-presence-by-login (-> user agg/root :user/login)] (fn [presence] <>)]
    (if presence
      [[:show-screen :main]])
-   (next nil)))
+   (next)))
 
 (defn- check-validation-errors [user]
   (let [errors (-> user agg/validate agg/errors)]
@@ -61,8 +61,8 @@
    (let [[user datoms] (user-from-tx-data tx-data)])
    (or (check-additional-attrs datoms))
    (let [user (fill-user-defaults user)])
-   (check-session (fn [_] <>))
-   (check-registration user (fn [_] <>))
+   (check-session (fn [] <>))
+   (check-registration user (fn [] <>))
    (fill-password-digest user (fn [user] <>))
    (or (check-validation-errors user))
    (fill-id user (fn [user] <>))
