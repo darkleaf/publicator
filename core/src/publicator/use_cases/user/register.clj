@@ -11,13 +11,13 @@
                         (remove allowed-attrs)
                         (set))]
     (when (not-empty additional)
-      [[:show-additional-attributes-error additional]])))
+      [[:ui/show-additional-attributes-error additional]])))
 
 (defn- check-session [next]
   (u/linearize
-   [[:get-session] (fn [session] <>)]
+   [[:session/get] (fn [session] <>)]
    (if (-> session :current-user-id some?)
-     [[:show-screen :main]])
+     [[:ui/show-main-screen]])
    (next)))
 
 (defn- user-from-tx-data [tx-data]
@@ -32,26 +32,27 @@
 
 (defn- check-registration [user next]
   (u/linearize
-   [[:get-user-presence-by-login (-> user agg/root :user/login)] (fn [presence] <>)]
+   (let [login (-> user agg/root :user/login)])
+   [[:persistence/user-presence-by-login login] (fn [presence] <>)]
    (if presence
-     [[:show-screen :main]])
+     [[:ui/show-main-screen]])
    (next)))
 
 (defn- check-validation-errors [user]
   (let [errors (-> user agg/validate agg/errors)]
     (when (not-empty errors)
-      [[:show-validation-errors errors]])))
+      [[:ui/show-validation-errors errors]])))
 
 (defn- fill-id [user next]
   (u/linearize
-   [[:get-new-user-id] (fn [id] <>)]
+   [[:persistence/next-user-id] (fn [id] <>)]
    (-> user
        (agg/agg-with [[:db/add :root :agg/id id]])
        (next))))
 
 (defn fill-password-digest [user next]
   (u/linearize
-   [[:get-password-digest (-> user agg/root :user/password)] (fn [digest] <>)]
+   [[:hasher/derive (-> user agg/root :user/password)] (fn [digest] <>)]
    (-> user
        (agg/agg-with [[:db/add :root :user/password-digest digest]])
        (next))))
@@ -66,7 +67,8 @@
    (fill-password-digest user (fn [user] <>))
    (or (check-validation-errors user))
    (fill-id user (fn [user] <>))
+   (let [id (-> user agg/root :agg/id)])
    [[:do
-     [:assoc-session :current-user-id (-> user agg/root :agg/id)]
-     [:persist user]
-     [:show-screen :main]]]))
+     [:session/assoc :current-user-id id]
+     [:persistence/save user]
+     [:ui/show-main-screen]]]))

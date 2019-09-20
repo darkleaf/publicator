@@ -10,23 +10,23 @@
                   :user/login    "john"
                   :user/password "password"}]
         script  [{:coeffect tx-data}
-                 {:effect   [:get-session]
+                 {:effect   [:session/get]
                   :coeffect {}}
-                 {:effect   [:get-user-presence-by-login "john"]
+                 {:effect   [:persistence/user-presence-by-login "john"]
                   :coeffect false}
-                 {:effect   [:get-password-digest "password"]
+                 {:effect   [:hasher/derive "password"]
                   :coeffect "digest"}
-                 {:effect   [:get-new-user-id]
+                 {:effect   [:persistence/next-user-id]
                   :coeffect 1}
                  {:effect [:do
-                           [:assoc-session :current-user-id 1]
-                           [:persist (-> (agg/allocate :agg/new-user)
-                                         (agg/agg-with tx-data)
-                                         (agg/agg-with [{:db/ident             :root
-                                                         :agg/id               1
-                                                         :user/password-digest "digest"
-                                                         :user/state           :active}]))]
-                           [:show-screen :main]]}]]
+                           [:session/assoc :current-user-id 1]
+                           [:persistence/save (-> (agg/allocate :agg/new-user)
+                                                  (agg/agg-with tx-data)
+                                                  (agg/agg-with [{:db/ident             :root
+                                                                  :agg/id               1
+                                                                  :user/password-digest "digest"
+                                                                  :user/state           :active}]))]
+                           [:ui/show-main-screen]]}]]
     (u/test-with-script register/process script)))
 
 (t/deftest process-additional-attrs
@@ -34,43 +34,43 @@
                              :user/login    "john"
                              :user/password "password"
                              :user/state    :archived}]}
-                {:effect [:show-additional-attributes-error #{:user/state}]}]]
+                {:effect [:ui/show-additional-attributes-error #{:user/state}]}]]
     (u/test-with-script register/process script)))
 
 (t/deftest process-already-logged-in
   (let [script [{:coeffect [{:db/ident      :root
                              :user/login    "john"
                              :user/password "password"}]}
-                {:effect   [:get-session]
+                {:effect   [:session/get]
                  :coeffect {:current-user-id 1}}
-                {:effect [:show-screen :main]}]]
+                {:effect [:ui/show-main-screen]}]]
     (u/test-with-script register/process script)))
 
 (t/deftest process-already-registered
   (let [script [{:coeffect [{:db/ident      :root
                              :user/login    "john"
                              :user/password "password"}]}
-                {:effect   [:get-session]
+                {:effect   [:session/get]
                  :coeffect {}}
-                {:effect   [:get-user-presence-by-login "john"]
+                {:effect   [:persistence/user-presence-by-login "john"]
                  :coeffect true}
-                {:effect [:show-screen :main]}]]
+                {:effect [:ui/show-main-screen]}]]
     (u/test-with-script register/process script)))
 
 (t/deftest process-with-errr
   (let [script [{:coeffect [{:db/ident      :root
                              :user/login    "john"
                              :user/password ""}]}
-                {:effect   [:get-session]
+                {:effect   [:session/get]
                  :coeffect {}}
-                {:effect   [:get-user-presence-by-login "john"]
+                {:effect   [:persistence/user-presence-by-login "john"]
                  :coeffect false}
-                {:effect   [:get-password-digest ""]
+                {:effect   [:hasher/derive ""]
                  :coeffect "digest"}
-                {:effect [:show-validation-errors #{{:error/type   :predicate
-                                                     :error/entity 1
-                                                     :error/attr   :user/password
-                                                     :error/value  ""
-                                                     :error/pred   ".{8,255}"
-                                                     :error/rule   'root}}]}]]
+                {:effect [:ui/show-validation-errors #{{:error/type   :predicate
+                                                        :error/entity 1
+                                                        :error/attr   :user/password
+                                                        :error/value  ""
+                                                        :error/pred   ".{8,255}"
+                                                        :error/rule   'root}}]}]]
     (u/test-with-script register/process script)))
