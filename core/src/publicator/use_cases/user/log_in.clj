@@ -7,9 +7,9 @@
 
 (defn- check-session [next]
   (u/linearize
-   [[:get-session] (fn [session] <>)]
+   [[:session/get] (fn [session] <>)]
    (if (-> session :current-user-id some?)
-     [[:show-screen :main]])
+     [[:ui/show-main-screen]])
    (next)))
 
 (defn- check-additional-attrs [datoms]
@@ -18,7 +18,7 @@
                         (remove allowed-attrs)
                         (set))]
     (when (not-empty additional)
-      [[:show-additional-attributes-error additional]])))
+      [[:ui/show-additional-attributes-error additional]])))
 
 (defn- form-from-tx-data [tx-data]
   (let [report  (-> (agg/allocate :form.user/log-in)
@@ -30,23 +30,23 @@
 (defn- has-validation-errors [form]
   (let [errors (-> form agg/validate agg/errors)]
     (when (not-empty errors)
-      [[:show-validation-errors errors]])))
+      [[:ui/show-validation-errors errors]])))
 
 (defn- fetch-user-by-login [login next]
   (u/linearize
-   [[:get-user-by-login login]
+   [[:persistence/user-by-login login]
     (fn [user] <>)]
    (if (nil? user)
-     [[:show-user-not-found-error]])
+     [[:ui/show-user-not-found-error]])
    (next user)))
 
 (defn- check-user-password [user password next]
   (u/linearize
    (let [digest (-> user agg/root :user/password-digest)])
-   [[:check-password-digest digest password]
+   [[:hasher/check password digest]
     (fn [ok] <>)]
    (if-not ok
-     [[:show-user-not-found-error]])
+     [[:ui/show-user-not-found-error]])
    (next)))
 
 (defn process [tx-data]
@@ -62,5 +62,5 @@
    (check-user-password user password (fn [] <>))
    (let [id (-> user agg/root :agg/id)])
    [[:do
-     [:assoc-session :current-user-id id]
-     [:show-screen :main]]]))
+     [:session/assoc :current-user-id id]
+     [:ui/show-main-screen]]]))

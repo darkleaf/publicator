@@ -10,20 +10,20 @@
                   :user/login    "john"
                   :user/password "password"}]
         script  [{:coeffect tx-data}
-                 {:effect   [:get-session]
+                 {:effect   [:session/get]
                   :coeffect {}}
-                 {:effect   [:get-user-by-login "john"]
+                 {:effect   [:persistence/user-by-login "john"]
                   :coeffect (-> (agg/allocate :agg/user)
                                 (agg/agg-with tx-data)
                                 (agg/agg-with [{:db/ident             :root
                                                 :agg/id               1
                                                 :user/password-digest "digest"
                                                 :user/state           :active}]))}
-                 {:effect   [:check-password-digest "digest" "password"]
+                 {:effect   [:hasher/check "password" "digest"]
                   :coeffect true}
                  {:effect [:do
-                           [:assoc-session :current-user-id 1]
-                           [:show-screen :main]]}]]
+                           [:session/assoc :current-user-id 1]
+                           [:ui/show-main-screen]]}]]
     (u/test-with-script log-in/process script)))
 
 (t/deftest process-not-found
@@ -31,11 +31,11 @@
                   :user/login    "john"
                   :user/password "password"}]
         script  [{:coeffect tx-data}
-                 {:effect   [:get-session]
+                 {:effect   [:session/get]
                   :coeffect {}}
-                 {:effect   [:get-user-by-login "john"]
+                 {:effect   [:persistence/user-by-login "john"]
                   :coeffect nil}
-                 {:effect [:show-user-not-found-error]}]]
+                 {:effect [:ui/show-user-not-found-error]}]]
     (u/test-with-script log-in/process script)))
 
 (t/deftest process-wrong-password
@@ -43,18 +43,18 @@
                   :user/login    "john"
                   :user/password "wrong-password"}]
         script  [{:coeffect tx-data}
-                 {:effect   [:get-session]
+                 {:effect   [:session/get]
                   :coeffect {}}
-                 {:effect   [:get-user-by-login "john"]
+                 {:effect   [:persistence/user-by-login "john"]
                   :coeffect (-> (agg/allocate :agg/user)
                                 (agg/agg-with tx-data)
                                 (agg/agg-with [{:db/ident             :root
                                                 :agg/id               1
                                                 :user/password-digest "digest"
                                                 :user/state           :active}]))}
-                 {:effect   [:check-password-digest "digest" "wrong-password"]
+                 {:effect   [:hasher/check "wrong-password" "digest"]
                   :coeffect false}
-                 {:effect [:show-user-not-found-error]}]]
+                 {:effect [:ui/show-user-not-found-error]}]]
     (u/test-with-script log-in/process script)))
 
 (t/deftest process-additional-attrs
@@ -63,9 +63,9 @@
                   :user/password "password"
                   :user/extra    :value}]
         script  [{:coeffect tx-data}
-                 {:effect   [:get-session]
+                 {:effect   [:session/get]
                   :coeffect {}}
-                 {:effect [:show-additional-attributes-error #{:user/extra}]}]]
+                 {:effect [:ui/show-additional-attributes-error #{:user/extra}]}]]
     (u/test-with-script log-in/process script)))
 
 (t/deftest process-with-errr
@@ -73,9 +73,9 @@
                   :user/login    "john"
                   :user/password ""}]
         script  [{:coeffect tx-data}
-                 {:effect   [:get-session]
+                 {:effect   [:session/get]
                   :coeffect {}}
-                 {:effect [:show-validation-errors
+                 {:effect [:ui/show-validation-errors
                            #{{:error/type   :predicate
                               :error/entity 1
                               :error/attr   :user/password
@@ -89,7 +89,7 @@
                   :user/login    "john"
                   :user/password "password"}]
         script  [{:coeffect tx-data}
-                 {:effect   [:get-session]
+                 {:effect   [:session/get]
                   :coeffect {:current-user-id 1}}
-                 {:effect [:show-screen :main]}]]
+                 {:effect [:ui/show-main-screen]}]]
     (u/test-with-script log-in/process script)))
