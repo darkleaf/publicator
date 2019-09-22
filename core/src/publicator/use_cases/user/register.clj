@@ -50,19 +50,22 @@
        (agg/agg-with [[:db/add :root :agg/id id]])
        (next))))
 
-(defn fill-password-digest [user next]
+(defn- fill-password-digest [user next]
   (u/linearize
    [[:hasher/derive (-> user agg/root :user/password)] (fn [digest] <>)]
    (-> user
        (agg/agg-with [[:db/add :root :user/password-digest digest]])
        (next))))
 
+(defn check-env [next]
+  (check-session next))
+
 (defn process [tx-data]
   (u/linearize
+   (check-env (fn [] <>))
    (let [[user datoms] (user-from-tx-data tx-data)])
    (or (check-additional-attrs datoms))
    (let [user (fill-user-defaults user)])
-   (check-session (fn [] <>))
    (check-registration user (fn [] <>))
    (fill-password-digest user (fn [user] <>))
    (or (check-validation-errors user))

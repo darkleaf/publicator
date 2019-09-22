@@ -34,6 +34,8 @@
                              :user/login    "john"
                              :user/password "password"
                              :user/state    :archived}]}
+                {:effect   [:session/get]
+                 :coeffect {}}
                 {:effect [:ui/show-additional-attributes-error #{:user/state}]}]]
     (u/test-with-script register/process script)))
 
