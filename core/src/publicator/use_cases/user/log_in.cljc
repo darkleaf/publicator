@@ -1,7 +1,18 @@
 (ns publicator.use-cases.user.log-in
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.util :as u]))
+   [publicator.util :as u]
+   [darkleaf.multidecorators :as md]))
+
+(md/decorate agg/validate :form.user/log-in
+  (fn [super agg]
+    (-> (super agg)
+        (agg/predicate-validator 'root
+          {:user/login    #"\w{3,255}"
+           :user/password #".{8,255}"})
+        (agg/required-validator  'root
+          #{:user/login
+            :user/password}))))
 
 (def allowed-attrs #{:user/login :user/password})
 
