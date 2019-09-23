@@ -28,3 +28,11 @@
     (-> (super agg)
         (agg/required-validator 'root
           #{:user/password}))))
+
+(defn active? [user]
+  (and (some? user)
+       (= :active (-> user agg/root :user/state))))
+
+(defn admin? [user]
+  (and (some? user)
+       (= :admin  (-> user agg/root :user/role))))

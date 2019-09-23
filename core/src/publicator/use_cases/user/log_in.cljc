@@ -2,7 +2,8 @@
   (:require
    [publicator.domain.aggregate :as agg]
    [publicator.util :as u]
-   [darkleaf.multidecorators :as md]))
+   [darkleaf.multidecorators :as md]
+   [publicator.domain.aggregates.user :as user]))
 
 (md/decorate agg/validate :form.user/log-in
   (fn [super agg]
@@ -67,6 +68,8 @@
          password  (:user/password form-root)])
    (fetch-user-by-login login (fn [user] <>))
    (check-user-password user password (fn [] <>))
+   (if-not (user/active? user)
+     [[:ui/show-main-screen]])
    (let [id (-> user agg/root :agg/id)])
    [[:do
      [:session/assoc :current-user-id id]
