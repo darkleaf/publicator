@@ -25,7 +25,8 @@
                                                   (agg/agg-with [{:db/ident             :root
                                                                   :agg/id               1
                                                                   :user/password-digest "digest"
-                                                                  :user/state           :active}]))]
+                                                                  :user/state           :active
+                                                                  :user/role            :regular}]))]
                            [:ui/show-main-screen]]}]]
     (u/test-with-script register/process script)))
 

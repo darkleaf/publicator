@@ -4,6 +4,7 @@
    [darkleaf.multidecorators :as md]))
 
 (def states #{:active :archived})
+(def roles #{:regular :admin})
 
 (md/decorate agg/validate :agg/user
   (fn [super agg]
@@ -11,10 +12,12 @@
         (agg/predicate-validator 'root
           {:user/login    #"\w{3,255}"
            :user/password #".{8,255}"
-           :user/state    states})
+           :user/state    states
+           :user/role     roles})
         (agg/required-validator 'root
           #{:user/login
-            :user/state})
+            :user/state
+            :user/role})
         #?(:clj (agg/predicate-validator 'root  {:user/password-digest #".{1,255}"}))
         #?(:clj (agg/required-validator  'root #{:user/password-digest})))))
 

@@ -28,7 +28,9 @@
     [user tx-data]))
 
 (defn- fill-user-defaults [user]
-  (agg/agg-with user [[:db/add :root :user/state :active]]))
+  (agg/agg-with user [{:db/ident   :root
+                       :user/state :active
+                       :user/role  :regular}]))
 
 (defn- check-registration [user next]
   (u/linearize

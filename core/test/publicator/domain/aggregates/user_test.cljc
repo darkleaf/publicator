@@ -7,6 +7,7 @@
   (let [agg (-> (agg/allocate :agg/new-user)
                 (agg/agg-with [{:db/ident             :root
                                 :user/state           :active
+                                :user/role            :regular
                                 :user/login           "john"
                                 :user/password        "some password"
                                 :user/password-digest "some digest"}])
