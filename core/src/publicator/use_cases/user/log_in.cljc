@@ -60,12 +60,12 @@
      [[:ui/show-user-not-found-error]])
    (next)))
 
-(defn check-env [next]
+(defn precondition [next]
   (check-session next))
 
 (defn process [tx-data]
   (u/linearize
-   (check-env (fn [] <>))
+   (precondition (fn [] <>))
    (let [[form datoms] (form-from-tx-data tx-data)])
    (or (check-additional-attrs datoms))
    (or (has-validation-errors form))

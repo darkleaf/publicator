@@ -57,12 +57,12 @@
        (agg/agg-with [[:db/add :root :user/password-digest digest]])
        (next))))
 
-(defn check-env [next]
+(defn precondition [next]
   (check-session next))
 
 (defn process [tx-data]
   (u/linearize
-   (check-env (fn [] <>))
+   (precondition (fn [] <>))
    (let [[user datoms] (user-from-tx-data tx-data)])
    (or (check-additional-attrs datoms))
    (let [user (fill-user-defaults user)])
