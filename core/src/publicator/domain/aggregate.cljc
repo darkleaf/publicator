@@ -13,6 +13,7 @@
      [?e :db/ident :root]]])
 
 (defn- validate-initial [agg]
+  {:pre [(d/db? agg)]}
   agg)
 
 (defn- schema-initial [type]

@@ -5,13 +5,13 @@
 
 (t/deftest has-no-errors
   (let [agg (-> (agg/allocate :agg/stream)
-                (agg/with [{:db/ident :root
-                            :stream/state :active}
-                           {:stream.translation/stream :root
-                            :stream.translation/lang :en
-                            :stream.translation/name "Stream"}
-                           {:stream.translation/stream :root
-                            :stream.translation/lang  :ru
-                            :stream.translation/name "Поток"}])
+                (agg/agg-with [{:db/ident :root
+                                :stream/state :active}
+                               {:stream.translation/stream :root
+                                :stream.translation/lang :en
+                                :stream.translation/name "Stream"}
+                               {:stream.translation/stream :root
+                                :stream.translation/lang  :ru
+                                :stream.translation/name "Поток"}])
                 (agg/validate))]
     (t/is (agg/has-no-errors? agg))))
