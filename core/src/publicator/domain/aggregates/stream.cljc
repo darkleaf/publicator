@@ -38,4 +38,5 @@
 (md/decorate agg/schema :agg/stream
   (fn [super type]
     (assoc (super type)
-           :stream.translation/stream {:db/valueType :db.type/ref})))
+           :stream.translation/stream {:db/valueType :db.type/ref}
+           :stream.translation/lang {:db/unique :db.unique/identity})))
