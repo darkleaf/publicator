@@ -31,13 +31,6 @@
     (when (not-empty additional)
       [[:ui/show-additional-attributes-error additional]])))
 
-(defn- form-from-tx-data [tx-data]
-  (let [report  (-> (agg/allocate :form.user/log-in)
-                    (agg/with tx-data))
-        form    (:db-after report)
-        tx-data (:tx-data report)]
-     [form tx-data]))
-
 (defn- has-validation-errors [form]
   (let [errors (-> form agg/validate agg/errors)]
     (when (not-empty errors)
@@ -66,7 +59,7 @@
 (defn process [tx-data]
   (u/linearize
    (precondition (fn [] <>))
-   (let [[form datoms] (form-from-tx-data tx-data)])
+   (let [[form datoms] (-> :form.user/log-in agg/allocate (agg/apply-tx* tx-data))])
    (or (check-additional-attrs datoms))
    (or (has-validation-errors form))
    (let [form-root (agg/root form)

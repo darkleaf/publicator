@@ -20,15 +20,8 @@
      [[:ui/show-main-screen]])
    (next)))
 
-(defn- user-from-tx-data [tx-data]
-  (let [report  (-> (agg/allocate :agg/user)
-                    (agg/with tx-data))
-        user    (:db-after report)
-        tx-data (:tx-data report)]
-    [user tx-data]))
-
 (defn- fill-user-defaults [user]
-  (agg/agg-with user [{:db/ident   :root
+  (agg/apply-tx user [{:db/ident   :root
                        :user/state :active
                        :user/role  :regular}]))
 
@@ -49,14 +42,14 @@
   (u/linearize
    [[:persistence/next-user-id] (fn [id] <>)]
    (-> user
-       (agg/agg-with [[:db/add :root :agg/id id]])
+       (agg/apply-tx [[:db/add :root :agg/id id]])
        (next))))
 
 (defn- fill-password-digest [user next]
   (u/linearize
    [[:hasher/derive (-> user agg/root :user/password)] (fn [digest] <>)]
    (-> user
-       (agg/agg-with [[:db/add :root :user/password-digest digest]])
+       (agg/apply-tx [[:db/add :root :user/password-digest digest]])
        (next))))
 
 (defn precondition [next]
@@ -65,7 +58,7 @@
 (defn process [tx-data]
   (u/linearize
    (precondition (fn [] <>))
-   (let [[user datoms] (user-from-tx-data tx-data)])
+   (let [[user datoms] (-> :agg/user agg/allocate (agg/apply-tx* tx-data))])
    (or (check-additional-attrs datoms))
    (let [user (fill-user-defaults user)])
    (check-registration user (fn [] <>))

@@ -5,7 +5,7 @@
 
 (t/deftest has-no-errors
   (let [agg (-> (agg/allocate :agg/article)
-                (agg/agg-with [{:db/ident              :root
+                (agg/apply-tx [{:db/ident              :root
                                 :publication/state     :active
                                 :publication/stream-id 1
                                 :article/image-url     "http://cats.com/cat.jpg"}

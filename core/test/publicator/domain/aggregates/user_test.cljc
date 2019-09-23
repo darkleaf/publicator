@@ -5,7 +5,7 @@
 
 (t/deftest has-no-errors
   (let [agg (-> (agg/allocate :agg/new-user)
-                (agg/agg-with [{:db/ident             :root
+                (agg/apply-tx [{:db/ident             :root
                                 :user/state           :active
                                 :user/role            :regular
                                 :user/login           "john"

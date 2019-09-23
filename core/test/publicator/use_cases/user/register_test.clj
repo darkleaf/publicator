@@ -21,8 +21,8 @@
                  {:effect [:do
                            [:session/assoc :current-user-id 1]
                            [:persistence/save (-> (agg/allocate :agg/new-user)
-                                                  (agg/agg-with tx-data)
-                                                  (agg/agg-with [{:db/ident             :root
+                                                  (agg/apply-tx tx-data)
+                                                  (agg/apply-tx [{:db/ident             :root
                                                                   :agg/id               1
                                                                   :user/password-digest "digest"
                                                                   :user/state           :active

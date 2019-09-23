@@ -5,7 +5,7 @@
 
 (t/deftest has-no-errors
   (let [agg (-> (agg/allocate :agg/author)
-                (agg/agg-with [{:db/ident     :root
+                (agg/apply-tx [{:db/ident     :root
                                 :author/state :active}
                                {:author.translation/author     :root
                                 :author.translation/lang       :en

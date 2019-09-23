@@ -5,7 +5,7 @@
 
 (t/deftest has-no-errors
   (let [agg (-> (agg/allocate :agg/stream)
-                (agg/agg-with [{:db/ident :root
+                (agg/apply-tx [{:db/ident :root
                                 :stream/state :active}
                                {:stream.translation/stream :root
                                 :stream.translation/lang :en

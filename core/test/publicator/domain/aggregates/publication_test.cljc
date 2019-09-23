@@ -5,7 +5,7 @@
 
 (t/deftest has-no-errors
   (let [agg (-> (agg/allocate :agg/publication)
-                (agg/agg-with [{:db/ident              :root
+                (agg/apply-tx [{:db/ident              :root
                                 :publication/state     :active
                                 :publication/stream-id 1}
                                {:publication.translation/publication  :root

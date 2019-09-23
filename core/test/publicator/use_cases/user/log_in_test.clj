@@ -14,8 +14,8 @@
                   :coeffect {}}
                  {:effect   [:persistence/user-by-login "john"]
                   :coeffect (-> (agg/allocate :agg/user)
-                                (agg/agg-with tx-data)
-                                (agg/agg-with [{:db/ident             :root
+                                (agg/apply-tx tx-data)
+                                (agg/apply-tx [{:db/ident             :root
                                                 :agg/id               1
                                                 :user/password-digest "digest"
                                                 :user/state           :active}]))}
@@ -47,8 +47,8 @@
                   :coeffect {}}
                  {:effect   [:persistence/user-by-login "john"]
                   :coeffect (-> (agg/allocate :agg/user)
-                                (agg/agg-with tx-data)
-                                (agg/agg-with [{:db/ident             :root
+                                (agg/apply-tx tx-data)
+                                (agg/apply-tx [{:db/ident             :root
                                                 :agg/id               1
                                                 :user/password-digest "digest"
                                                 :user/state           :active}]))}
