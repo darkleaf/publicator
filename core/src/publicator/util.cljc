@@ -54,5 +54,6 @@
     (cond
       (not= effect actual-effect) (t/is (= effect actual-effect)) ;; fail fast
       (nil? continuation)         (t/is (empty? tail))
+      (empty? tail)               (t/is (nil? continuation))
       :else                       (recur (continuation coeffect)
                                          tail))))
