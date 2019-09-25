@@ -16,16 +16,6 @@
     (when (not-empty additional)
       [[:ui/show-additional-attributes-error additional]])))
 
-(defn- check-session [next]
-  (u/linearize
-   [[:session/get] (fn [session] <>)]
-   (let [user-id (-> session :current-user-id)])
-   [[:persistence/find :agg/user user-id] (fn [user] <>)]
-   (if-not (and (user/active? user)
-                (user/admin? user))
-     [[:ui/show-main-screen]])
-   (next)))
-
 (defn- find-stream [id next]
   (u/linearize
    [[:persistence/find :agg/stream id] (fn [stream] <>)]
@@ -38,12 +28,20 @@
     (when (not-empty errors)
       [[:ui/show-validation-errors errors]])))
 
-(defn precondition [_id next]
-  (check-session next))
-
-(defn process [[id tx-data]]
+(defn precondition [_id callback]
   (u/linearize
-   (precondition id (fn [] <>))
+   [[:session/get] (fn [session] <>)]
+   (let [user-id (-> session :current-user-id)])
+   [[:persistence/find :agg/user user-id] (fn [user] <>)]
+   (if-not (and (user/active? user)
+                (user/admin? user))
+     (callback [[:ui/show-main-screen]]))
+   (callback nil)))
+
+(defn process [id tx-data]
+  (u/linearize
+   (precondition id (fn [ex-effect] <>))
+   (or ex-effect)
    (find-stream id (fn [stream] <>))
    (let [[stream datoms] (-> stream (agg/apply-tx* tx-data))])
    (or (check-additional-attrs datoms))
