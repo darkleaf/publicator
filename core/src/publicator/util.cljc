@@ -57,3 +57,14 @@
       (empty? tail)               (t/is (nil? continuation))
       :else                       (recur (continuation coeffect)
                                          tail))))
+
+(defn sub [cont arg callback]
+  (let [[effect cont] (cont arg)]
+    (if (= :sub/return (first effect))
+      (if (nil? cont)
+        (callback (second effect))
+        (ex-info ":sub/return must be terminal effect" {:effect       effect
+                                                        :continuation cont}))
+      (if (nil? cont)
+        [effect]
+        [effect #(sub cont % callback)]))))

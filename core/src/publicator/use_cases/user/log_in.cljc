@@ -17,13 +17,6 @@
 
 (def allowed-attrs #{:user/login :user/password})
 
-(defn- check-session [next]
-  (u/linearize
-   [[:session/get] (fn [session] <>)]
-   (if (-> session :current-user-id some?)
-     [[:ui/show-main-screen]])
-   (next)))
-
 (defn- check-additional-attrs [datoms]
   (let [additional (->> datoms
                         (map :a)
@@ -37,37 +30,42 @@
     (when (not-empty errors)
       [[:ui/show-validation-errors errors]])))
 
-(defn- fetch-user-by-login [login next]
+(defn- fetch-user-by-login [login]
   (u/linearize
    [[:persistence/user-by-login login]
     (fn [user] <>)]
    (if (nil? user)
      [[:ui/show-user-not-found-error]])
-   (next user)))
+   [[:sub/return user]]))
 
-(defn- check-user-password [user password next]
+(defn- check-user-password [[user password]]
   (u/linearize
    (let [digest (-> user agg/root :user/password-digest)])
    [[:hasher/check password digest]
     (fn [ok] <>)]
    (if-not ok
      [[:ui/show-user-not-found-error]])
-   (next)))
+   [[:sub/return]]))
 
-(defn precondition [next]
-  (check-session next))
+(defn precondition [_]
+  (u/linearize
+   [[:session/get] (fn [session] <>)]
+   (if (-> session :current-user-id some?)
+     [[:sub/return [[:ui/show-main-screen]]]])
+   [[:sub/return]]))
 
 (defn process [tx-data]
   (u/linearize
-   (precondition (fn [] <>))
+   (u/sub precondition nil (fn [ex-effect] <>))
+   (or ex-effect)
    (let [[form datoms] (-> :form.user/log-in agg/allocate (agg/apply-tx* tx-data))])
    (or (check-additional-attrs datoms))
    (or (has-validation-errors form))
    (let [form-root (agg/root form)
          login     (:user/login form-root)
          password  (:user/password form-root)])
-   (fetch-user-by-login login (fn [user] <>))
-   (check-user-password user password (fn [] <>))
+   (u/sub fetch-user-by-login login (fn [user] <>))
+   (u/sub check-user-password [user password] (fn [_] <>))
    (if-not (user/active? user)
      [[:ui/show-main-screen]])
    (let [id (-> user agg/root :agg/id)])
