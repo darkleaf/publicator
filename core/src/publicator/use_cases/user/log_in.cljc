@@ -1,9 +1,9 @@
 (ns publicator.use-cases.user.log-in
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.util :as u]
-   [darkleaf.multidecorators :as md]
-   [publicator.domain.aggregates.user :as user]))
+   [publicator.domain.aggregates.user :as user]
+   [darkleaf.effect.core :refer [eff !]]
+   [darkleaf.multidecorators :as md]))
 
 (md/decorate agg/validate :form.user/log-in
   (fn [super agg]
@@ -18,57 +18,53 @@
 (def allowed-attrs #{:user/login :user/password})
 
 (defn- check-additional-attrs [datoms]
-  (let [additional (->> datoms
-                        (map :a)
-                        (remove allowed-attrs)
-                        (set))]
-    (when (not-empty additional)
-      [[:ui/show-additional-attributes-error additional]])))
+  (eff
+    (if-some [additional (->> datoms
+                              (map :a)
+                              (remove allowed-attrs)
+                              (set)
+                              (not-empty))]
+      (! [:ui/show-additional-attributes-error additional]))))
 
 (defn- has-validation-errors [form]
-  (let [errors (-> form agg/validate agg/errors)]
-    (when (not-empty errors)
-      [[:ui/show-validation-errors errors]])))
+  (eff
+    (if-some [errors (-> form agg/validate agg/errors not-empty)]
+      (! [:ui/show-validation-errors errors]))))
 
 (defn- fetch-user-by-login [login]
-  (u/linearize
-   [[:persistence/user-by-login login]
-    (fn [user] <>)]
-   (if (nil? user)
-     [[:ui/show-user-not-found-error]])
-   [[:sub/return user]]))
+  (eff
+    (if-some [user (! [:persistence/user-by-login login])]
+      user
+      (! [:ui/show-user-not-found-error]))))
 
-(defn- check-user-password [[user password]]
-  (u/linearize
-   (let [digest (-> user agg/root :user/password-digest)])
-   [[:hasher/check password digest]
-    (fn [ok] <>)]
-   (if-not ok
-     [[:ui/show-user-not-found-error]])
-   [[:sub/return]]))
+(defn- check-user-password [user password]
+  (eff
+    (let [digest (-> user agg/root :user/password-digest)
+          ok?    (! [:hasher/check password digest])]
+      (if-not ok?
+        (! [:ui/show-user-not-found-error])))))
 
-(defn precondition [_]
-  (u/linearize
-   [[:session/get] (fn [session] <>)]
-   (if (-> session :current-user-id some?)
-     [[:sub/return [[:ui/show-main-screen]]]])
-   [[:sub/return]]))
+(defn precondition []
+  (eff
+    (when (-> (! [:session/get])
+              :current-user-id
+              some?)
+      [:ui/show-main-screen])))
 
 (defn process [tx-data]
-  (u/linearize
-   (u/sub precondition nil (fn [ex-effect] <>))
-   (or ex-effect)
-   (let [[form datoms] (-> :form.user/log-in agg/allocate (agg/apply-tx* tx-data))])
-   (or (check-additional-attrs datoms))
-   (or (has-validation-errors form))
-   (let [form-root (agg/root form)
-         login     (:user/login form-root)
-         password  (:user/password form-root)])
-   (u/sub fetch-user-by-login login (fn [user] <>))
-   (u/sub check-user-password [user password] (fn [_] <>))
-   (if-not (user/active? user)
-     [[:ui/show-main-screen]])
-   (let [id (-> user agg/root :agg/id)])
-   [[:do
-     [:session/assoc :current-user-id id]
-     [:ui/show-main-screen]]]))
+  (eff
+    (if-some [ex-effect (! (precondition))]
+      (! ex-effect)
+      (let [[form datoms] (-> :form.user/log-in agg/allocate (agg/apply-tx* tx-data))
+            _             (! (check-additional-attrs datoms))
+            _             (! (has-validation-errors form))
+            form-root     (agg/root form)
+            login         (:user/login form-root)
+            password      (:user/password form-root)
+            user          (! (fetch-user-by-login login))
+            _             (! (check-user-password user password))
+            _             (if-not (user/active? user)
+                            (! [:ui/show-main-screen]))
+            id            (-> user agg/root :agg/id)]
+        (! [:session/assoc :current-user-id id])
+        (! [:ui/show-main-screen])))))
