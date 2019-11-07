@@ -3,7 +3,7 @@
    [publicator.domain.aggregate :as agg]
    [publicator.use-cases.stream.edit :as edit]
    [clojure.test :as t]
-   [publicator.util :as u]))
+   [darkleaf.effect.core :as e]))
 
 (def user
   (-> (agg/allocate :agg/user)
@@ -30,14 +30,14 @@
   (let [tx-data [{:stream.translation/stream :root
                   :stream.translation/lang   :ru
                   :stream.translation/name   "Новый Поток"}]
-        script  [{:coeffect [1 tx-data]}
+        script  [{:args [1 tx-data]}
                  {:effect   [:session/get]
                   :coeffect {:current-user-id 1}}
                  {:effect   [:persistence/find :agg/user 1]
                   :coeffect user}
                  {:effect   [:persistence/find :agg/stream 1]
                   :coeffect stream}
-                 {:effect [:do
-                           [:persistence/save (agg/apply-tx stream tx-data)]
-                           [:ui/show-main-screen]]}]]
-    (u/test-with-script edit/process script)))
+                 {:effect   [:persistence/save (agg/apply-tx stream tx-data)]
+                  :coeffect nil}
+                 {:final-effect [:ui/show-main-screen]}]]
+    (e/test edit/process script)))
