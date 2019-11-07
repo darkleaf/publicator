@@ -29,9 +29,7 @@
                                                                    :user/state           :active
                                                                    :user/role            :regular}]))]
                   :coeffect nil}
-                 {:effect   [:ui/show-main-screen]
-                  :coeffect nil}
-                 {:return nil}]]
+                 {:final-effect [:ui/show-main-screen]}]]
     (e/test register/process script)))
 
 (t/deftest process-additional-attrs
