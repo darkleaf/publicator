@@ -8,11 +8,11 @@
 
 (defn- check-additional-attrs [datoms]
   (eff
-    (if-let [additional (->> datoms
-                             (map :a)
-                             (remove allowed-attrs)
-                             (set)
-                             (not-empty))]
+    (if-some [additional (->> datoms
+                              (map :a)
+                              (remove allowed-attrs)
+                              (set)
+                              (not-empty))]
       (! [:ui/show-additional-attributes-error additional]))))
 
 (defn- fill-user-defaults [user]
@@ -29,7 +29,7 @@
 
 (defn- check-validation-errors [user]
   (eff
-    (if-let [errors (-> user agg/validate agg/errors not-empty)]
+    (if-some [errors (-> user agg/validate agg/errors not-empty)]
       (! [:ui/show-validation-errors errors]))))
 
 (defn- fill-id [user]
