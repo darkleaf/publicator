@@ -7,7 +7,7 @@
 (defn- stream->view [stream]
   (eff
     (let [session (! [:session/get])
-          lang (get session :lang :ru)]
+          lang    (get session :lang :ru)]
       {:agg/id           (agg/q stream '[:find ?id .
                                          :where
                                          [:root :agg/id ?id]])
@@ -33,4 +33,4 @@
                 view      (! (stream->view stream))
                 ex-effect (! (edit/precondition id))
                 view      (assoc view :ui/can-edit? (nil? ex-effect))]
-            (recur (conj acc view) streams)))))))
+            (recur streams (conj acc view))))))))
