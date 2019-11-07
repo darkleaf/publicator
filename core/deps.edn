@@ -2,7 +2,7 @@
         org.clojure/clojurescript {:mvn/version "1.10.520"}
         datascript                {:mvn/version "0.18.4"}
         darkleaf/multidecorators  {:mvn/version "1.0.5"}
-        darkleaf/effect           {:mvn/version "0.0.3"}}
+        darkleaf/effect           {:mvn/version "0.0.4"}}
 
  :aliases {:dev       {:extra-paths ["dev" "test"]}
            :cljs-test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.7.0"}}

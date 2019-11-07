@@ -2,15 +2,16 @@
   (:require
    [publicator.domain.aggregate :as agg]
    [publicator.use-cases.stream.edit :as edit]
-   [darkleaf.effect.core :refer [eff !]]))
+   [darkleaf.effect.core :refer [eff !] :as e]))
 
 (defn- stream->view [stream]
   (eff
-    (let [session (! [:session/get])
-          lang    (get session :lang :ru)]
-      {:agg/id           (agg/q stream '[:find ?id .
-                                         :where
-                                         [:root :agg/id ?id]])
+    (let [session        (! [:session/get])
+          lang           (get session :lang :ru)
+          id             (-> stream agg/root :agg/id)
+          edit-ex-effect (! (edit/precondition id))]
+      {:agg/id           id
+       :ui/can-edit?     (nil? edit-ex-effect)
        :stream.view/name (agg/q stream '[:find ?name .
                                          :in ?lang
                                          :where
@@ -25,12 +26,6 @@
   (eff
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (loop [[stream streams] (! [:persistence/active-streams])
-             acc              []]
-        (if (nil? stream)
-          (! [:ui/render-streams acc])
-          (let [id        (-> stream agg/root :agg/id)
-                view      (! (stream->view stream))
-                ex-effect (! (edit/precondition id))
-                view      (assoc view :ui/can-edit? (nil? ex-effect))]
-            (recur streams (conj acc view))))))))
+      (let [streams (! [:persistence/active-streams])
+            views   (! (e/mapv stream->view streams))]
+        (! [:ui/render-streams views])))))
