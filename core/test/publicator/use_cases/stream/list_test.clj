@@ -3,7 +3,7 @@
    [publicator.domain.aggregate :as agg]
    [publicator.use-cases.stream.list :as list]
    [clojure.test :as t]
-   [publicator.util :as u]))
+   [darkleaf.effect.core :as e]))
 
 (def user
   (-> (agg/allocate :agg/user)
@@ -31,20 +31,14 @@
         view    {:agg/id           1
                  :stream.view/name "Поток"
                  :ui/can-edit?     true}
-        script  [{:coeffect nil}
+        script  [{:args []}
                  {:effect   [:persistence/active-streams]
                   :coeffect [stream]}
-
-                 {:effect   [:next [[] [stream]]]
-                  :coeffect [[] [stream]]}
                  {:effect   [:session/get]
                   :coeffect session}
                  {:effect   [:session/get]
                   :coeffect session}
                  {:effect   [:persistence/find :agg/user 1]
                   :coeffect user}
-                 {:effect   [:next [[view] nil]]
-                  :coeffect [[view] nil]}
-
-                 {:effect [:ui/render-streams [view]]}]]
-    (u/test-with-script list/process script)))
+                 {:final-effect [:ui/render-streams [view]]}]]
+    (e/test list/process script)))
