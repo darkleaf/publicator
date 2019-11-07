@@ -25,13 +25,12 @@
   (eff
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (loop [acc     []
-             streams (! [:persistence/active-streams])]
-        (if (empty? streams)
+      (loop [[stream streams] (! [:persistence/active-streams])
+             acc              []]
+        (if (nil? stream)
           (! [:ui/render-streams acc])
-          (let [[stream & rest] streams
-                id              (-> stream agg/root :agg/id)
-                view            (! (stream->view stream))
-                ex-effect       (! (edit/precondition id))
-                view            (assoc view :ui/can-edit? (nil? ex-effect))]
-            (recur (conj acc view) rest)))))))
+          (let [id        (-> stream agg/root :agg/id)
+                view      (! (stream->view stream))
+                ex-effect (! (edit/precondition id))
+                view      (assoc view :ui/can-edit? (nil? ex-effect))]
+            (recur (conj acc view) streams)))))))
