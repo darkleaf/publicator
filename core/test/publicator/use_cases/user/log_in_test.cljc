@@ -80,7 +80,7 @@
                                     :error/entity 1
                                     :error/attr   :user/password
                                     :error/value  ""
-                                    :error/pred   ".{8,255}"
+                                    :error/pred   (str #".{8,255}")
                                     :error/rule   'root}}]}]]
     (e/test log-in/process script)))
 
