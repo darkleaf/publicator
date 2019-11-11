@@ -33,7 +33,8 @@
     (t/is (not (agg/has-errors? agg)))
     (t/is (some? (agg/root agg)))
     (t/is (= 1 (agg/q agg '[:find ?e . :where (root ?e)])))
-    (t/is (-> agg :schema (contains? :test-agg/many)))))
+    (t/is (-> agg :schema (contains? :test-agg/many)))
+    (t/is (= #{[1 :db/ident :root]} (agg/eav agg)))))
 
 (t/deftest q
   (let [agg (-> (agg/allocate :agg/test-agg)
