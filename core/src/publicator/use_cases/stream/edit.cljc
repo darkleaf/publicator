@@ -38,6 +38,13 @@
                    (user/admin? user))
         [:ui/show-main-screen]))))
 
+(defn initial-tx-data [id]
+  (eff
+    (if-some [ex-effect (! (precondition id))]
+      (! ex-effect)
+      (let [stream (! (find-stream id))]
+        (agg/eav stream)))))
+
 (defn process [id tx-data]
   (eff
     (if-some [ex-effect (! (precondition id))]

@@ -26,6 +26,25 @@
                       :stream.translation/lang   :ru
                       :stream.translation/name   "Поток"}])))
 
+(t/deftest initial-tx-data-success
+  (let [script [{:args [1]}
+                {:effect   [:session/get]
+                 :coeffect {:current-user-id 1}}
+                {:effect   [:persistence/find :agg/user 1]
+                 :coeffect user}
+                {:effect   [:persistence/find :agg/stream 1]
+                 :coeffect stream}
+                {:return #{[1 :db/ident :root]
+                           [1 :agg/id 1]
+                           [1 :stream/state :active]
+                           [2 :stream.translation/stream 1]
+                           [2 :stream.translation/lang :en]
+                           [2 :stream.translation/name "Stream"]
+                           [3 :stream.translation/stream 1]
+                           [3 :stream.translation/lang :ru]
+                           [3 :stream.translation/name "Поток"]}}]]
+    (e/test edit/initial-tx-data script)))
+
 (t/deftest process-success
   (let [tx-data [{:db/ident     :root
                   :stream/state :archived}
