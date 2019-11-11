@@ -6,7 +6,8 @@
 
 (def allowed-attrs #{:stream.translation/lang
                      :stream.translation/name
-                     :stream.translation/stream})
+                     :stream.translation/stream
+                     :stream/state})
 
 (defn- check-additional-attrs [datoms]
   (eff

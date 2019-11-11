@@ -27,7 +27,9 @@
                       :stream.translation/name   "Поток"}])))
 
 (t/deftest process-success
-  (let [tx-data [{:stream.translation/stream :root
+  (let [tx-data [{:db/ident     :root
+                  :stream/state :archived}
+                 {:stream.translation/stream :root
                   :stream.translation/lang   :ru
                   :stream.translation/name   "Новый Поток"}]
         script  [{:args [1 tx-data]}
