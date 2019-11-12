@@ -38,7 +38,7 @@
                    (user/admin? user))
         [:ui/show-main-screen]))))
 
-(defn initial-tx-data [id]
+(defn initial [id]
   (eff
     (if-some [ex-effect (! (precondition id))]
       (! ex-effect)

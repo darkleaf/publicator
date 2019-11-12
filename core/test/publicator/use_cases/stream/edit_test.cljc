@@ -26,7 +26,7 @@
                       :stream.translation/lang   :ru
                       :stream.translation/name   "Поток"}])))
 
-(t/deftest initial-tx-data-success
+(t/deftest initial-success
   (let [script [{:args [1]}
                 {:effect   [:session/get]
                  :coeffect {:current-user-id 1}}
@@ -35,7 +35,7 @@
                 {:effect   [:persistence/find :agg/stream 1]
                  :coeffect stream}
                 {:return stream}]]
-    (e/test edit/initial-tx-data script)))
+    (e/test edit/initial script)))
 
 (t/deftest process-success
   (let [tx-data [{:db/ident     :root
