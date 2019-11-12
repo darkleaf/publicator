@@ -35,11 +35,6 @@
 (defn root [agg]
   (d/entity agg :root))
 
-(defn eav [agg]
-  (d/q '[:find ?e ?a ?v
-         :where [?e ?a ?v]]
-       agg))
-
 (defn- normalize-query [query]
   (cond
     (map? query)        query
