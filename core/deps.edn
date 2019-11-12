@@ -6,4 +6,5 @@
 
  :aliases {:dev       {:extra-paths ["dev" "test"]}
            :cljs-test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.7.0"}}
-                       :main-opts  ["-m" "cljs-test-runner.main"]}}}
+                       :main-opts  ["-m" "cljs-test-runner.main"
+                                    "-c" "test/cljs_compiler.edn"]}}}

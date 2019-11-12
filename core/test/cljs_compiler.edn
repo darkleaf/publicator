@@ -1,0 +1,2 @@
+{:preloads [publicator.domain.init
+            publicator.use-cases.init]}
