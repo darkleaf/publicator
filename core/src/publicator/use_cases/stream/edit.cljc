@@ -42,8 +42,7 @@
   (eff
     (if-some [ex-effect (! (precondition id))]
       (! ex-effect)
-      (let [stream (! (find-stream id))]
-        (agg/eav stream)))))
+      (! (find-stream id)))))
 
 (defn process [id tx-data]
   (eff

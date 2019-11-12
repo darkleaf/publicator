@@ -34,15 +34,7 @@
                  :coeffect user}
                 {:effect   [:persistence/find :agg/stream 1]
                  :coeffect stream}
-                {:return #{[1 :db/ident :root]
-                           [1 :agg/id 1]
-                           [1 :stream/state :active]
-                           [2 :stream.translation/stream 1]
-                           [2 :stream.translation/lang :en]
-                           [2 :stream.translation/name "Stream"]
-                           [3 :stream.translation/stream 1]
-                           [3 :stream.translation/lang :ru]
-                           [3 :stream.translation/name "Поток"]}}]]
+                {:return stream}]]
     (e/test edit/initial-tx-data script)))
 
 (t/deftest process-success
