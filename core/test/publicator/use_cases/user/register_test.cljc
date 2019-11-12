@@ -17,7 +17,7 @@
                   :coeffect false}
                  {:effect   [:hasher/derive "password"]
                   :coeffect "digest"}
-                 {:effect   [:persistence/next-user-id]
+                 {:effect   [:persistence/next-id :user]
                   :coeffect 1}
                  {:effect   [:session/assoc :current-user-id 1]
                   :coeffect nil}

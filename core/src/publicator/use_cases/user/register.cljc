@@ -34,7 +34,7 @@
 
 (defn- fill-id [user]
   (eff
-    (let [id (! [:persistence/next-user-id])]
+    (let [id (! [:persistence/next-id :user])]
       (agg/apply-tx user [[:db/add :root :agg/id id]]))))
 
 (defn- fill-password-digest [user]
