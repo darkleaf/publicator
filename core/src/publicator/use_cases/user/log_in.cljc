@@ -51,11 +51,13 @@
               some?)
       [:ui/show-main-screen])))
 
-(defn process [tx-data]
+(defn process []
   (eff
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (let [[form datoms] (-> :form.user/log-in agg/allocate (agg/apply-tx* tx-data))
+      (let [form          (agg/allocate :form.user/log-in)
+            tx-data       (! [:ui/edit form])
+            [form datoms] (agg/apply-tx* form tx-data)
             _             (! (check-additional-attrs datoms))
             _             (! (has-validation-errors form))
             form-root     (agg/root form)

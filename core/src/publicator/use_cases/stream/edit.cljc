@@ -38,17 +38,14 @@
                    (user/admin? user))
         [:ui/show-main-screen]))))
 
-(defn initial [id]
-  (eff
-    (if-some [ex-effect (! (precondition id))]
-      (! ex-effect)
-      (! (find-stream id)))))
-
-(defn process [id tx-data]
+(defn process [id]
   (eff
     (if-some [ex-effect (! (precondition id))]
       (! ex-effect)
       (let [stream          (! (find-stream id))
+            ;; тут можно взять блокироку на редактирование
+            ;; если она не берется, то показать сообщение
+            tx-data         (! [:ui/edit stream])
             [stream datoms] (-> stream (agg/apply-tx* tx-data))
             _               (! (check-additional-attrs datoms))
             _               (! (check-validation-errors stream))]

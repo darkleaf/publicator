@@ -7,67 +7,73 @@
    [clojure.test :as t]))
 
 (t/deftest process-success
-  (let [tx-data [{:db/ident      :root
-                  :user/login    "john"
-                  :user/password "password"}]
-        script  [{:args [tx-data]}
-                 {:effect   [:session/get]
-                  :coeffect {}}
-                 {:effect   [:persistence/user-presence-by-login "john"]
-                  :coeffect false}
-                 {:effect   [:hasher/derive "password"]
-                  :coeffect "digest"}
-                 {:effect   [:persistence/next-id :user]
-                  :coeffect 1}
-                 {:effect   [:session/assoc :current-user-id 1]
-                  :coeffect nil}
-                 {:effect   [:persistence/save (-> (agg/allocate :agg/new-user)
-                                                   (agg/apply-tx tx-data)
-                                                   (agg/apply-tx [{:db/ident             :root
-                                                                   :agg/id               1
-                                                                   :user/password-digest "digest"
-                                                                   :user/state           :active
-                                                                   :user/role            :regular}]))]
-                  :coeffect nil}
-                 {:final-effect [:ui/show-main-screen]}]]
+  (let [script [{:args []}
+                {:effect   [:session/get]
+                 :coeffect {}}
+                {:effect   [:ui/edit (agg/allocate :agg/user)]
+                 :coeffect [{:db/ident      :root
+                             :user/login    "john"
+                             :user/password "password"}]}
+                {:effect   [:persistence/user-presence-by-login "john"]
+                 :coeffect false}
+                {:effect   [:hasher/derive "password"]
+                 :coeffect "digest"}
+                {:effect   [:persistence/next-id :user]
+                 :coeffect 1}
+                {:effect   [:session/assoc :current-user-id 1]
+                 :coeffect nil}
+                {:effect   [:persistence/save (-> (agg/allocate :agg/new-user)
+                                                  (agg/apply-tx [{:db/ident             :root
+                                                                  :agg/id               1
+                                                                  :user/login           "john"
+                                                                  :user/password        "password"
+                                                                  :user/password-digest "digest"
+                                                                  :user/state           :active
+                                                                  :user/role            :regular}]))]
+                 :coeffect nil}
+                {:final-effect [:ui/show-main-screen]}]]
     (e/test register/process script)))
 
 (t/deftest process-additional-attrs
-  (let [script [{:args [[{:db/ident      :root
-                          :user/login    "john"
-                          :user/password "password"
-                          :user/state    :archived}]]}
+  (let [script [{:args []}
                 {:effect   [:session/get]
                  :coeffect {}}
+                {:effect   [:ui/edit (agg/allocate :agg/user)]
+                 :coeffect [{:db/ident      :root
+                             :user/login    "john"
+                             :user/password "password"
+                             :user/state    :archived}]}
                 {:final-effect [:ui/show-additional-attributes-error #{:user/state}]}]]
     (e/test register/process script)))
 
 (t/deftest process-already-logged-in
-  (let [script [{:args [[{:db/ident      :root
-                          :user/login    "john"
-                          :user/password "password"}]]}
+  (let [script [{:args []}
                 {:effect   [:session/get]
                  :coeffect {:current-user-id 1}}
                 {:final-effect [:ui/show-main-screen]}]]
     (e/test register/process script)))
 
 (t/deftest process-already-registered
-  (let [script [{:args [[{:db/ident      :root
-                          :user/login    "john"
-                          :user/password "password"}]]}
+  (let [script [{:args []}
                 {:effect   [:session/get]
                  :coeffect {}}
+                {:effect   [:ui/edit (agg/allocate :agg/user)]
+                 :coeffect [{:db/ident      :root
+                             :user/login    "john"
+                             :user/password "password"}]}
                 {:effect   [:persistence/user-presence-by-login "john"]
                  :coeffect true}
                 {:final-effect [:ui/show-main-screen]}]]
     (e/test register/process script)))
 
 (t/deftest process-with-errr
-  (let [script [{:args [[{:db/ident      :root
-                          :user/login    "john"
-                          :user/password ""}]]}
+  (let [script [{:args []}
                 {:effect   [:session/get]
                  :coeffect {}}
+                {:effect   [:ui/edit (agg/allocate :agg/user)]
+                 :coeffect [{:db/ident      :root
+                             :user/login    "john"
+                             :user/password ""}]}
                 {:effect   [:persistence/user-presence-by-login "john"]
                  :coeffect false}
                 {:effect   [:hasher/derive ""]

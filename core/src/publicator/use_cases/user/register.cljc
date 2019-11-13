@@ -50,11 +50,13 @@
               some?)
       [:ui/show-main-screen])))
 
-(defn process [tx-data]
+(defn process []
   (eff
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (let [[user datoms] (-> :agg/user agg/allocate (agg/apply-tx* tx-data))
+      (let [user          (-> :agg/user agg/allocate)
+            tx-data       (! [:ui/edit user])
+            [user datoms] (agg/apply-tx* user tx-data)
             _             (! (check-additional-attrs datoms))
             user          (! (fill-user-defaults user))
             _             (! (check-registration user))

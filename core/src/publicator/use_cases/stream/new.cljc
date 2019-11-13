@@ -41,11 +41,13 @@
                    (user/admin? user))
         [:ui/show-main-screen]))))
 
-(defn process [tx-data]
+(defn process []
   (eff
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (let [[stream datoms] (-> :agg/stream agg/allocate (agg/apply-tx* tx-data))
+      (let [stream          (agg/allocate :agg/stream)
+            tx-data         (! [:ui/edit stream])
+            [stream datoms] (agg/apply-tx* stream tx-data)
             _               (! (check-additional-attrs datoms))
             stream          (! (fill-defaults stream))
             _               (! (check-validation-errors stream))
