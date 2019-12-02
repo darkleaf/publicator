@@ -27,5 +27,7 @@
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
       (let [streams (! [:persistence/active-streams])
+            ;; здесь можно вызвать (! [:persistence.hint/preload...])
+            ;; для устранения возможного N+1
             views   (! (e/mapv stream->view streams))]
         (! [:ui/render-streams views])))))
