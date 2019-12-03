@@ -27,18 +27,19 @@
                       :stream.translation/name   "Поток"}])))
 
 (t/deftest process-success-with-admin
-  (let [session {:current-user-id 1}
-        view    {:agg/id           1
-                 :stream.view/name "Поток"
-                 :ui/can-edit?     true}
-        script  [{:args []}
-                 {:effect   [:persistence/active-streams]
-                  :coeffect [stream]}
-                 {:effect   [:session/get]
-                  :coeffect session}
-                 {:effect   [:session/get]
-                  :coeffect session}
-                 {:effect   [:persistence/find :agg/user 1]
-                  :coeffect user}
-                 {:final-effect [:ui/render-streams [view]]}]]
-    (e/test list/process script)))
+  (let [session      {:current-user-id 1}
+        view         {:agg/id           1
+                      :stream.view/name "Поток"
+                      :ui/can-edit?     true}
+        script       [{:args []}
+                      {:effect   [:persistence/active-streams]
+                       :coeffect [stream]}
+                      {:effect   [:session/get]
+                       :coeffect session}
+                      {:effect   [:session/get]
+                       :coeffect session}
+                      {:effect   [:persistence/find :agg/user 1]
+                       :coeffect user}
+                      {:final-effect [:ui/render-streams [view]]}]
+        continuation (e/continuation list/process)]
+    (e/test continuation script)))
