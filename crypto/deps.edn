@@ -1,3 +1,0 @@
-{:deps {buddy/buddy-hashers {:mvn/version "1.4.0"}}
-
- :aliases {:dev {:extra-paths ["test"]}}}
