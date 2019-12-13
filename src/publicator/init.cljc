@@ -1,4 +1,4 @@
 (ns publicator.init
   (:require
-   [publicator.domain.init]
-   [publicator.use-cases.init]))
+   [publicator.core.domain.init]
+   [publicator.core.use-cases.init]))
