@@ -9,11 +9,11 @@
   (let [script         [{:args []}
                         {:effect   [:session/get]
                          :coeffect {}}
-                        {:effect   [:ui/edit (agg/allocate :form.user/log-in)]
+                        {:effect   [:ui.form/edit (agg/allocate :form.user/log-in)]
                          :coeffect [{:db/ident      :root
                                      :user/login    "john"
                                      :user/password "password"}]}
-                        {:effect   [:persistence/user-by-login "john"]
+                        {:effect   [:persistence.user/get-by-login "john"]
                          :coeffect (-> (agg/allocate :agg/user)
                                        (agg/apply-tx [{:db/ident             :root
                                                        :agg/id               1
@@ -24,7 +24,7 @@
                          :coeffect true}
                         {:effect   [:session/assoc :current-user-id 1]
                          :coeffect nil}
-                        {:final-effect [:ui/show-main-screen]}]
+                        {:final-effect [:ui.screen/show :main]}]
         continuation (e/continuation log-in/process)]
     (e/test continuation script)))
 
@@ -32,13 +32,14 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:effect   [:ui/edit (agg/allocate :form.user/log-in)]
+                      {:effect   [:ui.form/edit (agg/allocate :form.user/log-in)]
                        :coeffect [{:db/ident      :root
                                    :user/login    "john"
                                    :user/password "password"}]}
-                      {:effect   [:persistence/user-by-login "john"]
+                      {:effect   [:persistence.user/get-by-login "john"]
                        :coeffect nil}
-                      {:final-effect [:ui/show-user-not-found-error]}]
+                      ;; вот тут нужен не ui.error/show а что-то другое
+                      {:final-effect [:ui.error/show :not-found]}]
         continuation (e/continuation log-in/process)]
     (e/test continuation script)))
 
@@ -46,11 +47,11 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:effect   [:ui/edit (agg/allocate :form.user/log-in)]
+                      {:effect   [:ui.form/edit (agg/allocate :form.user/log-in)]
                        :coeffect [{:db/ident      :root
                                    :user/login    "john"
                                    :user/password "wrong-password"}]}
-                      {:effect   [:persistence/user-by-login "john"]
+                      {:effect   [:persistence.user/get-by-login "john"]
                        :coeffect (-> (agg/allocate :agg/user)
                                      (agg/apply-tx [{:db/ident             :root
                                                      :agg/id               1
@@ -59,7 +60,7 @@
                                                      :user/state           :active}]))}
                       {:effect   [:hasher/check "wrong-password" "digest"]
                        :coeffect false}
-                      {:final-effect [:ui/show-user-not-found-error]}]
+                      {:final-effect [:ui.error/show :not-found]}]
         continuation (e/continuation log-in/process)]
     (e/test continuation script)))
 

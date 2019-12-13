@@ -1,7 +1,6 @@
 (ns publicator.use-cases.user.register
   (:require
    [publicator.domain.aggregate :as agg]
-   [publicator.util :as u]
    [darkleaf.effect.core :refer [eff !]]))
 
 (def allowed-attrs #{:user/login :user/password})
@@ -13,7 +12,7 @@
                               (remove allowed-attrs)
                               (set)
                               (not-empty))]
-      (! [:ui/show-additional-attributes-error additional]))))
+      (! [:ui.error/show :additional-attributes additional]))))
 
 (defn- fill-user-defaults [user]
   (agg/apply-tx user [{:db/ident   :root
@@ -22,15 +21,15 @@
 
 (defn- check-registration [user]
   (eff
-    (let [login    (-> user agg/root :user/login)
-          presence (! [:persistence/user-presence-by-login login])]
-      (when presence
-        (! [:ui/show-main-screen])))))
+    (let [login   (-> user agg/root :user/login)
+          from-db (! [:persistence.user/get-by-login login])]
+      (when from-db
+        (! [:ui.screen/show :main])))))
 
 (defn- check-validation-errors [user]
   (eff
     (if-some [errors (-> user agg/validate agg/errors not-empty)]
-      (! [:ui/show-validation-errors errors]))))
+      (! [:ui.error/show :validation errors]))))
 
 (defn- fill-id [user]
   (eff
@@ -48,14 +47,14 @@
     (when (-> (! [:session/get])
               :current-user-id
               some?)
-      [:ui/show-main-screen])))
+      [:ui.screen/show :main])))
 
 (defn process []
   (eff
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
       (let [user          (-> :agg/user agg/allocate)
-            tx-data       (! [:ui/edit user])
+            tx-data       (! [:ui.form/edit user])
             [user datoms] (agg/apply-tx* user tx-data)
             _             (! (check-additional-attrs datoms))
             user          (! (fill-user-defaults user))
@@ -66,4 +65,4 @@
             id            (-> user agg/root :agg/id)]
         (! [:session/assoc :current-user-id id])
         (! [:persistence/save user])
-        (! [:ui/show-main-screen])))))
+        (! [:ui.screen/show :main])))))

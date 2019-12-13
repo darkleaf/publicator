@@ -2,7 +2,6 @@
   (:require
    [publicator.use-cases.user.register :as register]
    [publicator.domain.aggregate :as agg]
-   [publicator.util :as u]
    [darkleaf.effect.core :as e]
    [clojure.test :as t]))
 
@@ -10,12 +9,12 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:effect   [:ui/edit (agg/allocate :agg/user)]
+                      {:effect   [:ui.form/edit (agg/allocate :agg/user)]
                        :coeffect [{:db/ident      :root
                                    :user/login    "john"
                                    :user/password "password"}]}
-                      {:effect   [:persistence/user-presence-by-login "john"]
-                       :coeffect false}
+                      {:effect   [:persistence.user/get-by-login "john"]
+                       :coeffect nil}
                       {:effect   [:hasher/derive "password"]
                        :coeffect "digest"}
                       {:effect   [:persistence/next-id :user]
@@ -32,7 +31,7 @@
                                                       :user/state           :active
                                                       :user/role            :regular}]))]
                        :coeffect nil}
-                      {:final-effect [:ui/show-main-screen]}]
+                      {:final-effect [:ui.screen/show :main]}]
         continuation (e/continuation register/process)]
     (e/test continuation script)))
 
@@ -40,12 +39,12 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:effect   [:ui/edit (agg/allocate :agg/user)]
+                      {:effect   [:ui.form/edit (agg/allocate :agg/user)]
                        :coeffect [{:db/ident      :root
                                    :user/login    "john"
                                    :user/password "password"
                                    :user/state    :archived}]}
-                      {:final-effect [:ui/show-additional-attributes-error #{:user/state}]}]
+                      {:final-effect [:ui.error/show :additional-attributes #{:user/state}]}]
         continuation (e/continuation register/process)]
     (e/test continuation script)))
 
@@ -53,7 +52,7 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {:current-user-id 1}}
-                      {:final-effect [:ui/show-main-screen]}]
+                      {:final-effect [:ui.screen/show :main]}]
         continuation (e/continuation register/process)]
     (e/test continuation script)))
 
@@ -61,13 +60,13 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:effect   [:ui/edit (agg/allocate :agg/user)]
+                      {:effect   [:ui.form/edit (agg/allocate :agg/user)]
                        :coeffect [{:db/ident      :root
                                    :user/login    "john"
                                    :user/password "password"}]}
-                      {:effect   [:persistence/user-presence-by-login "john"]
-                       :coeffect true}
-                      {:final-effect [:ui/show-main-screen]}]
+                      {:effect   [:persistence.user/get-by-login "john"]
+                       :coeffect :fake/some-persisted-user}
+                      {:final-effect [:ui.screen/show :main]}]
         continuation (e/continuation register/process)]
     (e/test continuation script)))
 
@@ -75,15 +74,15 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:effect   [:ui/edit (agg/allocate :agg/user)]
+                      {:effect   [:ui.form/edit (agg/allocate :agg/user)]
                        :coeffect [{:db/ident      :root
                                    :user/login    "john"
                                    :user/password ""}]}
-                      {:effect   [:persistence/user-presence-by-login "john"]
-                       :coeffect false}
+                      {:effect   [:persistence.user/get-by-login "john"]
+                       :coeffect nil}
                       {:effect   [:hasher/derive ""]
                        :coeffect "digest"}
-                      {:final-effect [:ui/show-validation-errors #{{:error/type   :predicate
+                      {:final-effect [:ui.error/show :validation #{{:error/type   :predicate
                                                                     :error/entity 1
                                                                     :error/attr   :user/password
                                                                     :error/value  ""

@@ -33,7 +33,7 @@
 
 (defn- fetch-user-by-login [login]
   (eff
-    (if-some [user (! [:persistence/user-by-login login])]
+    (if-some [user (! [:persistence.user/get-by-login login])]
       user
       (! [:ui/show-user-not-found-error]))))
 
@@ -56,7 +56,7 @@
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
       (let [form          (agg/allocate :form.user/log-in)
-            tx-data       (! [:ui/edit form])
+            tx-data       (! [:ui.form/edit form])
             [form datoms] (agg/apply-tx* form tx-data)
             _             (! (check-additional-attrs datoms))
             _             (! (has-validation-errors form))
@@ -69,4 +69,4 @@
                             (! [:ui/show-main-screen]))
             id            (-> user agg/root :agg/id)]
         (! [:session/assoc :current-user-id id])
-        (! [:ui/show-main-screen])))))
+        (! [:ui.screen/show :main])))))
