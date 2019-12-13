@@ -1,8 +1,5 @@
 (ns publicator.util
-  (:refer-clojure :exclude [type])
-  (:require
-   [clojure.walk :as w]
-   [clojure.test :as t]))
+  (:refer-clojure :exclude [type]))
 
 (defmacro <<- [& body]
   `(->> ~@(reverse body)))
