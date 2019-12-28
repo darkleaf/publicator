@@ -11,7 +11,6 @@
     (-> (super agg)
         (agg/predicate-validator 'root
           {:user/login    #"\w{3,255}"
-           :user/password #".{8,255}"
            :user/state    states
            :user/role     roles})
         (agg/required-validator 'root
@@ -20,14 +19,6 @@
             :user/role})
         #?(:clj (agg/predicate-validator 'root  {:user/password-digest #".{1,255}"}))
         #?(:clj (agg/required-validator  'root #{:user/password-digest})))))
-
-(derive :agg/new-user :agg/user)
-
-(md/decorate agg/validate :agg/new-user
-  (fn [super agg]
-    (-> (super agg)
-        (agg/required-validator 'root
-          #{:user/password}))))
 
 (defn active? [user]
   (and (some? user)
