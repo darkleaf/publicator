@@ -12,21 +12,6 @@
   (let [{:keys [tx-data db-after]} (d/with agg tx-data)]
     [db-after tx-data]))
 
-(defn- rules-initial [type]
-  '[[(root ?e)
-     [?e :db/ident :root]]])
-
-(defn- validate-initial [agg]
-  {:pre [(d/db? agg)]}
-  agg)
-
-(defn- schema-initial [type]
-  {})
-
-(defonce rules (md/multi identity #'rules-initial))
-(defonce validate (md/multi u/type #'validate-initial))
-(defonce schema (md/multi identity #'schema-initial))
-
 (defn allocate [type]
   (-> (d/empty-db (schema type))
       (with-meta {:type type})
@@ -45,6 +30,23 @@
         query  (update query :in (fn [in] (concat '[$ %] in)))
         inputs (concat [agg (-> agg u/type rules)] inputs)]
     (apply d/q query inputs)))
+
+(defn- rules-initial [type]
+  '[[(root ?e)
+     [?e :db/ident :root]]])
+
+(defn- validate-initial [agg]
+  {:pre [(d/db? agg)]}
+  (apply-tx agg [[:db.fn/call (fn clear-errors [agg]
+                                (for [error (q agg '[:find [?e ...] :where [?e :error/type _]])]
+                                  [:db.fn/retractEntity error]))]]))
+
+(defn- schema-initial [type]
+  {})
+
+(defonce rules (md/multi identity #'rules-initial))
+(defonce validate (md/multi u/type #'validate-initial))
+(defonce schema (md/multi identity #'schema-initial))
 
 (defn has-errors? [agg]
   (boolean

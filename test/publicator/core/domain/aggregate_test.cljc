@@ -76,4 +76,16 @@
                     :error/pred   `int?
                     :error/query  '{:find [?v .], :where [[?e :test-agg/attr2 ?v]], :in [?e]}
                     :error/type   :query}}
+                 (agg/errors agg)))))
+    (t/testing "clear previous errors"
+      (let [agg (-> agg
+                    (agg/validate)
+                    (agg/apply-tx[[:db/add :root :test-agg/attr :wrong]])
+                    (agg/validate))]
+        (t/is (= #{{:error/entity 1
+                    :error/attr   :test-agg/attr
+                    :error/value  :wrong
+                    :error/pred   `int?
+                    :error/rule   'root
+                    :error/type   :predicate}}
                  (agg/errors agg)))))))
