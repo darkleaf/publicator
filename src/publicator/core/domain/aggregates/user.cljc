@@ -10,15 +10,15 @@
   (fn [super agg]
     (-> (super agg)
         (agg/predicate-validator 'root
-          {:user/login    #"\w{3,255}"
-           :user/state    states
-           :user/role     roles})
+          {:user/login           #"\w{3,255}"
+           :user/state           states
+           :user/role            roles
+           :user/password-digest #".{1,255}"})
         (agg/required-validator 'root
           #{:user/login
             :user/state
-            :user/role})
-        #?(:clj (agg/predicate-validator 'root  {:user/password-digest #".{1,255}"}))
-        #?(:clj (agg/required-validator  'root #{:user/password-digest})))))
+            :user/role
+            :user/password-digest}))))
 
 (defn active? [user]
   (and (some? user)
