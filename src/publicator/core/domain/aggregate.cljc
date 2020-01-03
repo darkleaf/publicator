@@ -5,6 +5,8 @@
    [datascript.parser :as d.p]
    [darkleaf.multidecorators :as md]))
 
+(declare rules validate schema)
+
 (defn apply-tx [agg tx-data]
   (d/db-with agg tx-data))
 
