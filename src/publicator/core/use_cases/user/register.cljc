@@ -2,93 +2,96 @@
   (:require
    [publicator.core.domain.aggregate :as agg]
    [darkleaf.multidecorators :as md]
-   [darkleaf.effect.core :refer [eff ! effect]]
+   [darkleaf.effect.core :refer [with-effects ! effect]]
+   [darkleaf.effect.core-analogs :refer [->!]]))
 
+(defn- login-validator [user]
+  (with-effects
+    (let [login (-> user agg/root :user/login)]
+      (cond-> user
+        ;; может предварительно проверять, что нет ошибок в логине?
 
-   [datascript.core :as d]))
-
-(derive :form.user/register :agg/user)
+        (! (effect [:persistence.user/exists-by-login login]))
+        (agg/apply-tx [{:error/type   ::existed-login
+                        :error/entity :root
+                        :error/attr   :user/login
+                        :error/value  login}])))))
 
 (md/decorate agg/validate :form.user/register
   (fn [super agg]
-    (-> (super agg)
-        (agg/predicate-validator 'root
-          {:user/password #".{8,255}"})
-        (agg/required-validator 'root
-          #{:user/password}))))
+    (with-effects
+      (->! (super agg)
+           (agg/required-validator 'root
+             #{:user/password})
+           (login-validator)))))
 
-(def allowed-attrs #{:user/login :user/password})
+(derive :form.user/register :agg.user/public)
 
-(defn- filter-attrs [user]
-  (let [datoms (->> (d/datoms user :eavt)
-                    (filter (fn [{:keys [a]}]
-                              (or (#{"db" "error"} (namespace a))
-                                  (allowed-attrs a)))))]
-    (-> user
-        empty
+(defn allowed-datom? [{:keys [a]}]
+  (or (#{"db" "error"} (namespace a))
+      (#{:user/login :user/password} a)))
+
+(defn- user->form [user]
+  (let [datoms (->> user
+                    (agg/datoms)
+                    (filter allowed-datom?))]
+    (-> (agg/allocate :form.user/register)
         (agg/apply-tx datoms))))
 
 (defn- check-additional-attrs [datoms]
-  (eff
-    (if-some [additional (->> datoms
-                              (remove (fn [{:keys [a]}]
-                                        (or (#{"db"} (namespace a))
-                                            (allowed-attrs a))))
-                              (set)
-                              (not-empty))]
-      (! (effect [:ui.error/show :additional-attributes additional])))))
+  (if-some [additional (->> datoms
+                            (remove allowed-datom?)
+                            (not-empty))]
+    (throw (ex-info "Additional datoms" {:additional additional}))))
 
 (defn- fill-user-defaults [user]
   (agg/apply-tx user [{:db/ident   :root
                        :user/state :active
                        :user/role  :regular}]))
 
-(defn- validate-uniq-login [user]
-  (eff
-    (let [login   (-> user agg/root :user/login)
-          from-db (! (effect [:persistence.user/get-by-login login]))]
-      (cond-> user
-        (some? from-db)
-        (agg/apply-tx [{:error/type   ::uniq-login
-                        :error/entity :root
-                        :error/attr   :user/login
-                        :error/value  login}])))))
 
 (defn- fill-id [user]
-  (eff
+  (with-effects
     (let [id (! (effect [:persistence/next-id :user]))]
       (agg/apply-tx user [[:db/add :root :agg/id id]]))))
 
 (defn- fill-password-digest [user]
-  (eff
+  (with-effects
     (let [password (-> user agg/root :user/password)
           digest   (! (effect [:hasher/derive password]))]
       (agg/apply-tx user [[:db/add :root :user/password-digest digest]]))))
 
+(defn- update-form [form tx-data]
+  (let [[form datoms] (agg/apply-tx* form tx-data)]
+    (check-additional-attrs datoms)
+    form))
+
 (defn precondition []
-  (eff
+  (with-effects
     (when (-> (! (effect [:session/get]))
               :current-user-id
               some?)
       (effect [:ui.screen/show :main]))))
 
 (defn process []
-  (eff
+  (with-effects
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (let [initial (agg/allocate :form.user/register)]
-        (loop [user initial]
-          (let [form          (filter-attrs user)
-                tx-data       (! (effect [:ui.form/edit form]))
-                [user datoms] (agg/apply-tx* initial tx-data)
-                _             (check-additional-attrs datoms)
-                user          (fill-user-defaults user)
-                user          (! (fill-password-digest user))
-                user          (agg/validate user)
-                user          (! (validate-uniq-login user))]
-            (if (agg/has-errors? user)
-              (recur user)
-              (let [user (! (fill-id user))
+      (let [user (agg/allocate :agg/user)]
+        (loop [form (user->form user)]
+          (let [tx-data (! (effect [:ui.form/edit form]))
+                form    (->! form
+                             (update-form tx-data)
+                             (agg/validate))]
+            (if (agg/has-errors? form)
+              (recur form)
+              (let [user (->! user
+                              (agg/apply-tx tx-data)
+                              (fill-user-defaults)
+                              (fill-password-digest)
+                              (agg/validate)
+                              (agg/check-errors)
+                              (fill-id))
                     id   (-> user agg/root :agg/id)]
                 (! (effect [:persistence/save user]))
                 (! (effect [:session/assoc :current-user-id id]))

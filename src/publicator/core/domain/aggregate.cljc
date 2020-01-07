@@ -7,6 +7,11 @@
 
 (declare rules validate schema)
 
+(defn datoms [agg]
+  (d/datoms agg :eavt))
+
+(def datom d/datom)
+
 (defn apply-tx [agg tx-data]
   (d/db-with agg tx-data))
 
@@ -66,13 +71,11 @@
          (map #(dissoc % :db/id))
          (set))))
 
-(defn validate! [agg]
-  (let [agg  (validate agg)
-        errs (errors agg)]
-    (if (not-empty errs)
-      (throw (ex-info "Invalid aggregate"
-                      {:errors errs}))
-      agg)))
+(defn check-errors [agg]
+  (if-some [errs (-> agg errors not-empty)]
+    (throw (ex-info "Invalid aggregate"
+                    {:errors errs}))
+    agg))
 
 (defn- normalize-rule-form [rule-or-form]
   (cond

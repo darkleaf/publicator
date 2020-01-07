@@ -9,6 +9,7 @@
                                 :user/state           :active
                                 :user/role            :regular
                                 :user/login           "john"
+                                :user/password        "some password"
                                 :user/password-digest "some digest"}])
                 (agg/validate))]
     (t/is (agg/has-no-errors? agg))))
