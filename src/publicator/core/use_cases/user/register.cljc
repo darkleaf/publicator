@@ -27,7 +27,7 @@
 
 (derive :form.user/register :agg.user/public)
 
-(defn allowed-datom? [{:keys [a]}]
+(defn- allowed-datom? [{:keys [a]}]
   (or (#{"db" "error"} (namespace a))
       (#{:user/login :user/password} a)))
 
@@ -38,17 +38,10 @@
     (-> (agg/allocate :form.user/register)
         (agg/apply-tx datoms))))
 
-(defn- check-additional-attrs [datoms]
-  (if-some [additional (->> datoms
-                            (remove allowed-datom?)
-                            (not-empty))]
-    (throw (ex-info "Additional datoms" {:additional additional}))))
-
 (defn- fill-user-defaults [user]
   (agg/apply-tx user [{:db/ident   :root
                        :user/state :active
                        :user/role  :regular}]))
-
 
 (defn- fill-id [user]
   (with-effects
@@ -60,6 +53,12 @@
     (let [password (-> user agg/root :user/password)
           digest   (! (effect [:hasher/derive password]))]
       (agg/apply-tx user [[:db/add :root :user/password-digest digest]]))))
+
+(defn- check-additional-attrs [datoms]
+  (if-some [additional (->> datoms
+                            (remove allowed-datom?)
+                            (not-empty))]
+    (throw (ex-info "Additional datoms" {:additional additional}))))
 
 (defn- update-form [form tx-data]
   (let [[form datoms] (agg/apply-tx* form tx-data)]
