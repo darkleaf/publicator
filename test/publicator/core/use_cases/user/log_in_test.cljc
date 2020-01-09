@@ -3,102 +3,100 @@
    [publicator.core.use-cases.user.log-in :as log-in]
    [publicator.core.domain.aggregate :as agg]
    [darkleaf.effect.core :as e]
+   [darkleaf.effect.script :as script]
    [clojure.test :as t]))
 
 (t/deftest process-success
-  (let [script         [{:args []}
-                        {:effect   [:session/get]
-                         :coeffect {}}
-                        {:effect   [:ui.form/edit (agg/allocate :form.user/log-in)]
-                         :coeffect [{:db/ident      :root
-                                     :user/login    "john"
-                                     :user/password "password"}]}
-                        {:effect   [:persistence.user/get-by-login "john"]
-                         :coeffect (-> (agg/allocate :agg/user)
-                                       (agg/apply-tx [{:db/ident             :root
-                                                       :agg/id               1
-                                                       :user/login           "john"
-                                                       :user/password-digest "digest"
-                                                       :user/state           :active}]))}
-                        {:effect   [:hasher/check "password" "digest"]
-                         :coeffect true}
-                        {:effect   [:session/assoc :current-user-id 1]
-                         :coeffect nil}
-                        {:final-effect [:ui.screen/show :main]}]
-        continuation (e/continuation log-in/process)]
-    (e/test continuation script)))
+  (let [user   (-> (agg/allocate :agg/user)
+                   (agg/apply-tx [{:db/ident             :root
+                                   :agg/id               1
+                                   :user/login           "john"
+                                   :user/password-digest "digest"
+                                   :user/state           :active}]))
+        script [{:args []}
+                {:effect   [:session/get]
+                 :coeffect {}}
 
-(t/deftest process-not-found
-  (let [script       [{:args []}
-                      {:effect   [:session/get]
-                       :coeffect {}}
-                      {:effect   [:ui.form/edit (agg/allocate :form.user/log-in)]
-                       :coeffect [{:db/ident      :root
-                                   :user/login    "john"
-                                   :user/password "password"}]}
-                      {:effect   [:persistence.user/get-by-login "john"]
-                       :coeffect nil}
-                      ;; вот тут нужен не ui.error/show а что-то другое
-                      {:final-effect [:ui.error/show :not-found]}]
-        continuation (e/continuation log-in/process)]
-    (e/test continuation script)))
+                {:effect   [:ui.form/edit (agg/allocate :form.user/log-in)]
+                 :coeffect [{:db/ident :root}]}
+                {:effect   [:ui.form/edit
+                            (-> (agg/allocate :form.user/log-in)
+                                (agg/apply-tx [{:db/ident :root}
+                                               {:db/id        2
+                                                :error/attr   :user/password
+                                                :error/entity 1
+                                                :error/rule   'root
+                                                :error/type   :required}
+                                               {:db/id        3
+                                                :error/attr   :user/login
+                                                :error/entity 1
+                                                :error/rule   'root
+                                                :error/type   :required}]))]
+                 :coeffect [{:db/ident      :root
+                             :user/login    "wrong_john"
+                             :user/password "password"}]}
+                {:effect   [:persistence.user/get-by-login "wrong_john"]
+                 :coeffect nil}
 
-(t/deftest process-wrong-password
-  (let [script       [{:args []}
-                      {:effect   [:session/get]
-                       :coeffect {}}
-                      {:effect   [:ui.form/edit (agg/allocate :form.user/log-in)]
-                       :coeffect [{:db/ident      :root
-                                   :user/login    "john"
-                                   :user/password "wrong-password"}]}
-                      {:effect   [:persistence.user/get-by-login "john"]
-                       :coeffect (-> (agg/allocate :agg/user)
-                                     (agg/apply-tx [{:db/ident             :root
-                                                     :agg/id               1
-                                                     :user/login           "john"
-                                                     :user/password-digest "digest"
-                                                     :user/state           :active}]))}
-                      {:effect   [:hasher/check "wrong-password" "digest"]
-                       :coeffect false}
-                      {:final-effect [:ui.error/show :not-found]}]
-        continuation (e/continuation log-in/process)]
-    (e/test continuation script)))
+                {:effect [:ui.form/edit
+                          (-> (agg/allocate :form.user/log-in)
+                              (agg/apply-tx [{:db/ident      :root
+                                              :user/login    "wrong_john"
+                                              :user/password "password"}
+                                             {:db/id        4
+                                              :error/entity :root
+                                              :error/type   ::log-in/wrong-login-or-password}]))]
 
-(t/deftest process-additional-attrs
-  (let [script       [{:args []}
-                      {:effect   [:session/get]
-                       :coeffect {}}
-                      {:effect   [:ui/edit (agg/allocate :form.user/log-in)]
-                       :coeffect [{:db/ident      :root
-                                   :user/login    "john"
-                                   :user/password "password"
-                                   :user/extra    :value}]}
-                      {:final-effect [:ui/show-additional-attributes-error #{:user/extra}]}]
-        continuation (e/continuation log-in/process)]
-    (e/test continuation script)))
+                 :coeffect [{:db/ident      :root
+                             :user/login    "john"
+                             :user/password "wrong_password"}]}
+                {:effect   [:persistence.user/get-by-login "john"]
+                 :coeffect user}
+                {:effect   [:hasher/check "wrong_password" "digest"]
+                 :coeffect false}
 
-(t/deftest process-with-errr
-  (let [script       [{:args []}
-                      {:effect   [:session/get]
-                       :coeffect {}}
-                      {:effect   [:ui/edit (agg/allocate :form.user/log-in)]
-                       :coeffect [{:db/ident      :root
-                                   :user/login    "john"
-                                   :user/password ""}]}
-                      {:final-effect [:ui/show-validation-errors
-                                      #{{:error/type   :predicate
-                                         :error/entity 1
-                                         :error/attr   :user/password
-                                         :error/value  ""
-                                         :error/pred   (str #".{8,255}")
-                                         :error/rule   'root}}]}]
-        continuation (e/continuation log-in/process)]
-    (e/test continuation script)))
+                {:effect [:ui.form/edit
+                          (-> (agg/allocate :form.user/log-in)
+                              (agg/apply-tx [{:db/ident      :root
+                                              :user/login    "john"
+                                              :user/password "wrong_password"}
+                                             {:db/id        5
+                                              :error/entity :root
+                                              :error/type   ::log-in/wrong-login-or-password}]))]
 
-(t/deftest process-already-logged-in
-  (let [script          [{:args []}
-                         {:effect   [:session/get]
-                          :coeffect {:current-user-id 1}}
-                         {:final-effect [:ui/show-main-screen]}]
+                 :coeffect [{:db/ident      :root
+                             :user/login    "john"
+                             :user/password "password"}]}
+                {:effect   [:persistence.user/get-by-login "john"]
+                 :coeffect user}
+                {:effect   [:hasher/check "password" "digest"]
+                 :coeffect true}
+
+                {:effect   [:persistence.user/get-by-login "john"]
+                 :coeffect user}
+                {:effect   [:session/assoc :current-user-id 1]
+                 :coeffect nil}
+                {:final-effect [:ui.screen/show :main]}]
         continuation (e/continuation log-in/process)]
-    (e/test continuation script)))
+    (script/test continuation script)))
+
+;; (t/deftest process-additional-attrs
+;;   (let [script       [{:args []}
+;;                       {:effect   [:session/get]
+;;                        :coeffect {}}
+;;                       {:effect   [:ui/edit (agg/allocate :form.user/log-in)]
+;;                        :coeffect [{:db/ident      :root
+;;                                    :user/login    "john"
+;;                                    :user/password "password"
+;;                                    :user/extra    :value}]}
+;;                       {:final-effect [:ui/show-additional-attributes-error #{:user/extra}]}]
+;;         continuation (e/continuation log-in/process)]
+;;     (script/test continuation script)))
+
+;; (t/deftest process-already-logged-in
+;;   (let [script          [{:args []}
+;;                          {:effect   [:session/get]
+;;                           :coeffect {:current-user-id 1}}
+;;                          {:final-effect [:ui/show-main-screen]}]
+;;         continuation (e/continuation log-in/process)]
+;;     (script/test continuation script)))
