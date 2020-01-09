@@ -56,10 +56,8 @@
 (defonce schema (md/multi identity #'schema-initial))
 
 (defn has-errors? [agg]
-  (boolean
-   (not-empty
-    (q agg '{:find [[?e ...]]
-             :where [[?e :error/entity _]]}))))
+  (q agg '[:find ?e .
+           :where [?e :error/entity _]]))
 
 (defn has-no-errors? [agg]
   (not (has-errors? agg)))
