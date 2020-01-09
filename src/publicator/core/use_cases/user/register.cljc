@@ -1,21 +1,24 @@
 (ns publicator.core.use-cases.user.register
   (:require
    [publicator.core.domain.aggregate :as agg]
+   [publicator.util :as u]
    [darkleaf.multidecorators :as md]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]))
 
 (defn- login-validator [user]
-  (with-effects
-    (let [login (-> user agg/root :user/login)]
-      (cond-> user
-        ;; может предварительно проверять, что нет ошибок в логине?
-
-        (! (effect [:persistence.user/exists-by-login login]))
-        (agg/apply-tx [{:error/type   ::existed-login
-                        :error/entity :root
-                        :error/attr   :user/login
-                        :error/value  login}])))))
+  (u/<<-
+   (with-effects)
+   (if (agg/has-errors? user)
+     user)
+   (let [login   (-> user agg/root :user/login)
+         exists? (! (effect [:persistence.user/exists-by-login login]))])
+   (if exists?
+     (agg/apply-tx user [{:error/type   ::existed-login
+                          :error/entity :root
+                          :error/attr   :user/login
+                          :error/value  login}]))
+   user))
 
 (md/decorate agg/validate :form.user/register
   (fn [super agg]

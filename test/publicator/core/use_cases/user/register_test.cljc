@@ -14,9 +14,6 @@
                 {:effect   [:ui.form/edit (agg/allocate :form.user/register)]
                  :coeffect [{:db/ident   :root
                              :user/login "john"}]}
-                {:effect   [:persistence.user/exists-by-login "john"]
-                 :coeffect true}
-
 
                 {:effect   [:ui.form/edit
                             (-> (agg/allocate :form.user/register)
@@ -26,16 +23,28 @@
                                                 :error/attr   :user/password
                                                 :error/entity :root
                                                 :error/rule   'root
-                                                :error/type   :required}
+                                                :error/type   :required}]))]
+                 :coeffect [{:db/ident      :root
+                             :user/login    "wrong_john"
+                             :user/password "password"}]}
+                {:effect   [:persistence.user/exists-by-login "wrong_john"]
+                 :coeffect true}
+
+                {:effect   [:ui.form/edit
+                            (-> (agg/allocate :form.user/register)
+                                (agg/apply-tx [{:db/ident      :root
+                                                :user/login    "wrong_john"
+                                                :user/password "password"}
                                                {:db/id        3
                                                 :error/attr   :user/login
                                                 :error/entity :root
                                                 :error/type   ::register/existed-login
-                                                :error/value  "john"}]))]
+                                                :error/value  "wrong_john"}]))]
                  :coeffect [{:db/ident      :root
-                             :user/login    "john_doe"
+                             :user/login    "john"
                              :user/password "password"}]}
-                {:effect   [:persistence.user/exists-by-login "john_doe"]
+
+                {:effect   [:persistence.user/exists-by-login "john"]
                  :coeffect false}
 
                 {:effect   [:hasher/derive "password"]
@@ -46,7 +55,7 @@
                           (-> (agg/allocate :form.user/register)
                               (agg/apply-tx [{:db/ident             :root
                                               :agg/id               1
-                                              :user/login           "john_doe"
+                                              :user/login           "john"
                                               :user/password        "password"
                                               :user/password-digest "digest"
                                               :user/role            :regular
