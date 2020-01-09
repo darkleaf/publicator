@@ -50,42 +50,40 @@
 (t/deftest validate
   (let [agg (agg/allocate :agg/test-agg)]
     (t/testing "required"
-      (let [agg (agg/validate agg)]
-        (t/is (= #{{:error/entity 1
-                    :error/attr   :test-agg/attr
-                    :error/rule   'root
-                    :error/type   :required}}
-                 (agg/errors agg)))))
+      (t/is (= (agg/apply-tx agg [{:error/rule   'root
+                                   :error/entity :root
+                                   :error/attr   :test-agg/attr
+                                   :error/type   :required}])
+               (agg/validate agg))))
     (t/testing "predicate"
       (let [agg (-> agg
-                    (agg/apply-tx [[:db/add :root :test-agg/attr :wrong]])
-                    (agg/validate))]
-        (t/is (= #{{:error/entity 1
-                    :error/attr   :test-agg/attr
-                    :error/value  :wrong
-                    :error/pred   `int?
-                    :error/rule   'root
-                    :error/type   :predicate}}
-                 (agg/errors agg)))))
+                    (agg/apply-tx [[:db/add :root :test-agg/attr :wrong]]))]
+        (t/is (= (agg/apply-tx agg [{:error/rule   'root
+                                     :error/entity :root
+                                     :error/attr   :test-agg/attr
+                                     :error/value  :wrong
+                                     :error/pred   `int?
+                                     :error/type   :predicate}])
+                 (agg/validate agg)))))
     (t/testing "query"
       (let [agg (-> agg
-                    (agg/apply-tx [[:db/add :root :test-agg/attr 1]])
-                    (agg/validate))]
-        (t/is (= #{{:error/entity 1
-                    :error/rule   'root
-                    :error/pred   `int?
-                    :error/query  '{:find [?v .], :where [[?e :test-agg/attr2 ?v]], :in [?e]}
-                    :error/type   :query}}
-                 (agg/errors agg)))))
+                    (agg/apply-tx [[:db/add :root :test-agg/attr 1]]))]
+        (t/is (= (agg/apply-tx agg [{:error/rule   'root
+                                     :error/entity :root
+                                     :error/pred   `int?
+                                     :error/query  '[:find ?v .
+                                                     :where [?e :test-agg/attr2 ?v]]
+                                     :error/type   :query}])
+                 (agg/validate agg)))))
     (t/testing "clear previous errors"
       (let [agg (-> agg
                     (agg/validate)
-                    (agg/apply-tx[[:db/add :root :test-agg/attr :wrong]])
-                    (agg/validate))]
-        (t/is (= #{{:error/entity 1
-                    :error/attr   :test-agg/attr
-                    :error/value  :wrong
-                    :error/pred   `int?
-                    :error/rule   'root
-                    :error/type   :predicate}}
-                 (agg/errors agg)))))))
+                    (agg/apply-tx [[:db/add :root :test-agg/attr :wrong]]))]
+        (t/is (= (agg/apply-tx agg [[:db/retractEntity 2]
+                                    {:error/rule   'root
+                                     :error/entity :root
+                                     :error/attr   :test-agg/attr
+                                     :error/value  :wrong
+                                     :error/pred   `int?
+                                     :error/type   :predicate}])
+                 (agg/validate agg)))))))

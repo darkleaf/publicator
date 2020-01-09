@@ -49,7 +49,7 @@
                                   [:db.fn/retractEntity error]))]]))
 
 (defn- schema-initial [type]
-  {})
+  {:error/entity { :db/valueType :db.type/ref}})
 
 (defonce rules (md/multi identity #'rules-initial))
 (defonce validate (md/multi u/type #'validate-initial))
@@ -59,22 +59,15 @@
   (boolean
    (not-empty
     (q agg '{:find [[?e ...]]
-             :where [[?e :error/type _]]}))))
+             :where [[?e :error/entity _]]}))))
 
 (defn has-no-errors? [agg]
   (not (has-errors? agg)))
 
-(defn errors [agg]
-  (let [errs (q agg '[:find [(pull ?e [*]) ...]
-                      :where [?e :error/type _]])]
-    (->> errs
-         (map #(dissoc % :db/id))
-         (set))))
-
 (defn check-errors [agg]
-  (if-some [errs (-> agg errors not-empty)]
+  (if (has-errors? agg)
     (throw (ex-info "Invalid aggregate"
-                    {:errors errs}))
+                    {:agg agg}))
     agg))
 
 (defn- normalize-rule-form [rule-or-form]
@@ -124,11 +117,11 @@
     agg
     (let [rule-form (normalize-rule-form rule-or-form)
           entities  (q agg [:find '[?e ...] :where rule-form])
-          query     (-> query
+          query*    (-> query
                         (normalize-query)
                         (assoc :in '[?e]))
           tx-data   (for [e    entities
-                          :let [res (q agg query e)]]
+                          :let [res (q agg query* e)]]
                       (if (not (predicate res))
                         (cond-> {:error/type   :query
                                  :error/entity e
