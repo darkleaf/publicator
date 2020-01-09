@@ -24,7 +24,7 @@
                                                 :user/login "john"}
                                                {:db/id        2
                                                 :error/attr   :user/password
-                                                :error/entity 1
+                                                :error/entity :root
                                                 :error/rule   'root
                                                 :error/type   :required}
                                                {:db/id        3
