@@ -11,7 +11,7 @@
    (with-effects)
    (if (agg/has-errors? user)
      user)
-   (let [login   (-> user agg/root :user/login)
+   (let [login   (agg/q user '[:find ?v . :where [:root :user/login ?v]])
          exists? (! (effect [:persistence.user/exists-by-login login]))])
    (if exists?
      (agg/apply-tx user [{:error/type   ::existed-login
