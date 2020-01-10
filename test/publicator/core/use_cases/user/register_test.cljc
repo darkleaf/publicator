@@ -60,7 +60,7 @@
                                               :user/password-digest "digest"
                                               :user/role            :regular
                                               :user/state           :active}]))]}
-                {:effect   [:session/assoc :current-user-id 1]
+                {:effect   [:session/update #'assoc :current-user-id 1]
                  :coeffect nil}
                 {:final-effect [:ui.screen/show :main]}]
         continuation (e/continuation register/process)]

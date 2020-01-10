@@ -74,7 +74,7 @@
 
                 {:effect   [:persistence.user/get-by-login "john"]
                  :coeffect user}
-                {:effect   [:session/assoc :current-user-id 1]
+                {:effect   [:session/update #'assoc :current-user-id 1]
                  :coeffect nil}
                 {:final-effect [:ui.screen/show :main]}]
         continuation (e/continuation log-in/process)]

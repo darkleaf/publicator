@@ -75,5 +75,5 @@
             (let [login (agg/q form '[:find ?v . :where [:root :user/login ?v]])
                   user  (! (effect [:persistence.user/get-by-login login]))
                   id    (agg/q user '[:find ?v . :where [:root :agg/id ?v]])]
-              (! (effect [:session/assoc :current-user-id id]))
+              (! (effect [:session/update #'assoc :current-user-id id]))
               (! (effect [:ui.screen/show :main])))))))))
