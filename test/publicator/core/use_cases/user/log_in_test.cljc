@@ -80,23 +80,24 @@
         continuation (e/continuation log-in/process)]
     (script/test continuation script)))
 
-;; (t/deftest process-additional-attrs
-;;   (let [script       [{:args []}
-;;                       {:effect   [:session/get]
-;;                        :coeffect {}}
-;;                       {:effect   [:ui/edit (agg/allocate :form.user/log-in)]
-;;                        :coeffect [{:db/ident      :root
-;;                                    :user/login    "john"
-;;                                    :user/password "password"
-;;                                    :user/extra    :value}]}
-;;                       {:final-effect [:ui/show-additional-attributes-error #{:user/extra}]}]
-;;         continuation (e/continuation log-in/process)]
-;;     (script/test continuation script)))
+(t/deftest process-additional-attrs
+  (let [script       [{:args []}
+                      {:effect   [:session/get]
+                       :coeffect {}}
+                      {:effect   [:ui.form/edit (agg/allocate :form.user/log-in)]
+                       :coeffect [{:db/ident      :root
+                                   :user/login    "john"
+                                   :user/password "password"
+                                   :user/extra    :value}]}
+                      {:throw (ex-info "Additional datoms"
+                                       {:additional [(agg/datom 1 :user/extra :value)]})}]
+        continuation (e/continuation log-in/process)]
+    (script/test continuation script)))
 
-;; (t/deftest process-already-logged-in
-;;   (let [script          [{:args []}
-;;                          {:effect   [:session/get]
-;;                           :coeffect {:current-user-id 1}}
-;;                          {:final-effect [:ui/show-main-screen]}]
-;;         continuation (e/continuation log-in/process)]
-;;     (script/test continuation script)))
+(t/deftest process-already-logged-in
+  (let [script       [{:args []}
+                      {:effect   [:session/get]
+                       :coeffect {:current-user-id 1}}
+                      {:final-effect [:ui.screen/show :main]}]
+        continuation (e/continuation log-in/process)]
+    (script/test continuation script)))
