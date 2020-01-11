@@ -17,26 +17,39 @@
 (defn- schema-initial [type]
   {:error/entity { :db/valueType :db.type/ref}})
 
+(defn- allowed-attribute-initial [type attr]
+  (#{"db" "error"} (namespace attr)))
+
 (defonce rules (md/multi identity #'rules-initial))
 (defonce validate (md/multi u/type #'validate-initial))
 (defonce schema (md/multi identity #'schema-initial))
-
-(defn datoms [agg]
-  (d/datoms agg :eavt))
+(defonce allowed-attribute? (md/multi (fn [type attr] type) #'allowed-attribute-initial))
 
 (def datom d/datom)
 
 (defn apply-tx [agg tx-data]
-  (d/db-with agg tx-data))
-
-(defn apply-tx* [agg tx-data]
-  (let [{:keys [tx-data db-after]} (d/with agg tx-data)]
-    [db-after tx-data]))
+  (let [agg-type   (u/type agg)
+        result     (d/with agg tx-data)
+        agg        (:db-after result)
+        datoms     (:tx-data result)
+        additional (remove (fn [{:keys [a]}]
+                             (allowed-attribute? agg-type a))
+                           datoms)]
+    (if (seq additional)
+      (throw (ex-info "Additional datoms" {:additional additional})))
+    agg))
 
 (defn allocate [type]
   (-> (d/empty-db (schema type))
       (with-meta {:type type})
-      (apply-tx [[:db/add 1 :db/ident :root]])))
+      (d/db-with [[:db/add 1 :db/ident :root]])))
+
+(defn becomes [agg type]
+  (let [new-agg (allocate type)
+        datoms (->> (d/datoms agg :eavt)
+                    (filter (fn [{:keys [a]}]
+                              (allowed-attribute? type a))))]
+    (d/db-with new-agg datoms)))
 
 (defn root [agg]
   (d/entity agg :root))

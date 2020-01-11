@@ -27,6 +27,12 @@
     (assoc (super type)
            :test-agg/many {:db/cardinality :db.cardinality/many})))
 
+(md/decorate agg/allowed-attribute? :agg/test-agg
+  (fn [super type attr]
+    (or (super type attr)
+        (#{:test-agg/attr
+           :test-agg/many} attr))))
+
 (t/deftest allocate
   (let [agg (agg/allocate :agg/test-agg)]
     (t/is (some? agg))
