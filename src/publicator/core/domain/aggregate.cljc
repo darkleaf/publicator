@@ -5,7 +5,21 @@
    [datascript.parser :as d.p]
    [darkleaf.multidecorators :as md]))
 
-(declare rules validate schema)
+(defn- rules-initial [type]
+  '[[(root ?e)
+     [?e :db/ident :root]]])
+
+(defn- validate-initial [agg]
+  (d/db-with agg [[:db.fn/call (fn clear-errors [agg]
+                                 (for [error (d/q '[:find [?e ...] :where [?e :error/type _]] agg)]
+                                   [:db.fn/retractEntity error]))]]))
+
+(defn- schema-initial [type]
+  {:error/entity { :db/valueType :db.type/ref}})
+
+(defonce rules (md/multi identity #'rules-initial))
+(defonce validate (md/multi u/type #'validate-initial))
+(defonce schema (md/multi identity #'schema-initial))
 
 (defn datoms [agg]
   (d/datoms agg :eavt))
@@ -37,23 +51,6 @@
         query  (update query :in (fn [in] (concat '[$ %] in)))
         inputs (concat [agg (-> agg u/type rules)] inputs)]
     (apply d/q query inputs)))
-
-(defn- rules-initial [type]
-  '[[(root ?e)
-     [?e :db/ident :root]]])
-
-(defn- validate-initial [agg]
-  {:pre [(d/db? agg)]}
-  (apply-tx agg [[:db.fn/call (fn clear-errors [agg]
-                                (for [error (q agg '[:find [?e ...] :where [?e :error/type _]])]
-                                  [:db.fn/retractEntity error]))]]))
-
-(defn- schema-initial [type]
-  {:error/entity { :db/valueType :db.type/ref}})
-
-(defonce rules (md/multi identity #'rules-initial))
-(defonce validate (md/multi u/type #'validate-initial))
-(defonce schema (md/multi identity #'schema-initial))
 
 (defn has-errors? [agg]
   (q agg '[:find ?e .
