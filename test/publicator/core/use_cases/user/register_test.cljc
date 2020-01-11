@@ -51,7 +51,7 @@
                  :coeffect "digest"}
                 {:effect   [:persistence/next-id :user]
                  :coeffect 1}
-                {:effect [:persistence/save
+                {:effect [:persistence/create
                           (-> (agg/allocate :agg/user)
                               (agg/apply-tx [{:db/ident             :root
                                               :agg/id               1

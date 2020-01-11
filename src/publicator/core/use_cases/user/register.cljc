@@ -80,6 +80,6 @@
                               (agg/check-errors)
                               (fill-id))
                     id   (-> user agg/root :agg/id)]
-                (! (effect [:persistence/save user]))
+                (! (effect [:persistence/create user]))
                 (! (effect [:session/update #'assoc :current-user-id id]))
                 (! (effect [:ui.screen/show :main]))))))))))
