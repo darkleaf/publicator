@@ -12,7 +12,7 @@
    (with-effects)
    (if (agg/has-errors? form)
      form)
-   (let [login    (agg/q form '[:find ?v . :where [:root :user/login ?v]])
+   (let [login    (agg/q form '[:find ?v . :where [:root :form.user.log-in/login ?v]])
          user     (! (effect [:persistence.user/get-by-login login]))
          error-tx [{:error/type   ::wrong-login-or-password
                     :error/entity :root}]])
@@ -20,7 +20,7 @@
      (agg/apply-tx form error-tx))
    (if-not (user/active? user)
      (agg/apply-tx form error-tx))
-   (let [password (agg/q form '[:find ?v . :where [:root :user/password ?v]])
+   (let [password (agg/q form '[:find ?v . :where [:root :form.user.log-in/password ?v]])
          digest   (agg/q user '[:find ?v . :where [:root :user/password-digest ?v]])
          correct? (! (effect [:hasher/check password digest]))])
    (if-not correct?
@@ -32,27 +32,18 @@
     (with-effects
       (->! (super agg)
            (agg/predicate-validator 'root
-             {:user/login    #"\w{3,255}"
-              :user/password #".{8,255}"})
+             {:form.user.log-in/login    #"\w{3,255}"
+              :form.user.log-in/password #".{8,255}"})
            (agg/required-validator  'root
-             #{:user/login
-               :user/password})
+             #{:form.user.log-in/login
+               :form.user.log-in/password})
            (authentication-validator)))))
 
-(defn- allowed-datom? [{:keys [a]}]
-  (or (#{"db" "error"} (namespace a))
-      (#{:user/login :user/password} a)))
-
-(defn- check-additional-attrs [datoms]
-  (if-some [additional (->> datoms
-                            (remove allowed-datom?)
-                            (not-empty))]
-    (throw (ex-info "Additional datoms" {:additional additional}))))
-
-(defn- update-form [form tx-data]
-  (let [[form datoms] (agg/apply-tx* form tx-data)]
-    (check-additional-attrs datoms)
-    form))
+(md/decorate agg/allowed-attribute? :form.user/log-in
+  (fn [super type attr]
+    (or (super type attr)
+        (#{:form.user.log-in/login
+           :form.user.log-in/password} attr))))
 
 (defn precondition []
   (with-effects
@@ -68,11 +59,11 @@
       (loop [form (agg/allocate :form.user/log-in)]
         (let [tx-data (! (effect [:ui.form/edit form]))
               form    (->! form
-                           (update-form tx-data)
+                           (agg/apply-tx! tx-data)
                            (agg/validate))]
           (if (agg/has-errors? form)
             (recur form)
-            (let [login (agg/q form '[:find ?v . :where [:root :user/login ?v]])
+            (let [login (agg/q form '[:find ?v . :where [:root :form.user.log-in/login ?v]])
                   user  (! (effect [:persistence.user/get-by-login login]))
                   id    (agg/q user '[:find ?v . :where [:root :agg/id ?v]])]
               (! (effect [:session/update #'assoc :current-user-id id]))
