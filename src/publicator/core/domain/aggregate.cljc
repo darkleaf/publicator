@@ -25,6 +25,11 @@
 (defonce schema (md/multi identity #'schema-initial))
 (defonce allowed-attribute? (md/multi (fn [type attr] type) #'allowed-attribute-initial))
 
+(md/decorate allowed-attribute? :agg/persisting
+  (fn [super type attr]
+    (or (super type attr)
+        (#{:agg/id} attr))))
+
 (def datom d/datom)
 
 (defn apply-tx [agg tx-data]
@@ -32,9 +37,20 @@
         result     (d/with agg tx-data)
         agg        (:db-after result)
         datoms     (:tx-data result)
-        additional (remove (fn [{:keys [a]}]
-                             (allowed-attribute? agg-type a))
-                           datoms)]
+        additional (->> datoms
+                        (remove (fn [{:keys [a]}]
+                                  (allowed-attribute? agg-type a)))
+                        (map #(assoc % :added false)))]
+    (d/db-with agg additional)))
+
+(defn apply-tx! [agg tx-data]
+  (let [agg-type   (u/type agg)
+        result     (d/with agg tx-data)
+        agg        (:db-after result)
+        datoms     (:tx-data result)
+        additional (->> datoms
+                        (remove (fn [{:keys [a]}]
+                                  (allowed-attribute? agg-type a))))]
     (if (seq additional)
       (throw (ex-info "Additional datoms" {:additional additional})))
     agg))

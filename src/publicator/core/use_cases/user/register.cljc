@@ -24,22 +24,18 @@
   (fn [super agg]
     (with-effects
       (->! (super agg)
+           (agg/predicate-validator 'root
+             {:form.user.register/password #".{8,255}"})
            (agg/required-validator 'root
-             #{:user/password})
+             #{:form.user.register/password})
            (login-validator)))))
 
+(md/decorate agg/allowed-attribute? :form.user/register
+  (fn [super type attr]
+    (or (super type attr)
+        (#{:form.user.register/password} attr))))
+
 (derive :form.user/register :agg.user/public)
-
-(defn- allowed-datom? [{:keys [a]}]
-  (or (#{"db" "error"} (namespace a))
-      (#{:user/login :user/password} a)))
-
-(defn- user->form [user]
-  (let [datoms (->> user
-                    (agg/datoms)
-                    (filter allowed-datom?))]
-    (-> (agg/allocate :form.user/register)
-        (agg/apply-tx datoms))))
 
 (defn- fill-user-defaults [user]
   (agg/apply-tx user [{:db/ident   :root
@@ -51,22 +47,11 @@
     (let [id (! (effect [:persistence/next-id :user]))]
       (agg/apply-tx user [[:db/add :root :agg/id id]]))))
 
-(defn- fill-password-digest [user]
+(defn- fill-password-digest [user form]
   (with-effects
-    (let [password (-> user agg/root :user/password)
+    (let [password (agg/q form '[:find ?v . :where [:root :form.user.register/password ?v]])
           digest   (! (effect [:hasher/derive password]))]
       (agg/apply-tx user [[:db/add :root :user/password-digest digest]]))))
-
-(defn- check-additional-attrs [datoms]
-  (if-some [additional (->> datoms
-                            (remove allowed-datom?)
-                            (not-empty))]
-    (throw (ex-info "Additional datoms" {:additional additional}))))
-
-(defn- update-form [form tx-data]
-  (let [[form datoms] (agg/apply-tx* form tx-data)]
-    (check-additional-attrs datoms)
-    form))
 
 (defn precondition []
   (with-effects
@@ -80,17 +65,17 @@
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
       (let [user (agg/allocate :agg/user)]
-        (loop [form (user->form user)]
+        (loop [form (agg/becomes user :form.user/register)]
           (let [tx-data (! (effect [:ui.form/edit form]))
                 form    (->! form
-                             (update-form tx-data)
+                             (agg/apply-tx! tx-data)
                              (agg/validate))]
             (if (agg/has-errors? form)
               (recur form)
               (let [user (->! user
                               (agg/apply-tx tx-data)
                               (fill-user-defaults)
-                              (fill-password-digest)
+                              (fill-password-digest form)
                               (agg/validate)
                               (agg/check-errors)
                               (fill-id))

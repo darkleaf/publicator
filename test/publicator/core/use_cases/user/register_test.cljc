@@ -20,29 +20,29 @@
                                 (agg/apply-tx [{:db/ident   :root
                                                 :user/login "john"}
                                                {:db/id        2
-                                                :error/attr   :user/password
+                                                :error/attr   :form.user.register/password
                                                 :error/entity :root
                                                 :error/rule   'root
                                                 :error/type   :required}]))]
-                 :coeffect [{:db/ident      :root
-                             :user/login    "wrong_john"
-                             :user/password "password"}]}
+                 :coeffect [{:db/ident                    :root
+                             :user/login                  "wrong_john"
+                             :form.user.register/password "password"}]}
                 {:effect   [:persistence.user/exists-by-login "wrong_john"]
                  :coeffect true}
 
                 {:effect   [:ui.form/edit
                             (-> (agg/allocate :form.user/register)
-                                (agg/apply-tx [{:db/ident      :root
-                                                :user/login    "wrong_john"
-                                                :user/password "password"}
+                                (agg/apply-tx [{:db/ident                    :root
+                                                :user/login                  "wrong_john"
+                                                :form.user.register/password "password"}
                                                {:db/id        3
                                                 :error/attr   :user/login
                                                 :error/entity :root
                                                 :error/type   ::register/existed-login
                                                 :error/value  "wrong_john"}]))]
-                 :coeffect [{:db/ident      :root
-                             :user/login    "john"
-                             :user/password "password"}]}
+                 :coeffect [{:db/ident                    :root
+                             :user/login                  "john"
+                             :form.user.register/password "password"}]}
 
                 {:effect   [:persistence.user/exists-by-login "john"]
                  :coeffect false}
@@ -52,11 +52,10 @@
                 {:effect   [:persistence/next-id :user]
                  :coeffect 1}
                 {:effect [:persistence/save
-                          (-> (agg/allocate :form.user/register)
+                          (-> (agg/allocate :agg/user)
                               (agg/apply-tx [{:db/ident             :root
                                               :agg/id               1
                                               :user/login           "john"
-                                              :user/password        "password"
                                               :user/password-digest "digest"
                                               :user/role            :regular
                                               :user/state           :active}]))]}
@@ -71,10 +70,10 @@
                       {:effect   [:session/get]
                        :coeffect {}}
                       {:effect   [:ui.form/edit (agg/allocate :form.user/register)]
-                       :coeffect [{:db/ident      :root
-                                   :user/login    "john"
-                                   :user/password "password"
-                                   :user/state    :archived}]}
+                       :coeffect [{:db/ident                    :root
+                                   :user/login                  "john"
+                                   :form.user.register/password "password"
+                                   :user/state                  :archived}]}
                       {:throw (ex-info "Additional datoms"
                                        {:additional [(agg/datom 1 :user/state :archived)]})}]
         continuation (e/continuation register/process)]
