@@ -1,56 +1,45 @@
-(ns publicator.core.use-cases.stream.new)
-;;   (:require
-;;    [publicator.core.domain.aggregate :as agg]
-;;    [publicator.core.domain.aggregates.user :as user]
-;;    [darkleaf.effect.core :refer [eff !]]))
+(ns publicator.core.use-cases.stream.new
+  (:require
+   [publicator.core.domain.aggregate :as agg]
+   [publicator.core.domain.aggregates.user :as user]
+   [darkleaf.effect.core :refer [with-effects effect !]]
+   [darkleaf.effect.core-analogs :refer [->!]]))
 
-;; (def allowed-attrs #{:stream.translation/lang
-;;                      :stream.translation/name
-;;                      :stream.translation/stream})
+(defn- fill-defaults [stream]
+  (agg/apply-tx stream
+                [{:db/ident     :root
+                  :stream/state :active}]))
 
-;; (defn- check-additional-attrs [datoms]
-;;   (eff
-;;     (if-some [additional (->> datoms
-;;                               (map :a)
-;;                               (remove allowed-attrs)
-;;                               (set)
-;;                               (not-empty))]
-;;       (! [:ui/show-additional-attributes-error additional]))))
+(defn- fill-id [stream]
+  (with-effects
+    (let [id (! (effect [:persistence/next-id :stream]))]
+      (agg/apply-tx stream [[:db/add :root :agg/id id]]))))
 
-;; (defn- fill-defaults [stream]
-;;   (agg/apply-tx stream
-;;                 [{:db/ident     :root
-;;                   :stream/state :active}]))
+(defn precondition []
+  (with-effects
+    (let [session (! (effect [:session/get]))
+          user-id (-> session :current-user-id)
+          user    (! (effect [:persistence/find :agg/user user-id]))]
+      (if-not (and (user/active? user)
+                   (user/admin? user))
+        (effect [:ui.screen/show :main])))))
 
-;; (defn- check-validation-errors [stream]
-;;   (eff
-;;     (if-some [errors (-> stream agg/validate agg/errors not-empty)]
-;;       (! [:ui/show-validation-errors errors]))))
-
-;; (defn- fill-id [stream]
-;;   (eff
-;;     (let [id (! [:persistence/next-id :stream])]
-;;       (agg/apply-tx stream [[:db/add :root :agg/id id]]))))
-
-;; (defn precondition []
-;;   (eff
-;;     (let [session (! [:session/get])
-;;           user-id (-> session :current-user-id)
-;;           user    (! [:persistence/find :agg/user user-id])]
-;;       (if-not (and (user/active? user)
-;;                    (user/admin? user))
-;;         [:ui/show-main-screen]))))
-
-;; (defn process []
-;;   (eff
-;;     (if-some [ex-effect (! (precondition))]
-;;       (! ex-effect)
-;;       (let [stream          (agg/allocate :agg/stream)
-;;             tx-data         (! [:ui/edit stream])
-;;             [stream datoms] (agg/apply-tx* stream tx-data)
-;;             _               (! (check-additional-attrs datoms))
-;;             stream          (! (fill-defaults stream))
-;;             _               (! (check-validation-errors stream))
-;;             stream          (! (fill-id stream))]
-;;         (! [:persistence/save stream])
-;;         (! [:ui/show-main-screen])))))
+(defn process []
+  (with-effects
+    (if-some [ex-effect (! (precondition))]
+      (! ex-effect)
+      (loop [form (agg/allocate :agg.stream/base)]
+        (let [tx-data (! (effect [:ui.form/edit form]))
+              form    (->! form
+                           (agg/apply-tx! tx-data)
+                           (agg/validate))]
+          (if (agg/has-errors? form)
+            (recur form)
+            (let [stream (->! (agg/allocate :agg/stream)
+                              (agg/apply-tx tx-data)
+                              (fill-defaults)
+                              (agg/validate)
+                              (agg/check-errors)
+                              (fill-id))]
+              (! (effect [:persistence/create stream]))
+              (! (effect [:ui.screen/show :main])))))))))

@@ -37,7 +37,7 @@
 
 (derive :form.user/register :agg.user/base)
 
-(defn- fill-user-defaults [user]
+(defn- fill-defaults [user]
   (agg/apply-tx user [{:db/ident   :root
                        :user/state :active
                        :user/role  :regular}]))
@@ -74,7 +74,7 @@
               (recur form)
               (let [user (->! user
                               (agg/apply-tx tx-data)
-                              (fill-user-defaults)
+                              (fill-defaults)
                               (fill-password-digest form)
                               (agg/validate)
                               (agg/check-errors)

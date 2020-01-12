@@ -7,19 +7,21 @@
 
 (def states #{:active :archived})
 
-(md/decorate agg/rules :agg/stream
+(md/decorate agg/schema :agg.stream/base
+  (fn [super type]
+    (assoc (super type)
+           :stream.translation/stream {:db/valueType :db.type/ref}
+           :stream.translation/lang {:db/unique :db.unique/identity})))
+
+(md/decorate agg/rules :agg.stream/base
   (fn [super type]
     (conj (super type)
           '[(translation ?e)
             [?e :stream.translation/stream :root]])))
 
-(md/decorate agg/validate :agg/stream
+(md/decorate agg/validate :agg.stream/base
   (fn [super agg]
     (-> (super agg)
-        (agg/predicate-validator 'root
-          {:stream/state states})
-        (agg/required-validator 'root
-          #{:stream/state})
         (agg/query-validator 'root
           '[:find [?lang ...]
             :with ?trans
@@ -35,8 +37,25 @@
           #{:stream.translation/lang
             :stream.translation/name}))))
 
-(md/decorate agg/schema :agg/stream
-  (fn [super type]
-    (assoc (super type)
-           :stream.translation/stream {:db/valueType :db.type/ref}
-           :stream.translation/lang {:db/unique :db.unique/identity})))
+(md/decorate agg/allowed-attribute? :agg.stream/base
+  (fn [super type attr]
+    (or (super type attr)
+        (#{:stream.translation/name
+           :stream.translation/lang
+           :stream.translation/stream} attr))))
+
+(md/decorate agg/validate :agg/stream
+  (fn [super agg]
+    (-> (super agg)
+        (agg/predicate-validator 'root
+          {:stream/state states})
+        (agg/required-validator 'root
+          #{:stream/state}))))
+
+(md/decorate agg/allowed-attribute? :agg/stream
+  (fn [super type attr]
+    (or (super type attr)
+        (#{:stream/state} attr))))
+
+(derive :agg/stream :agg/persisting)
+(derive :agg/stream :agg.stream/base)
