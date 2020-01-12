@@ -6,7 +6,7 @@
 (def states #{:active :archived})
 (def roles #{:regular :admin})
 
-(md/decorate agg/validate :agg.user/public
+(md/decorate agg/validate :agg.user/base
   (fn [super agg]
     (-> (super agg)
         (agg/predicate-validator 'root
@@ -14,44 +14,32 @@
         (agg/required-validator 'root
           #{:user/login}))))
 
-(md/decorate agg/allowed-attribute? :agg.user/public
+(md/decorate agg/allowed-attribute? :agg.user/base
   (fn [super type attr]
     (or (super type attr)
         (#{:user/login} attr))))
 
-(md/decorate agg/validate :agg.user/protected
+(md/decorate agg/validate :agg/user
   (fn [super agg]
     (-> (super agg)
         (agg/predicate-validator 'root
-          {:user/state states
-           :user/role  roles})
+          {:user/state           states
+           :user/role            roles
+           :user/password-digest #".{1,255}"})
         (agg/required-validator 'root
            #{:user/state
-             :user/role}))))
+             :user/role
+             :user/password-digest}))))
 
-(md/decorate agg/allowed-attribute? :agg.user/protected
+(md/decorate agg/allowed-attribute? :agg/user
   (fn [super type attr]
     (or (super type attr)
         (#{:user/state
-           :user/role} attr))))
-
-(md/decorate agg/validate :agg.user/private
-  (fn [super agg]
-    (-> (super agg)
-        (agg/predicate-validator 'root
-          {:user/password-digest #".{1,255}"})
-        (agg/required-validator 'root
-          #{:user/password-digest}))))
-
-(md/decorate agg/allowed-attribute? :agg.user/private
-  (fn [super type attr]
-    (or (super type attr)
-        (#{:user/password-digest} attr))))
+           :user/role
+           :user/password-digest} attr))))
 
 (derive :agg/user :agg/persisting)
-(derive :agg/user :agg.user/public)
-(derive :agg/user :agg.user/protected)
-(derive :agg/user :agg.user/private)
+(derive :agg/user :agg.user/base)
 
 (defn active? [user]
   (and (some? user)

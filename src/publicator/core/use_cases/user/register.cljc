@@ -35,7 +35,7 @@
     (or (super type attr)
         (#{:form.user.register/password} attr))))
 
-(derive :form.user/register :agg.user/public)
+(derive :form.user/register :agg.user/base)
 
 (defn- fill-user-defaults [user]
   (agg/apply-tx user [{:db/ident   :root
