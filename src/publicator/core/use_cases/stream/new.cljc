@@ -30,9 +30,9 @@
       (! ex-effect)
       (loop [form (agg/allocate :agg.stream/base)]
         (let [tx-data (! (effect [:ui.form/edit form]))
-              form    (->! form
-                           (agg/apply-tx! tx-data)
-                           (agg/validate))]
+              form    (-> form
+                          (agg/apply-tx! tx-data)
+                          (agg/validate))]
           (if (agg/has-errors? form)
             (recur form)
             (let [stream (->! (agg/allocate :agg/stream)
