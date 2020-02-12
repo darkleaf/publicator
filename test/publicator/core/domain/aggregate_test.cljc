@@ -20,64 +20,11 @@
                       :where [?e :db/ident :root]]
                     agg)))))
 
-
-(md/decorate agg/allowed-attribute? :allowed-attribute?-test/agg
-  (fn [super type attr]
-    (or (super type attr)
-        (#{:allowed-attribute?-test/attr} attr))))
-
-(t/deftest allowed-attribute?
-  (t/is (agg/allowed-attribute? :allowed-attribute?-test/agg :allowed-attribute?-test/attr))
-  (t/is (not (agg/allowed-attribute? :allowed-attribute?-test/agg :wrong)))
-
-  (t/is (agg/allowed-attribute? :allowed-attribute?-test/agg :agg/id))
-  (t/is (agg/allowed-attribute? :allowed-attribute?-test/agg :agg/some-attr))
-
-  (t/is (agg/allowed-attribute? :allowed-attribute?-test/agg :db/ident))
-  (t/is (agg/allowed-attribute? :allowed-attribute?-test/agg :db/some-attr))
-
-  (t/is (agg/allowed-attribute? :allowed-attribute?-test/agg :error/type))
-  (t/is (agg/allowed-attribute? :allowed-attribute?-test/agg :error/some-attr)))
-
-
-(md/decorate agg/schema :becomes-test/agg-from
-  (fn [super type]
-    (assoc (super type)
-           :becomes-test/many {:db/cardinality :db.cardinality/many})))
-
-(md/decorate agg/allowed-attribute? :becomes-test/agg-from
-  (fn [super type attr]
-    (or (super type attr)
-        (#{:becomes-test/attr-1
-           :becomes-test/attr-2
-           :becomes-test/many} attr))))
-
-(md/decorate agg/schema :becomes-test/agg-to
-  (fn [super type]
-    (assoc (super type)
-           :becomes-test/many {:db/cardinality :db.cardinality/many})))
-
-(md/decorate agg/allowed-attribute? :becomes-test/agg-to
-  (fn [super type attr]
-    (or (super type attr)
-        (#{:becomes-test/attr-1
-           :becomes-test/many} attr))))
-
-(t/deftest becomes
-  (let [agg-from (-> (agg/allocate :becomes-test/agg-from)
-                     (d/db-with [[:db/add :root :becomes-test/attr-1 :value-1]
-                                 [:db/add :root :becomes-test/attr-2 :value-2]
-                                 [:db/add :root :becomes-test/many 1]
-                                 [:db/add :root :becomes-test/many 2]]))
-        agg-to   (agg/becomes agg-from :becomes-test/agg-to)]
-    (t/is (= :becomes-test/agg-to (u/type agg-to)))
-    (t/is (= [(d/datom 1 :becomes-test/attr-1 :value-1)
-              #_(d/datom 1 :becomes-test/attr-2 :value-2)
-              (d/datom 1 :becomes-test/many 1)
-              (d/datom 1 :becomes-test/many 2)
-              (d/datom 1 :db/ident :root)]
-             (d/datoms agg-to :eavt)))))
-
+(t/deftest remove-errors
+  (let [agg (-> (agg/allocate :remove-errors-test/agg)
+                (d/db-with [{:error/entity :root}]))]
+    (t/is (-> agg agg/has-errors?))
+    (t/is (-> agg agg/remove-errors agg/has-no-errors?))))
 
 
 ;; (md/decorate agg/validate :agg/test-agg

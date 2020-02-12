@@ -10,77 +10,35 @@
 (defonce schema (md/multi (fn [type] type)
                           #'initial-schema))
 
-
-(defn- initial-allowed-attribute [type attr]
-  (#{"agg" "db" "error"} (namespace attr)))
-
-(defonce allowed-attribute? (md/multi (fn [type attr] type)
-                                      #'initial-allowed-attribute))
-
-
-(defn allowed-datom? [type datom]
-  (allowed-attribute? type (:a datom)))
-
 (defn allocate [type]
   (-> (d/empty-db (schema type))
       (with-meta {:type type})
       (d/db-with [[:db/add 1 :db/ident :root]])))
 
-(defn becomes [agg type]
-  (let [agg-datoms (->> (d/datoms agg :eavt)
-                        (filter #(allowed-datom? type %)))
-        agg-schema (schema type)]
-    (-> (d/init-db agg-datoms agg-schema)
-        (with-meta {:type type}))))
+(defn remove-errors [agg]
+  (let [errors  (d/q '[:find [?e ...]
+                       :where [?e :error/entity _]]
+                     agg)
+        tx-data (for [error errors]
+                  [:db.fn/retractEntity error])]
+    (d/db-with agg tx-data)))
 
+(defonce validate (md/multi (fn [agg] (u/type agg))
+                            #'remove-errors))
 
-;; (defn- validate-initial [agg]
-;;   (d/db-with agg [[:db.fn/call (fn clear-errors [agg]
-;;                                  (for [error (d/q '[:find [?e ...] :where [?e :error/type _]] agg)]
-;;                                    [:db.fn/retractEntity error]))]]))
+(defn has-errors? [agg]
+  (d/q '[:find ?e .
+         :where [?e :error/entity _]]
+       agg))
 
+(defn has-no-errors? [agg]
+  (not (has-errors? agg)))
 
-
-;; (defonce validate (md/multi u/type #'validate-initial))
-
-
-;; (defn apply-tx [agg tx-data]
-;;   (let [agg-type   (u/type agg)
-;;         result     (d/with agg tx-data)
-;;         agg        (:db-after result)
-;;         datoms     (:tx-data result)
-;;         additional (->> datoms
-;;                         (remove (fn [{:keys [a]}]
-;;                                   (allowed-attribute? agg-type a)))
-;;                         (map #(assoc % :added false)))]
-;;     (d/db-with agg additional)))
-
-;; (defn apply-tx! [agg tx-data]
-;;   (let [agg-type   (u/type agg)
-;;         result     (d/with agg tx-data)
-;;         agg        (:db-after result)
-;;         datoms     (:tx-data result)
-;;         additional (->> datoms
-;;                         (remove (fn [{:keys [a]}]
-;;                                   (allowed-attribute? agg-type a))))]
-;;     (if (seq additional)
-;;       (throw (ex-info "Additional datoms" {:additional additional})))
-;;     agg))
-
-
-
-;; (defn has-errors? [agg]
-;;   (q agg '[:find ?e .
-;;            :where [?e :error/entity _]]))
-
-;; (defn has-no-errors? [agg]
-;;   (not (has-errors? agg)))
-
-;; (defn check-errors [agg]
-;;   (if (has-errors? agg)
-;;     (throw (ex-info "Invalid aggregate"
-;;                     {:agg agg}))
-;;     agg))
+(defn check-errors! [agg]
+  (if (has-errors? agg)
+    (throw (ex-info "Invalid aggregate"
+                    {:agg agg}))
+    agg))
 
 ;; (defn- normalize-rule-form [rule-or-form]
 ;;   (cond
@@ -124,6 +82,8 @@
 ;;                        :error/rule   (first rule-form)})]
 ;;       (apply-tx agg tx-data))))
 
+
+;; удалить
 ;; (defn ^{:style/indent :defn} query-validator [agg rule-or-form query predicate]
 ;;   (if (has-errors? agg)
 ;;     agg
