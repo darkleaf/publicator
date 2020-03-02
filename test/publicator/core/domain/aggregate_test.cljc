@@ -6,34 +6,34 @@
    [datascript.core :as d]
    [clojure.test :as t]))
 
-(md/decorate agg/schema :allocate-test/agg
+(md/decorate agg/schema :allocate/agg
   (fn [super type]
     (assoc (super type)
-           :allocate-test/many {:db/cardinality :db.cardinality/many})))
+           :allocate/many {:db/cardinality :db.cardinality/many})))
 
 (t/deftest allocate
-  (let [agg (agg/allocate :allocate-test/agg)]
+  (let [agg (agg/allocate :allocate/agg)]
     (t/is (some? agg))
-    (t/is (= :allocate-test/agg (u/type agg)))
-    (t/is (-> agg :schema (contains? :allocate-test/many)))
+    (t/is (= :allocate/agg (u/type agg)))
+    (t/is (-> agg :schema (contains? :allocate/many)))
     (t/is (= 1 (d/q '[:find ?e .
                       :where [?e :db/ident :root]]
                     agg)))))
 
 (t/deftest remove-errors
-  (let [agg (-> (agg/allocate :remove-errors-test/agg)
+  (let [agg (-> (agg/allocate :remove-errors/agg)
                 (d/db-with [{:error/entity :root}]))]
     (t/is (-> agg agg/has-errors?))
     (t/is (-> agg agg/remove-errors agg/has-no-errors?))))
 
 
-(md/decorate agg/validate :validate-test/agg
+(md/decorate agg/validate :validate/agg
   (fn [super agg]
     (-> (super agg)
         (d/db-with [{:error/entity :root}]))))
 
 (t/deftest validate
-  (let [agg (-> (agg/allocate :validate-test/agg)
+  (let [agg (-> (agg/allocate :validate/agg)
                 (agg/validate)
                 (agg/validate))]
     (t/is (= [(d/datom 1 :db/ident :root)
