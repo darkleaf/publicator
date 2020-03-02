@@ -27,6 +27,20 @@
     (t/is (-> agg agg/remove-errors agg/has-no-errors?))))
 
 
+(md/decorate agg/validate :validate-test/agg
+  (fn [super agg]
+    (-> (super agg)
+        (d/db-with [{:error/entity :root}]))))
+
+(t/deftest validate
+  (let [agg (-> (agg/allocate :validate-test/agg)
+                (agg/validate)
+                (agg/validate))]
+    (t/is (= [(d/datom 1 :db/ident :root)
+              #_(d/datom 2 :error/entity 1)
+              (d/datom 3 :error/entity 1)]
+             (d/datoms agg :eavt)))))
+
 ;; (md/decorate agg/validate :agg/test-agg
 ;;   (fn [super agg]
 ;;     (-> (super agg)
