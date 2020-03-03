@@ -36,10 +36,26 @@
   (let [agg (-> (agg/allocate :validate/agg)
                 (agg/validate)
                 (agg/validate))]
-    (t/is (= [(d/datom 1 :db/ident :root)
-              #_(d/datom 2 :error/entity 1)
-              (d/datom 3 :error/entity 1)]
-             (d/datoms agg :eavt)))))
+    (t/is (= #{[1 :db/ident :root]
+               #_[2 :error/entity 1]
+               [3 :error/entity 1]}
+             (d/q '[:find ?e ?a ?v :where [?e ?a ?v]] agg)))))
+
+(t/deftest predicate-validator
+  (let [agg (-> (agg/allocate :predicate-validator/agg)
+                (d/db-with [[:db/add :root :predicate-validator/attr :wrong]])
+                (agg/predicate-validator {:predicate-validator/attr #'int?}))]
+    (t/is (= #{[1 :db/ident :root]
+               [1 :predicate-validator/attr :wrong]
+
+               [2 :error/type :predicate]
+               [2 :error/entity 1]
+               [2 :error/attr :predicate-validator/attr]
+               [2 :error/pred `int?]
+               [2 :error/value :wrong]}
+             (d/q '[:find ?e ?a ?v :where [?e ?a ?v]] agg)))))
+
+
 
 ;; (md/decorate agg/validate :agg/test-agg
 ;;   (fn [super agg]
