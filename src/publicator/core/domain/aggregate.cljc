@@ -46,7 +46,7 @@
         (->> (d/datoms agg :avet tag)
              (map :v)))))
 
-(defn ^{:style/indent :defn} required-validator [agg desc]
+(defn required-validator [agg desc]
   (let [tx-data (for [[tag attrs] desc
                       a           attrs
                       e           (entities-by-tag agg tag)
@@ -60,7 +60,7 @@
   (apply-predicate [p x])
   (predicate-as-data [p]))
 
-(defn ^{:style/indent :defn} predicate-validator [agg pred-map]
+(defn predicate-validator [agg pred-map]
   (if (has-errors? agg)
     agg
     (let [tx-data (for [[a pred] pred-map
