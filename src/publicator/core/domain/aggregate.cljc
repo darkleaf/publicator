@@ -2,6 +2,7 @@
   (:require
    [publicator.util :as u]
    [datascript.core :as d]
+   [datascript.db :as d.db]
    [darkleaf.multidecorators :as md]))
 
 (defn- initial-schema [type]
@@ -16,20 +17,15 @@
       (d/db-with [[:db/add 1 :db/ident :root]])))
 
 (defn remove-errors [agg]
-  (let [errors  (d/q '[:find [?e ...]
-                       :where [?e :error/entity _]]
-                     agg)
-        tx-data (for [error errors]
-                  [:db.fn/retractEntity error])]
-    (d/db-with agg tx-data)))
+  (->> (d/datoms agg :aevt :error/entity)
+       (map (fn [{:keys [e]}] [:db.fn/retractEntity e]))
+       (d/db-with agg)))
 
 (defonce validate (md/multi (fn [agg] (u/type agg))
                             #'remove-errors))
 
 (defn has-errors? [agg]
-  (d/q '[:find ?e .
-         :where [?e :error/entity _]]
-       agg))
+  (boolean (seq (d/datoms agg :aevt :error/entity))))
 
 (defn has-no-errors? [agg]
   (not (has-errors? agg)))
@@ -40,24 +36,25 @@
                     {:agg agg}))
     agg))
 
-;; (defn- normalize-rule-form [rule-or-form]
-;;   (cond
-;;     (symbol? rule-or-form) (list rule-or-form '?e)
-;;     (list? rule-or-form)   rule-or-form))
+(defn- entities-by-tag [agg tag]
+  "tag is an ident, ref or reveresed ref"
+  (or (->> (d/datoms agg :avet :db/ident tag)
+           (map :e) (seq))
+      (if (d.db/reverse-ref? tag)
+        (->> (d/datoms agg :avet (d.db/reverse-ref tag))
+             (map :e))
+        (->> (d/datoms agg :avet tag)
+             (map :v)))))
 
-;; (defn ^{:style/indent :defn} required-validator [agg rule-or-form attrs]
-;;   (let [rule-form (normalize-rule-form rule-or-form)
-;;         query     '{:find  [?e ?a]
-;;                     :in    [[?a ...]]
-;;                     :where [[(missing? $ ?e ?a)]]}
-;;         query     (update query :where #(into [rule-form] %))
-;;         data      (q agg query attrs)
-;;         tx-data   (for [[e a] data]
-;;                     {:error/type   :required
-;;                      :error/entity e
-;;                      :error/attr   a
-;;                      :error/rule   (first rule-form)})]
-;;     (apply-tx agg tx-data)))
+(defn ^{:style/indent :defn} required-validator [agg desc]
+  (let [tx-data (for [[tag attrs] desc
+                      a           attrs
+                      e           (entities-by-tag agg tag)
+                      :when       (empty? (d/datoms agg :eavt e a))]
+                  {:error/type   :required
+                   :error/entity e
+                   :error/attr   a})]
+    (d/db-with agg tx-data)))
 
 (defprotocol Predicate
   (apply-predicate [p x])
@@ -66,20 +63,15 @@
 (defn ^{:style/indent :defn} predicate-validator [agg pred-map]
   (if (has-errors? agg)
     agg
-    (let [query   '[:find ?e ?a ?v ?pred
-                    :in $ ?apply [[?a ?pred]]
-                    :where
-                    [?e ?a ?v]
-                    (not [(?apply ?pred ?v)])]
-          data    (d/q query agg apply-predicate pred-map)
-          tx-data (for [[e a v pred] data]
+    (let [tx-data (for [[a pred] pred-map
+                        [e _ v]     (d/datoms agg :aevt a)
+                        :when       (not (apply-predicate pred v))]
                     {:error/type   :predicate
                      :error/entity e
                      :error/attr   a
                      :error/value  v
                      :error/pred   (predicate-as-data pred)})]
       (d/db-with agg tx-data))))
-
 
 ;; (defn ^{:style/indent :defn} query-validator [agg rule-or-form query predicate]
 ;;   (if (has-errors? agg)
