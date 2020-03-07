@@ -6,7 +6,8 @@
    [darkleaf.multidecorators :as md]))
 
 (defn- initial-schema [type]
-  {:error/entity {:db/valueType :db.type/ref}})
+  {:error/entity {:db/valueType :db.type/ref}
+   :error/attr   {:db/index true}})
 
 (defonce schema (md/multi (fn [type] type)
                           #'initial-schema))
