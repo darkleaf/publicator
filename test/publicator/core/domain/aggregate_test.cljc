@@ -60,7 +60,8 @@
 (md/decorate agg/schema :required-validator/agg
   (fn [super type]
     (assoc (super type)
-           :required-validator.nested/root {:db/valueType :db.type/ref})))
+           :required-validator.nested/root {:db/valueType :db.type/ref}
+           :required-validator.nested/status {:db/index true})))
 
 (t/deftest required-validator
   (let [agg (-> (agg/allocate :required-validator/agg)
@@ -71,19 +72,29 @@
                              :required-validator.nested/root :root}
                             {:db/id                          3
                              :d                              :ok
-                             :required-validator.nested/root :root}])
-                (agg/required-validator {:root                            [:a :b]
-                                         :required-validator.nested/_root [:c :d]}))]
-    (t/is (= [[4 :error/attr :b]
-              [4 :error/entity 1]
-              [4 :error/type :required]
-
-              [5 :error/attr :c]
-              [5 :error/entity 3]
+                             :required-validator.nested/root :root}
+                            {:db/id                            4
+                             :c                                :ok
+                             :d                                :ok
+                             :required-validator.nested/root   :root
+                             :required-validator.nested/status :ready}])
+                (agg/required-validator {:root                                      [:a :b]
+                                         :required-validator.nested/_root           [:c :d]
+                                         [:required-validator.nested/status :ready] [:e]}))]
+    (t/is (= [[5 :error/attr :b]
+              [5 :error/entity 1]
               [5 :error/type :required]
 
               [6 :error/attr :d]
               [6 :error/entity 2]
-              [6 :error/type :required]]
-             (->> (d/seek-datoms agg :eavt 4)
+              [6 :error/type :required]
+
+              [7 :error/attr :c]
+              [7 :error/entity 3]
+              [7 :error/type :required]
+
+              [8 :error/attr :e]
+              [8 :error/entity 4]
+              [8 :error/type :required]]
+             (->> (d/seek-datoms agg :eavt 5)
                   (map (juxt :e :a :v)))))))

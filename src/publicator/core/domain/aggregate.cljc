@@ -37,19 +37,22 @@
     agg))
 
 (defn- entities-by-tag [agg tag]
-  "tag is an ident, ref or reveresed ref"
-  (or (->> (d/datoms agg :avet :db/ident tag)
-           (map :e) (seq))
-      (if (d.db/reverse-ref? tag)
-        (->> (d/datoms agg :avet (d.db/reverse-ref tag))
-             (map :e))
-        (->> (d/datoms agg :avet tag)
-             (map :v)))))
+  "the tag is an ident, ref, reveresed ref or attr-value pair"
+  (cond
+    (vector? tag)           (->> (apply d/datoms agg :avet tag)
+                                 (map :e))
+    (not (keyword? tag))    nil
+    (d.db/reverse-ref? tag) (->> (d/datoms agg :avet (d.db/reverse-ref tag))
+                                 (map :e))
+    (d.db/ref? agg tag)     (->> (d/datoms agg :avet tag)
+                                 (map :v))
+    :ident                  (->> (d/datoms agg :avet :db/ident tag)
+                                 (map :e))))
 
 (defn required-validator [agg desc]
   (let [tx-data (for [[tag attrs] desc
-                      a           attrs
                       e           (entities-by-tag agg tag)
+                      a           attrs
                       :when       (empty? (d/datoms agg :eavt e a))]
                   {:error/type   :required
                    :error/entity e
