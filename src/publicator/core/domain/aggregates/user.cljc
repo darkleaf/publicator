@@ -10,14 +10,14 @@
 (md/decorate agg/validate :agg/user
   (fn [super agg]
     (-> (super agg)
-        (agg/predicate-validator {:user/login            #"\w{3,255}"
-                                  :user/state            states
-                                  :user/role             roles
-                                  :user/password-digest #".{1,255}"})
         (agg/required-validator {:root [:user/login
                                         :user/state
                                         :user/role
-                                        :user/password-digest]}))))
+                                        :user/password-digest]})
+        (agg/predicate-validator {:user/login            #"\w{3,255}"
+                                  :user/state            states
+                                  :user/role             roles
+                                  :user/password-digest #".{1,255}"}))))
 
 (defn active? [user]
   (and (some? user)

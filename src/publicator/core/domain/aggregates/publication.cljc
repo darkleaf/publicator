@@ -8,19 +8,27 @@
 (def states #{:active :archived})
 (def translation-states #{:draft :published})
 
+(md/decorate agg/schema :agg/publication
+  (fn [super type]
+    (assoc (super type)
+           :publication.related/publication     {:db/valueType :db.type/ref}
+           :publication.translation/publication {:db/valueType :db.type/ref}
+           :publication.translation/state       {:db/index true}
+           :publication.translation/tags        {:db/cardinality :db.cardinality/many})))
+
 (md/decorate agg/validate :agg/publication
   (fn [super agg]
     (-> (super agg)
         (agg/required-validator
-         {:root                                 [:publication/state
-                                                 :publication/stream-id]
-          :publication.translation/_publication [:publication.translation/title
-                                                 :publication.translation/summary
-                                                 :publication.translation/state
-                                                 :publication.translation/lang
-                                                 :publication.translation/published-at]
-          :publication.related/_publication     [:publication.related/id
-                                                 :publication.related/type]})
+         {:root                                       [:publication/state
+                                                       :publication/stream-id]
+          :publication.translation/_publication       [:publication.translation/title
+                                                       :publication.translation/state
+                                                       :publication.translation/lang]
+          [:publication.translation/state :published] [:publication.translation/published-at
+                                                       :publication.translation/summary]
+          :publication.related/_publication           [:publication.related/id
+                                                       :publication.related/type]})
         (agg/predicate-validator
          {:publication/state                    states
           :publication/stream-id                #'pos-int?
@@ -40,10 +48,3 @@
                                  [?trans :publication.translation/publication ?e]
                                  [?trans :publication.translation/lang ?lang]]
                                u/distinct-coll?))))
-
-(md/decorate agg/schema :agg/publication
-  (fn [super type]
-    (assoc (super type)
-           :publication.related/publication     {:db/valueType :db.type/ref}
-           :publication.translation/publication {:db/valueType :db.type/ref}
-           :publication.translation/tags        {:db/cardinality :db.cardinality/many})))

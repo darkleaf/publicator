@@ -8,9 +8,9 @@
 (md/decorate agg/validate :agg/article
   (fn [super agg]
     (-> (super agg)
+        (agg/required-validator
+         {:root                                       [:article/image-url]
+          [:publication.translation/state :published] [:article.translation/content]})
         (agg/predicate-validator
          {:article/image-url           #".{1,255}"
-          :article.translation/content #".{1,}"})
-        (agg/required-validator
-         {:root                                 [:article/image-url]
-          :publication.translation/_publication [:article.translation/content]}))))
+          :article.translation/content #".{1,}"}))))

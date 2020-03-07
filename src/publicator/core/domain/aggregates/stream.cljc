@@ -16,19 +16,18 @@
 (md/decorate agg/validate :agg/stream
   (fn [super agg]
     (-> (super agg)
+        (agg/required-validator
+         {:root                       [:stream/state]
+          :stream.translation/_stream [:stream.translation/lang
+                                       :stream.translation/name]})
+        (agg/predicate-validator
+         {:stream/state            states
+          :stream.translation/lang langs/languages
+          :stream.translation/name #".{1,255}"})
         #_(agg/query-validator 'root
                                '[:find [?lang ...]
                                  :with ?trans
                                  :where
                                  [?trans :stream.translation/stream ?e]
                                  [?trans :stream.translation/lang ?lang]]
-                               #'langs/all-languages?)
-
-        (agg/predicate-validator
-         {:stream/state            states
-          :stream.translation/lang langs/languages
-          :stream.translation/name #".{1,255}"})
-        (agg/required-validator
-         {:root                       [:stream/state]
-          :stream.translation/_stream [:stream.translation/lang
-                                       :stream.translation/name]}))))
+                               #'langs/all-languages?))))

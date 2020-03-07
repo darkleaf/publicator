@@ -8,16 +8,15 @@
 (def states #{:active :archived})
 (def stream-participation-roles #{:regular :admin})
 
+(md/decorate agg/schema :agg/author
+  (fn [super type]
+    (assoc (super type)
+           :author.translation/author          {:db/valueType :db.type/ref}
+           :author.stream-participation/author {:db/valueType :db.type/ref})))
+
 (md/decorate agg/validate :agg/author
   (fn [super agg]
     (-> (super agg)
-        (agg/predicate-validator
-         {:author/state                          states
-          :author.translation/lang               langs/languages
-          :author.translation/first-name         #".{1,255}"
-          :author.translation/last-name          #".{1,255}"
-          :author.stream-participation/role      stream-participation-roles
-          :author.stream-participation/stream-id #'pos-int?})
         (agg/required-validator
          {:root                                [:author/state]
           :author.translation/_author          [:author.translation/lang
@@ -25,6 +24,13 @@
                                                 :author.translation/last-name]
           :author.stream-participation/_author [:author.stream-participation/role
                                                 :author.stream-participation/stream-id]})
+        (agg/predicate-validator
+         {:author/state                          states
+          :author.translation/lang               langs/languages
+          :author.translation/first-name         #".{1,255}"
+          :author.translation/last-name          #".{1,255}"
+          :author.stream-participation/role      stream-participation-roles
+          :author.stream-participation/stream-id #'pos-int?})
 
         #_(agg/query-validator 'root
                                '[:find [?lang ...]
@@ -40,9 +46,3 @@
                                  [?participation :author.stream-participation/author ?e]
                                  [?participation :author.stream-participation/stream-id ?stream-id]]
                                u/distinct-coll?))))
-
-(md/decorate agg/schema :agg/author
-  (fn [super type]
-    (assoc (super type)
-           :author.translation/author          {:db/valueType :db.type/ref}
-           :author.stream-participation/author {:db/valueType :db.type/ref})))
