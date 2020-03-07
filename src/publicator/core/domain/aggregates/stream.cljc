@@ -10,8 +10,7 @@
 (md/decorate agg/schema :agg/stream
   (fn [super type]
     (assoc (super type)
-           :stream.translation/stream {:db/valueType :db.type/ref}
-           :stream.translation/lang {:db/unique :db.unique/identity})))
+           :stream.translation/stream {:db/valueType :db.type/ref})))
 
 (md/decorate agg/validate :agg/stream
   (fn [super agg]
@@ -24,10 +23,5 @@
          {:stream/state            states
           :stream.translation/lang langs/languages
           :stream.translation/name #".{1,255}"})
-        #_(agg/query-validator 'root
-                               '[:find [?lang ...]
-                                 :with ?trans
-                                 :where
-                                 [?trans :stream.translation/stream ?e]
-                                 [?trans :stream.translation/lang ?lang]]
-                               #'langs/all-languages?))))
+        (agg/uniq-validator :stream.translation/lang)
+        (agg/count-validator :stream.translation/lang (count langs/languages)))))

@@ -31,12 +31,6 @@
           :author.translation/last-name          #".{1,255}"
           :author.stream-participation/role      stream-participation-roles
           :author.stream-participation/stream-id #'pos-int?})
-
-        #_(agg/query-validator 'root
-                               '[:find [?lang ...]
-                                 :with ?trans
-                                 :where
-                                 [?trans :author.translation/author ?e]
-                                 [?trans :author.translation/lang ?lang]]
-                               #'langs/all-languages?)
+        (agg/count-validator :author.translation/lang (count langs/languages))
+        (agg/uniq-validator :author.translation/lang)
         (agg/uniq-validator :author.stream-participation/stream-id))))
