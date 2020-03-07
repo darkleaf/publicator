@@ -98,3 +98,26 @@
               [8 :error/type :required]]
              (->> (d/seek-datoms agg :eavt 5)
                   (map (juxt :e :a :v)))))))
+
+(md/decorate agg/schema :uniq-validator/agg
+  (fn [super type]
+    (assoc (super type)
+           :uniq-validator/attr {:db/cardinality :db.cardinality/many})))
+
+(t/deftest uniq-validator
+  (let [agg (-> (agg/allocate :uniq-validator/agg)
+                (d/db-with [{:uniq-validator/attr 1}
+                            {:uniq-validator/attr [2 3]}
+                            {:uniq-validator/attr [1 3]}])
+                (agg/uniq-validator :uniq-validator/attr))]
+    (t/is (= [[5 :error/attr :uniq-validator/attr]
+              [5 :error/entity 4]
+              [5 :error/type :uniq]
+              [5 :error/value 1]
+
+              [6 :error/attr :uniq-validator/attr]
+              [6 :error/entity 4]
+              [6 :error/type :uniq]
+              [6 :error/value 3]]
+             (->> (d/seek-datoms agg :eavt 5)
+                  (map (juxt :e :a :v)))))))

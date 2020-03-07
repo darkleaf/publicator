@@ -76,24 +76,17 @@
                      :error/pred   (predicate-as-data pred)})]
       (d/db-with agg tx-data))))
 
-;; (defn ^{:style/indent :defn} query-validator [agg rule-or-form query predicate]
-;;   (if (has-errors? agg)
-;;     agg
-;;     (let [rule-form (normalize-rule-form rule-or-form)
-;;           entities  (q agg [:find '[?e ...] :where rule-form])
-;;           query*    (-> query
-;;                         (normalize-query)
-;;                         (assoc :in '[?e]))
-;;           tx-data   (for [e    entities
-;;                           :let [res (q agg query* e)]]
-;;                       (if (not (predicate res))
-;;                         (cond-> {:error/type   :query
-;;                                  :error/entity e
-;;                                  :error/pred   (predicate-as-data predicate)
-;;                                  :error/rule   (first rule-form)
-;;                                  :error/query  query}
-;;                           (some? res) (assoc :error/result res))))]
-;;       (apply-tx agg tx-data))))
+(defn uniq-validator [agg attr]
+  (let [{:keys [tx-data]} (reduce (fn [{:keys [seen], :as acc} {:keys [e v]}]
+                                    (if (seen v)
+                                      (update acc :tx-data conj {:error/type   :uniq
+                                                                 :error/entity e
+                                                                 :error/attr   attr
+                                                                 :error/value  v})
+                                      (update acc :seen conj v)))
+                                  {:seen #{}, :tx-data []}
+                                  (d/datoms agg :aevt attr))]
+    (d/db-with agg tx-data)))
 
 (extend-protocol Predicate
   #?(:clj  clojure.lang.PersistentHashSet
