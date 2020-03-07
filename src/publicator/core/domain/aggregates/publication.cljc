@@ -40,11 +40,4 @@
           :publication.translation/published-at #'inst?
           :publication.related/id               #'pos-int?
           :publication.related/type             #'keyword?})
-
-        #_(agg/query-validator 'root
-                               '[:find [?lang ...]
-                                 :with ?trans
-                                 :where
-                                 [?trans :publication.translation/publication ?e]
-                                 [?trans :publication.translation/lang ?lang]]
-                               u/distinct-coll?))))
+        (agg/uniq-validator :publication.translation/lang))))

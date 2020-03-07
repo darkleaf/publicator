@@ -39,10 +39,4 @@
                                  [?trans :author.translation/author ?e]
                                  [?trans :author.translation/lang ?lang]]
                                #'langs/all-languages?)
-        #_(agg/query-validator 'root
-                               '[:find [?stream-id ...]
-                                 :with ?participation
-                                 :where
-                                 [?participation :author.stream-participation/author ?e]
-                                 [?participation :author.stream-participation/stream-id ?stream-id]]
-                               u/distinct-coll?))))
+        (agg/uniq-validator :author.stream-participation/stream-id))))
