@@ -99,6 +99,7 @@
              (->> (d/seek-datoms agg :eavt 5)
                   (map (juxt :e :a :v)))))))
 
+
 (md/decorate agg/schema :uniq-validator/agg
   (fn [super type]
     (assoc (super type)
@@ -120,4 +121,25 @@
               [6 :error/type :uniq]
               [6 :error/value 3]]
              (->> (d/seek-datoms agg :eavt 5)
+                  (map (juxt :e :a :v)))))))
+
+
+(md/decorate agg/schema :count-validator/agg
+  (fn [super type]
+    (assoc (super type)
+           :count-validator.nested/root {:db/valueType :db.type/ref})))
+
+(t/deftest count-validator
+  (let [agg (-> (agg/allocate :count-validator/agg)
+                (d/db-with [{:count-validator.nested/root :root
+                             :count-validator.nested/attr 1}
+                            {:count-validator.nested/root :root
+                             :count-validator.nested/attr 1}])
+                (agg/count-validator :count-validator.nested/attr 3))]
+    (t/is (= [[4 :error/actual-count 2]
+              [4 :error/attr :count-validator.nested/attr]
+              [4 :error/entity 1]
+              [4 :error/expected-count 3]
+              [4 :error/type :count]]
+             (->> (d/seek-datoms agg :eavt 4)
                   (map (juxt :e :a :v)))))))
