@@ -11,7 +11,8 @@
        {:publication/state                    {:db/index true :agg/predicate states}
         :publication/stream-id                {:agg/predicate pos-int?}
         :publication.translation/publication  {:db/valueType :db.type/ref}
-        :publication.translation/lang         {:agg/predicate langs/languages}
+        :publication.translation/lang         {:agg/predicate langs/languages
+                                               :agg/uniq      true}
         :publication.translation/state        {:agg/predicate translation-states}
         :publication.translation/title        {:agg/predicate #".{1,255}"}
         :publication.translation/summary      {:agg/predicate #".{1,255}"}
@@ -34,5 +35,4 @@
         [:publication.translation/state :published] [:publication.translation/published-at
                                                      :publication.translation/summary]
         :publication.related/_publication           [:publication.related/id
-                                                     :publication.related/type]})
-      (agg/uniq-validator :publication.translation/lang)))
+                                                     :publication.related/type]})))

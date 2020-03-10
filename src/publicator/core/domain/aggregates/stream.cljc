@@ -8,7 +8,8 @@
 (swap! agg/schema merge
        {:stream/state              {:agg/predicate states}
         :stream.translation/stream {:db/valueType :db.type/ref}
-        :stream.translation/lang   {:agg/predicate langs/languages}
+        :stream.translation/lang   {:agg/predicate langs/languages
+                                    :agg/uniq      true}
         :stream.translation/name   {:agg/predicate #".{1,255}"}})
 
 (defn validate [agg]
@@ -18,5 +19,4 @@
        {:root                       [:stream/state]
         :stream.translation/_stream [:stream.translation/lang
                                      :stream.translation/name]})
-      (agg/uniq-validator :stream.translation/lang)
       (agg/count-validator :stream.translation/lang (count langs/languages))))

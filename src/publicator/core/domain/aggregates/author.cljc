@@ -10,12 +10,14 @@
 (swap! agg/schema merge
        {:author/state                          {:agg/predicate states}
         :author.translation/author             {:db/valueType :db.type/ref}
-        :author.translation/lang               {:agg/predicate langs/languages}
+        :author.translation/lang               {:agg/predicate langs/languages
+                                                :agg/uniq      true}
         :author.translation/first-name         {:agg/predicate #".{1,255}"}
         :author.translation/last-name          {:agg/predicate #".{1,255}"}
         :author.stream-participation/author    {:db/valueType :db.type/ref}
         :author.stream-participation/role      {:agg/predicate stream-participation-roles}
-        :author.stream-participation/stream-id {:agg/predicate pos-int?}})
+        :author.stream-participation/stream-id {:agg/predicate pos-int?
+                                                :agg/uniq      true}})
 
 (defn validate [agg]
   (-> agg
@@ -27,6 +29,4 @@
                                               :author.translation/last-name]
         :author.stream-participation/_author [:author.stream-participation/role
                                               :author.stream-participation/stream-id]})
-      (agg/count-validator :author.translation/lang (count langs/languages))
-      (agg/uniq-validator :author.translation/lang)
-      (agg/uniq-validator :author.stream-participation/stream-id)))
+      (agg/count-validator :author.translation/lang (count langs/languages))))
