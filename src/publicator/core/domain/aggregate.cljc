@@ -2,19 +2,13 @@
   (:require
    [publicator.util :as u]
    [datascript.core :as d]
-   [datascript.db :as d.db]
-   [darkleaf.multidecorators :as md]))
+   [datascript.db :as d.db]))
 
-(defn- initial-schema [type]
-  {:error/entity {:db/valueType :db.type/ref}
-   :error/attr   {:db/index true}})
+(defonce schema (atom {:error/entity {:db/valueType :db.type/ref}
+                       :error/attr   {:db/index true}}))
 
-(defonce schema (md/multi (fn [type] type)
-                          #'initial-schema))
-
-(defn allocate [type]
-  (-> (d/empty-db (schema type))
-      (with-meta {:type type})
+(defn allocate []
+  (-> (d/empty-db @schema)
       (d/db-with [[:db/add 1 :db/ident :root]])))
 
 (defn remove-errors [agg]
@@ -22,8 +16,27 @@
        (map (fn [{:keys [e]}] [:db.fn/retractEntity e]))
        (d/db-with agg)))
 
-(defonce validate (md/multi (fn [agg] (u/type agg))
-                            #'remove-errors))
+(defn apply-predicate [p x]
+  (cond
+    (nil? p)          true
+    (ifn? p)          (p x)
+    (and (u/regexp? p)
+         (string? x)) (re-matches p x)))
+
+(defn predicate-validator [agg]
+  (let [tx-data (for [[e a v] (d/datoms agg :aevt)
+                      :let    [pred (get-in agg [:schema a :agg/predicate])]
+                      :when   (not (apply-predicate pred v))]
+                  {:error/type   :predicate
+                   :error/entity e
+                   :error/attr   a
+                   :error/value  v})]
+    (d/db-with agg tx-data)))
+
+(defn validate [agg]
+  (-> agg
+      (remove-errors)
+      (predicate-validator)))
 
 (defn has-errors? [agg]
   (boolean (seq (d/datoms agg :aevt :error/entity))))
@@ -60,23 +73,6 @@
                    :error/attr   a})]
     (d/db-with agg tx-data)))
 
-(defprotocol Predicate
-  (apply-predicate [p x])
-  (predicate-as-data [p]))
-
-(defn predicate-validator [agg pred-map]
-  (if (has-errors? agg)
-    agg
-    (let [tx-data (for [[a pred] pred-map
-                        [e _ v]     (d/datoms agg :aevt a)
-                        :when       (not (apply-predicate pred v))]
-                    {:error/type   :predicate
-                     :error/entity e
-                     :error/attr   a
-                     :error/value  v
-                     :error/pred   (predicate-as-data pred)})]
-      (d/db-with agg tx-data))))
-
 (defn uniq-validator [agg attr]
   (let [{:keys [tx-data]} (reduce (fn [{:keys [seen], :as acc} {:keys [e v]}]
                                     (if (seen v)
@@ -99,21 +95,3 @@
                        :error/attr           attr
                        :error/actual-count   actual-count
                        :error/expected-count expected-count}]))))
-
-(extend-protocol Predicate
-  #?(:clj  clojure.lang.PersistentHashSet
-     :cljs cljs.core/PersistentHashSet)
-  (apply-predicate [p x] (p x))
-  (predicate-as-data [p] p)
-
-  #?(:clj  clojure.lang.Var
-     :cljs cljs.core/Var)
-  (apply-predicate [p x] (p x))
-  (predicate-as-data [p] (symbol p))
-
-  #?(:clj  java.util.regex.Pattern
-     :cljs js/RegExp)
-  (apply-predicate [p x]
-    (and (string? x)
-         (re-matches p x)))
-  (predicate-as-data [p] (str p)))

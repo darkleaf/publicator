@@ -22,3 +22,8 @@
 
 (defn type [x]
   (-> x meta :type))
+
+(defn regexp? [x]
+  (instance? #?(:clj  java.util.regex.Pattern
+                :cljs js/RegExp)
+             x))
