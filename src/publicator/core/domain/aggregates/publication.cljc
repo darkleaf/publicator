@@ -2,42 +2,39 @@
   (:require
    [publicator.util :as u]
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.domain.languages :as langs]
-   [darkleaf.multidecorators :as md]))
+   [publicator.core.domain.languages :as langs]))
 
 (def states #{:active :archived})
 (def translation-states #{:draft :published})
 
-(md/decorate agg/schema :agg/publication
-  (fn [super type]
-    (assoc (super type)
-           :publication.related/publication     {:db/valueType :db.type/ref}
-           :publication.translation/publication {:db/valueType :db.type/ref}
-           :publication.translation/state       {:db/index true}
-           :publication.translation/tags        {:db/cardinality :db.cardinality/many})))
+(swap! agg/schema assoc
+       :publication/state                    {:db/index true :agg/predicate states}
+       :publication/stream-id                {:agg/predicate pos-int?}
 
-(md/decorate agg/validate :agg/publication
-  (fn [super agg]
-    (-> (super agg)
-        (agg/required-validator
-         {:root                                       [:publication/state
-                                                       :publication/stream-id]
-          :publication.translation/_publication       [:publication.translation/title
-                                                       :publication.translation/state
-                                                       :publication.translation/lang]
-          [:publication.translation/state :published] [:publication.translation/published-at
-                                                       :publication.translation/summary]
-          :publication.related/_publication           [:publication.related/id
-                                                       :publication.related/type]})
-        (agg/predicate-validator
-         {:publication/state                    states
-          :publication/stream-id                #'pos-int?
-          :publication.translation/lang         langs/languages
-          :publication.translation/state        translation-states
-          :publication.translation/title        #".{1,255}"
-          :publication.translation/summary      #".{1,255}"
-          :publication.translation/tags         #".{1,255}"
-          :publication.translation/published-at #'inst?
-          :publication.related/id               #'pos-int?
-          :publication.related/type             #'keyword?})
-        (agg/uniq-validator :publication.translation/lang))))
+       :publication.translation/publication  {:db/valueType :db.type/ref}
+       :publication.translation/lang         {:agg/predicate langs/languages}
+       :publication.translation/state        {:agg/predicate translation-states}
+       :publication.translation/title        {:agg/predicate #".{1,255}"}
+       :publication.translation/summary      {:agg/predicate #".{1,255}"}
+       :publication.translation/published-at {:agg/predicate inst?}
+       :publication.translation/tags         {:db/cardinality :db.cardinality/many
+                                              :agg/predicate  #".{1,255}"}
+
+       :publication.related/publication      {:db/valueType :db.type/ref}
+       :publication.related/id               {:agg/predicate pos-int?}
+       :publication.related/type             {:agg/predicate keyword?})
+
+(defn validate [agg]
+  (-> agg
+      (agg/validate)
+      (agg/required-validator
+       {:root                                       [:publication/state
+                                                     :publication/stream-id]
+        :publication.translation/_publication       [:publication.translation/title
+                                                     :publication.translation/state
+                                                     :publication.translation/lang]
+        [:publication.translation/state :published] [:publication.translation/published-at
+                                                     :publication.translation/summary]
+        :publication.related/_publication           [:publication.related/id
+                                                     :publication.related/type]})
+      (agg/uniq-validator :publication.translation/lang)))

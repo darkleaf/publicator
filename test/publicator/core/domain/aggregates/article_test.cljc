@@ -1,11 +1,12 @@
 (ns publicator.core.domain.aggregates.article-test
   (:require
    [publicator.core.domain.aggregate :as agg]
+   [publicator.core.domain.aggregates.article :as article]
    [datascript.core :as d]
    [clojure.test :as t]))
 
 (t/deftest has-no-errors
-  (let [agg (-> (agg/allocate :agg/article)
+  (let [agg (-> (agg/allocate)
                 (d/db-with [{:db/ident              :root
                              :publication/state     :active
                              :publication/stream-id 1
@@ -20,5 +21,5 @@
                             {:publication.related/publication :root
                              :publication.related/id          1
                              :publication.related/type        :article}])
-                (agg/validate))]
+                (article/validate))]
     (t/is (agg/has-no-errors? agg))))

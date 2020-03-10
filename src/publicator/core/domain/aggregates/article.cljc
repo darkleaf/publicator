@@ -1,16 +1,15 @@
 (ns publicator.core.domain.aggregates.article
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [darkleaf.multidecorators :as md]))
+   [publicator.core.domain.aggregates.publication :as publication]))
 
-(derive :agg/article :agg/publication)
+(swap! agg/schema assoc
+       :article/image-url           {:agg/predicate #".{1,255}"}
+       :article.translation/content {:agg/predicate #".{1,}"})
 
-(md/decorate agg/validate :agg/article
-  (fn [super agg]
-    (-> (super agg)
-        (agg/required-validator
-         {:root                                       [:article/image-url]
-          [:publication.translation/state :published] [:article.translation/content]})
-        (agg/predicate-validator
-         {:article/image-url           #".{1,255}"
-          :article.translation/content #".{1,}"}))))
+(defn validate [agg]
+  (-> agg
+      (publication/validate)
+      (agg/required-validator
+       {:root                                       [:article/image-url]
+        [:publication.translation/state :published] [:article.translation/content]})))

@@ -1,11 +1,12 @@
 (ns publicator.core.domain.aggregates.author-test
   (:require
    [publicator.core.domain.aggregate :as agg]
+   [publicator.core.domain.aggregates.author :as author]
    [datascript.core :as d]
    [clojure.test :as t]))
 
 (t/deftest has-no-errors
-  (let [agg (-> (agg/allocate :agg/author)
+  (let [agg (-> (agg/allocate)
                 (d/db-with [{:db/ident     :root
                              :author/state :active}
                             {:author.translation/author     :root
@@ -19,5 +20,5 @@
                             {:author.stream-participation/author    :root
                              :author.stream-participation/role      :admin
                              :author.stream-participation/stream-id 1}])
-                (agg/validate))]
+                (author/validate))]
     (t/is (agg/has-no-errors? agg))))

@@ -1,23 +1,25 @@
 (ns publicator.core.domain.aggregates.user
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [datascript.core :as d]
-   [darkleaf.multidecorators :as md]))
+   [datascript.core :as d]))
 
 (def states #{:active :archived})
 (def roles #{:regular :admin})
 
-(md/decorate agg/validate :agg/user
-  (fn [super agg]
-    (-> (super agg)
-        (agg/required-validator {:root [:user/login
-                                        :user/state
-                                        :user/role
-                                        :user/password-digest]})
-        (agg/predicate-validator {:user/login            #"\w{3,255}"
-                                  :user/state            states
-                                  :user/role             roles
-                                  :user/password-digest #".{1,255}"}))))
+(swap! agg/schema assoc
+       :user/login           {:agg/predicate #"\w{3,255}"}
+       :user/state           {:agg/predicate states}
+       :user/role            {:agg/predicate roles}
+       :user/password-digest {:agg/predicate #".{1,255}"})
+
+(defn validate [agg]
+  (-> agg
+      (agg/validate)
+      (agg/required-validator
+       {:root [:user/login
+               :user/state
+               :user/role
+               :user/password-digest]})))
 
 (defn active? [user]
   (and (some? user)
