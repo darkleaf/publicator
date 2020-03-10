@@ -5,8 +5,8 @@
    [datascript.core :as d]
    [clojure.test :as t]))
 
-(swap! agg/schema assoc
-       :allocate-test/many {:db/cardinality :db.cardinality/many})
+(swap! agg/schema merge
+       {:allocate-test/many {:db/cardinality :db.cardinality/many}})
 
 (t/deftest allocate
   (let [agg (agg/allocate)]
@@ -23,8 +23,8 @@
     (t/is (-> agg agg/remove-errors agg/has-no-errors?))))
 
 
-(swap! agg/schema assoc
-       :predicate-validator-test/attr {:agg/predicate #{:ok}})
+(swap! agg/schema merge
+       {:predicate-validator-test/attr {:agg/predicate #{:ok}}})
 
 (t/deftest predicate-validator
   (let [agg (-> (agg/allocate)
@@ -39,9 +39,9 @@
                   (map (juxt :e :a :v)))))))
 
 
-(swap! agg/schema assoc
-       :required-validator-test.nested/root {:db/valueType :db.type/ref}
-       :required-validator-test.nested/status {:db/index true})
+(swap! agg/schema merge
+       {:required-validator-test.nested/root   {:db/valueType :db.type/ref}
+        :required-validator-test.nested/status {:db/index true}})
 
 (t/deftest required-validator
   (let [agg (-> (agg/allocate)
@@ -85,8 +85,8 @@
                   (map (juxt :e :a :v)))))))
 
 
-(swap! agg/schema assoc
-       :uniq-validator-test/attr {:db/cardinality :db.cardinality/many})
+(swap! agg/schema merge
+       {:uniq-validator-test/attr {:db/cardinality :db.cardinality/many}})
 
 (t/deftest uniq-validator
   (let [agg (-> (agg/allocate)
@@ -107,8 +107,8 @@
                   (map (juxt :e :a :v)))))))
 
 
-(swap! agg/schema assoc
-       :count-validator-test.nested/root {:db/valueType :db.type/ref})
+(swap! agg/schema merge
+       {:count-validator-test.nested/root {:db/valueType :db.type/ref}})
 
 (t/deftest count-validator
   (let [agg (-> (agg/allocate)

@@ -3,9 +3,9 @@
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.publication :as publication]))
 
-(swap! agg/schema assoc
-       :article/image-url           {:agg/predicate #".{1,255}"}
-       :article.translation/content {:agg/predicate #".{1,}"})
+(swap! agg/schema merge
+       {:article/image-url           {:agg/predicate #".{1,255}"}
+        :article.translation/content {:agg/predicate #".{1,}"}})
 
 (defn validate [agg]
   (-> agg

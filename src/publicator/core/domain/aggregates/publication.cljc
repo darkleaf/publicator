@@ -7,22 +7,20 @@
 (def states #{:active :archived})
 (def translation-states #{:draft :published})
 
-(swap! agg/schema assoc
-       :publication/state                    {:db/index true :agg/predicate states}
-       :publication/stream-id                {:agg/predicate pos-int?}
-
-       :publication.translation/publication  {:db/valueType :db.type/ref}
-       :publication.translation/lang         {:agg/predicate langs/languages}
-       :publication.translation/state        {:agg/predicate translation-states}
-       :publication.translation/title        {:agg/predicate #".{1,255}"}
-       :publication.translation/summary      {:agg/predicate #".{1,255}"}
-       :publication.translation/published-at {:agg/predicate inst?}
-       :publication.translation/tags         {:db/cardinality :db.cardinality/many
-                                              :agg/predicate  #".{1,255}"}
-
-       :publication.related/publication      {:db/valueType :db.type/ref}
-       :publication.related/id               {:agg/predicate pos-int?}
-       :publication.related/type             {:agg/predicate keyword?})
+(swap! agg/schema merge
+       {:publication/state                    {:db/index true :agg/predicate states}
+        :publication/stream-id                {:agg/predicate pos-int?}
+        :publication.translation/publication  {:db/valueType :db.type/ref}
+        :publication.translation/lang         {:agg/predicate langs/languages}
+        :publication.translation/state        {:agg/predicate translation-states}
+        :publication.translation/title        {:agg/predicate #".{1,255}"}
+        :publication.translation/summary      {:agg/predicate #".{1,255}"}
+        :publication.translation/published-at {:agg/predicate inst?}
+        :publication.translation/tags         {:db/cardinality :db.cardinality/many
+                                               :agg/predicate  #".{1,255}"}
+        :publication.related/publication      {:db/valueType :db.type/ref}
+        :publication.related/id               {:agg/predicate pos-int?}
+        :publication.related/type             {:agg/predicate keyword?}})
 
 (defn validate [agg]
   (-> agg

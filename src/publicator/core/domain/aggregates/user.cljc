@@ -6,11 +6,11 @@
 (def states #{:active :archived})
 (def roles #{:regular :admin})
 
-(swap! agg/schema assoc
-       :user/login           {:agg/predicate #"\w{3,255}"}
-       :user/state           {:agg/predicate states}
-       :user/role            {:agg/predicate roles}
-       :user/password-digest {:agg/predicate #".{1,255}"})
+(swap! agg/schema merge
+       {:user/login           {:agg/predicate #"\w{3,255}"}
+        :user/state           {:agg/predicate states}
+        :user/role            {:agg/predicate roles}
+        :user/password-digest {:agg/predicate #".{1,255}"}})
 
 (defn validate [agg]
   (-> agg

@@ -5,11 +5,11 @@
 
 (def states #{:active :archived})
 
-(swap! agg/schema assoc
-       :stream/state              {:agg/predicate states}
-       :stream.translation/stream {:db/valueType :db.type/ref}
-       :stream.translation/lang   {:agg/predicate langs/languages}
-       :stream.translation/name   {:agg/predicate #".{1,255}"})
+(swap! agg/schema merge
+       {:stream/state              {:agg/predicate states}
+        :stream.translation/stream {:db/valueType :db.type/ref}
+        :stream.translation/lang   {:agg/predicate langs/languages}
+        :stream.translation/name   {:agg/predicate #".{1,255}"}})
 
 (defn validate [agg]
   (-> agg

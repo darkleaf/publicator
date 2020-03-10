@@ -7,17 +7,15 @@
 (def states #{:active :archived})
 (def stream-participation-roles #{:regular :admin})
 
-(swap! agg/schema assoc
-       :author/state                          {:agg/predicate states}
-
-       :author.translation/author             {:db/valueType :db.type/ref}
-       :author.translation/lang               {:agg/predicate langs/languages}
-       :author.translation/first-name         {:agg/predicate #".{1,255}"}
-       :author.translation/last-name          {:agg/predicate #".{1,255}"}
-
-       :author.stream-participation/author    {:db/valueType :db.type/ref}
-       :author.stream-participation/role      {:agg/predicate stream-participation-roles}
-       :author.stream-participation/stream-id {:agg/predicate pos-int?})
+(swap! agg/schema merge
+       {:author/state                          {:agg/predicate states}
+        :author.translation/author             {:db/valueType :db.type/ref}
+        :author.translation/lang               {:agg/predicate langs/languages}
+        :author.translation/first-name         {:agg/predicate #".{1,255}"}
+        :author.translation/last-name          {:agg/predicate #".{1,255}"}
+        :author.stream-participation/author    {:db/valueType :db.type/ref}
+        :author.stream-participation/role      {:agg/predicate stream-participation-roles}
+        :author.stream-participation/stream-id {:agg/predicate pos-int?}})
 
 (defn validate [agg]
   (-> agg
