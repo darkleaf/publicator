@@ -1,57 +1,56 @@
 (ns publicator.core.use-cases.user.register
   (:require
    [publicator.core.domain.aggregate :as agg]
+   [publicator.core.domain.aggregates.user :as user]
    [publicator.util :as u]
-   [darkleaf.multidecorators :as md]
    [darkleaf.effect.core :refer [with-effects ! effect]]
-   [darkleaf.effect.core-analogs :refer [->!]]))
+   [darkleaf.effect.core-analogs :refer [->!]]
+   [datascript.core :as d]))
 
-(defn- login-validator [user]
+(defn- login-validator [agg]
   (u/<<-
    (with-effects)
-   (if (agg/has-errors? user)
-     user)
-   (let [login   (agg/q user '[:find ?v . :where [:root :user/login ?v]])
+   (if (agg/has-errors? agg)
+     agg)
+   (let [login   (d/q '[:find ?v . :where [:root :user/login ?v]] agg)
          exists? (! (effect [:persistence.user/exists-by-login login]))])
    (if exists?
-     (agg/apply-tx user [{:error/type   ::existed-login
-                          :error/entity :root
-                          :error/attr   :user/login
-                          :error/value  login}]))
-   user))
+     (d/db-with agg [{:error/type   ::existed-login
+                      :error/entity :root
+                      :error/attr   :user/login
+                      :error/value  login}]))
+   agg))
 
-(md/decorate agg/validate :form.user/register
-  (fn [super agg]
-    (with-effects
-      (->! (super agg)
-           (agg/predicate-validator 'root
-             {:form.user.register/password #".{8,255}"})
-           (agg/required-validator 'root
-             #{:form.user.register/password})
-           (login-validator)))))
+(swap! agg/schema merge
+       {:form.user.register/password {:agg/predicate #".{8,255}"}})
 
-(md/decorate agg/allowed-attribute? :form.user/register
-  (fn [super type attr]
-    (or (super type attr)
-        (#{:form.user.register/password} attr))))
+(defn validate-form [form]
+  (with-effects
+    (->! form
+         (agg/validate)
+         (agg/required-validator {:root [:user/login
+                                         :form.user.register/password]})
+         (login-validator))))
 
-(derive :form.user/register :agg.user/base)
 
 (defn- fill-defaults [user]
-  (agg/apply-tx user [{:db/ident   :root
-                       :user/state :active
-                       :user/role  :regular}]))
+  (d/db-with user [{:db/ident   :root
+                    :user/state :active
+                    :user/role  :regular}]))
 
 (defn- fill-id [user]
   (with-effects
     (let [id (! (effect [:persistence/next-id :user]))]
-      (agg/apply-tx user [[:db/add :root :agg/id id]]))))
+      (d/db-with user [[:db/add :root :agg/id id]]))))
 
-(defn- fill-password-digest [user form]
+(defn- fill-password-digest [user]
   (with-effects
-    (let [password (agg/q form '[:find ?v . :where [:root :form.user.register/password ?v]])
+    (let [password (d/q '[:find ?v . :where [:root :form.user.register/password ?v]] user)
           digest   (! (effect [:hasher/derive password]))]
-      (agg/apply-tx user [[:db/add :root :user/password-digest digest]]))))
+      (d/db-with user [[:db/add :root :user/password-digest digest]
+                       [:db/retract :root :form.user.register/password password]]))))
+
+(def allowed-attrs #{:user/login :form.user.register/password})
 
 (defn precondition []
   (with-effects
@@ -64,22 +63,23 @@
   (with-effects
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (let [user (agg/allocate :agg/user)]
-        (loop [form (agg/becomes user :form.user/register)]
-          (let [tx-data (! (effect [:ui.form/edit form]))
-                form    (->! form
-                             (agg/apply-tx! tx-data)
-                             (agg/validate))]
-            (if (agg/has-errors? form)
-              (recur form)
-              (let [user (->! user
-                              (agg/apply-tx tx-data)
-                              (fill-defaults)
-                              (fill-password-digest form)
-                              (agg/validate)
-                              (agg/check-errors)
-                              (fill-id))
-                    id   (-> user agg/root :agg/id)]
-                (! (effect [:persistence/create user]))
-                (! (effect [:session/update #'assoc :current-user-id id]))
-                (! (effect [:ui.screen/show :main]))))))))))
+      (loop [form (agg/allocate)]
+        (let [tx-data (! (effect [:ui.form/edit form]))
+              form    (->! form
+                           (d/with tx-data)
+                           (agg/check-extra-attrs! allowed-attrs)
+                           :db-after
+                           (validate-form))]
+          (if (agg/has-errors? form)
+            (recur form)
+            (let [user (->! (agg/allocate)
+                            (d/db-with tx-data)
+                            (fill-password-digest)
+                            (fill-defaults)
+                            (agg/validate)
+                            (agg/check-errors!)
+                            (fill-id))
+                  id   (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
+              (! (effect [:persistence/create user]))
+              (! (effect [:session/update #'assoc :current-user-id id]))
+              (! (effect [:ui.screen/show :main])))))))))
