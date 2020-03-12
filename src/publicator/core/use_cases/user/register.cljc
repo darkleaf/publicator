@@ -21,17 +21,12 @@
                       :error/value  login}]))
    agg))
 
-(swap! agg/schema merge
-       {:form.user.register/password {:agg/predicate #".{8,255}"}})
-
 (defn validate-form [form]
   (with-effects
     (->! form
          (agg/validate)
-         (agg/required-validator {:root [:user/login
-                                         :form.user.register/password]})
+         (agg/required-validator {:root [:user/login :user/password]})
          (login-validator))))
-
 
 (defn- fill-defaults [user]
   (d/db-with user [{:db/ident   :root
@@ -45,12 +40,12 @@
 
 (defn- fill-password-digest [user]
   (with-effects
-    (let [password (d/q '[:find ?v . :where [:root :form.user.register/password ?v]] user)
+    (let [password (d/q '[:find ?v . :where [:root :user/password ?v]] user)
           digest   (! (effect [:hasher/derive password]))]
       (d/db-with user [[:db/add :root :user/password-digest digest]
-                       [:db/retract :root :form.user.register/password password]]))))
+                       [:db/retract :root :user/password password]]))))
 
-(def allowed-attrs #{:user/login :form.user.register/password})
+(def allowed-attrs #{:user/login :user/password})
 
 (defn precondition []
   (with-effects
