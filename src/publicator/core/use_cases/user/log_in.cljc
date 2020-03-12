@@ -5,45 +5,36 @@
    [publicator.util :as u]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]
-   [darkleaf.multidecorators :as md]))
+   [datascript.core :as d]))
 
 (defn- authentication-validator [form]
   (u/<<-
    (with-effects)
    (if (agg/has-errors? form)
      form)
-   (let [login    (agg/q form '[:find ?v . :where [:root :form.user.log-in/login ?v]])
+   (let [login    (d/q '[:find ?v . :where [:root :user/login ?v]] form)
          user     (! (effect [:persistence.user/get-by-login login]))
          error-tx [{:error/type   ::wrong-login-or-password
                     :error/entity :root}]])
    (if (nil? user)
-     (agg/apply-tx form error-tx))
+     (d/db-with form error-tx))
    (if-not (user/active? user)
-     (agg/apply-tx form error-tx))
-   (let [password (agg/q form '[:find ?v . :where [:root :form.user.log-in/password ?v]])
-         digest   (agg/q user '[:find ?v . :where [:root :user/password-digest ?v]])
+     (d/db-with form error-tx))
+   (let [password (d/q '[:find ?v . :where [:root :user/password ?v]] form)
+         digest   (d/q '[:find ?v . :where [:root :user/password-digest ?v]] user)
          correct? (! (effect [:hasher/check password digest]))])
    (if-not correct?
-     (agg/apply-tx form error-tx))
+     (d/db-with form error-tx))
    form))
 
-(md/decorate agg/validate :form.user/log-in
-  (fn [super agg]
-    (with-effects
-      (->! (super agg)
-           (agg/predicate-validator 'root
-             {:form.user.log-in/login    #"\w{3,255}"
-              :form.user.log-in/password #".{8,255}"})
-           (agg/required-validator  'root
-             #{:form.user.log-in/login
-               :form.user.log-in/password})
-           (authentication-validator)))))
+(defn validate-form [form]
+  (with-effects
+    (->! form
+         (agg/validate)
+         (agg/required-validator {:root [:user/login :user/password]})
+         (authentication-validator))))
 
-(md/decorate agg/allowed-attribute? :form.user/log-in
-  (fn [super type attr]
-    (or (super type attr)
-        (#{:form.user.log-in/login
-           :form.user.log-in/password} attr))))
+(def allowed-attributes #{:user/login :user/password})
 
 (defn precondition []
   (with-effects
@@ -56,15 +47,17 @@
   (with-effects
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (loop [form (agg/allocate :form.user/log-in)]
+      (loop [form (agg/allocate)]
         (let [tx-data (! (effect [:ui.form/edit form]))
               form    (->! form
-                           (agg/apply-tx! tx-data)
-                           (agg/validate))]
+                           (d/with tx-data)
+                           (agg/check-extra-attrs! allowed-attributes)
+                           :db-after
+                           (validate-form))]
           (if (agg/has-errors? form)
             (recur form)
-            (let [login (agg/q form '[:find ?v . :where [:root :form.user.log-in/login ?v]])
+            (let [login (d/q '[:find ?v . :where [:root :user/login ?v]] form)
                   user  (! (effect [:persistence.user/get-by-login login]))
-                  id    (agg/q user '[:find ?v . :where [:root :agg/id ?v]])]
-              (! (effect [:session/update #'assoc :current-user-id id]))
+                  id    (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
+              (! (effect [:session/assoc :current-user-id id]))
               (! (effect [:ui.screen/show :main])))))))))
