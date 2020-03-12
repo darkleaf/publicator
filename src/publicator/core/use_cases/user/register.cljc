@@ -40,7 +40,7 @@
 
 (defn- fill-id [user]
   (with-effects
-    (let [id (! (effect [:persistence/next-id :user]))]
+    (let [id (! (effect [:persistence.user/next-id]))]
       (d/db-with user [[:db/add :root :agg/id id]]))))
 
 (defn- fill-password-digest [user]
@@ -80,6 +80,6 @@
                             (agg/check-errors!)
                             (fill-id))
                   id   (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
-              (! (effect [:persistence/create user]))
+              (! (effect [:persistence.user/create user]))
               (! (effect [:session/update #'assoc :current-user-id id]))
               (! (effect [:ui.screen/show :main])))))))))

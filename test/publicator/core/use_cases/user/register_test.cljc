@@ -49,9 +49,9 @@
 
                 {:effect   [:hasher/derive "password"]
                  :coeffect "digest"}
-                {:effect   [:persistence/next-id :user]
+                {:effect   [:persistence.user/next-id]
                  :coeffect 1}
-                {:effect [:persistence/create
+                {:effect [:persistence.user/create
                           (-> (agg/allocate)
                               (d/db-with [{:db/ident             :root
                                            :agg/id               1
