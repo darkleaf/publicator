@@ -71,7 +71,7 @@
                             (d/db-with tx-data)
                             (fill-password-digest)
                             (fill-defaults)
-                            (agg/validate)
+                            (user/validate)
                             (agg/check-errors!)
                             (fill-id))
                   id   (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
