@@ -81,5 +81,5 @@
                             (fill-id))
                   id   (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
               (! (effect [:persistence.user/create user]))
-              (! (effect [:session/update #'assoc :current-user-id id]))
+              (! (effect [:session/assoc :current-user-id id]))
               (! (effect [:ui.screen/show :main])))))))))
