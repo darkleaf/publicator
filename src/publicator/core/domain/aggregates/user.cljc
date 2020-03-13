@@ -10,7 +10,8 @@
        {:user/login           {:agg/predicate #"\w{3,255}"}
         :user/state           {:agg/predicate states}
         :user/role            {:agg/predicate roles}
-        :user/password-digest {:agg/predicate #".{1,255}"}})
+        :user/password-digest {:agg/predicate #".{1,255}"}
+        :user/password        {:agg/predicate #".{8,255}"}})
 
 (defn validate [agg]
   (-> agg
