@@ -2,24 +2,39 @@
   (:require
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.user :as user]
+   [publicator.core.domain.aggregates.stream :as stream]
+   [publicator.core.domain.languages :as langs]
    [darkleaf.effect.core :refer [with-effects effect !]]
-   [darkleaf.effect.core-analogs :refer [->!]]))
+   [darkleaf.effect.core-analogs :refer [->!]]
+   [datascript.core :as d]))
 
 (defn- fill-defaults [stream]
-  (agg/apply-tx stream
-                [{:db/ident     :root
-                  :stream/state :active}]))
+  (d/db-with stream
+             [{:db/ident     :root
+               :stream/state :active}]))
 
 (defn- fill-id [stream]
   (with-effects
-    (let [id (! (effect [:persistence/next-id :stream]))]
-      (agg/apply-tx stream [[:db/add :root :agg/id id]]))))
+    (let [id (! (effect [:persistence.stream/next-id]))]
+      (d/db-with stream [[:db/add :root :agg/id id]]))))
+
+(defn validate-form [form]
+  (-> form
+      (agg/validate)
+      (agg/required-validator
+       {:stream.translation/_stream [:stream.translation/lang
+                                     :stream.translation/name]})
+      (agg/count-validator :stream.translation/lang (count langs/languages))))
+
+(def allowed-attributes #{:stream.translation/stream
+                          :stream.translation/lang
+                          :stream.translation/name})
 
 (defn precondition []
   (with-effects
     (let [session (! (effect [:session/get]))
           user-id (-> session :current-user-id)
-          user    (! (effect [:persistence/find :agg/user user-id]))]
+          user    (! (effect [:persistence.user/get-by-id user-id]))]
       (if-not (and (user/active? user)
                    (user/admin? user))
         (effect [:ui.screen/show :main])))))
@@ -28,18 +43,20 @@
   (with-effects
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (loop [form (agg/allocate :agg.stream/base)]
+      (loop [form (agg/allocate)]
         (let [tx-data (! (effect [:ui.form/edit form]))
               form    (-> form
-                          (agg/apply-tx! tx-data)
-                          (agg/validate))]
+                          (d/with tx-data)
+                          (agg/check-extra-attrs! allowed-attributes)
+                          :db-after
+                          (validate-form))]
           (if (agg/has-errors? form)
             (recur form)
-            (let [stream (->! (agg/allocate :agg/stream)
-                              (agg/apply-tx tx-data)
+            (let [stream (->! (agg/allocate)
+                              (d/db-with tx-data)
                               (fill-defaults)
-                              (agg/validate)
-                              (agg/check-errors)
+                              (stream/validate)
+                              (agg/check-errors!)
                               (fill-id))]
               (! (effect [:persistence/create stream]))
               (! (effect [:ui.screen/show :main])))))))))
