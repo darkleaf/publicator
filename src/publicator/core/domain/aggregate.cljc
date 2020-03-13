@@ -4,7 +4,8 @@
    [datascript.core :as d]
    [datascript.db :as d.db]))
 
-(defonce schema (atom {:error/entity {:db/valueType :db.type/ref}
+(defonce schema (atom {:agg/id       {:agg/predicate pos-int?}
+                       :error/entity {:db/valueType :db.type/ref}
                        :error/attr   {:db/index true}}))
 
 (defn allocate []
