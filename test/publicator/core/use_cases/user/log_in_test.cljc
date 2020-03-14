@@ -86,8 +86,8 @@
                                    :user/login    "john"
                                    :user/password "password"
                                    :user/extra    :value}]}
-                      {:throw (ex-info "Extra attributes"
-                                       {:extra-attrs [:user/extra]})}]
+                      {:throw (ex-info "Extra datoms"
+                                       {:extra [(d/datom 1 :user/extra :value)]})}]
         continuation (e/continuation log-in/process)]
     (script/test continuation script)))
 

@@ -72,15 +72,20 @@
                     {:agg agg}))
     agg))
 
-(defn check-extra-attrs! [report allowed-attr?]
-  (if-some [extra-attrs (->> report
-                             :tx-data
-                             (map :a)
-                             (remove allowed-attr?)
-                             (seq))]
-    (throw (ex-info "Extra attributes"
-                    {:extra-attrs extra-attrs}))
+(defn check-report-tx-data! [report allowed-datom?]
+  (if-some [extra-datoms (->> report
+                              :tx-data
+                              (remove allowed-datom?)
+                              (seq))]
+    (throw (ex-info "Extra datoms"
+                    {:extra extra-datoms}))
     report))
+
+(defn filter-datoms [agg allowed-datom?]
+  (let [datoms (->> (d/datoms agg :eavt)
+                    (filter allowed-datom?))
+        schema (:schema agg)]
+    (d/init-db datoms schema)))
 
 (defn- entities-by-tag [agg tag]
   "the tag is an ident, ref, reveresed ref or attr-value pair"

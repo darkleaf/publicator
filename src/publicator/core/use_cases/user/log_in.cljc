@@ -51,7 +51,7 @@
         (let [tx-data (! (effect [:ui.form/edit form]))
               form    (->! form
                            (d/with tx-data)
-                           (agg/check-extra-attrs! allowed-attributes)
+                           (agg/check-report-tx-data! (comp allowed-attributes :a))
                            :db-after
                            (validate-form))]
           (if (agg/has-errors? form)

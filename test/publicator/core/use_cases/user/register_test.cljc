@@ -74,8 +74,8 @@
                                    :user/login    "john"
                                    :user/password "password"
                                    :user/state    :archived}]}
-                      {:throw (ex-info "Extra attributes"
-                                       {:extra-attrs [:user/state]})}]
+                      {:throw (ex-info "Extra datoms"
+                                       {:extra [(d/datom 1 :user/state :archived)]})}]
         continuation (e/continuation register/process)]
     (script/test continuation script)))
 
