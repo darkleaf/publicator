@@ -3,23 +3,24 @@
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.use-cases.stream.edit :as edit]
    [darkleaf.effect.core :refer [with-effects effect !]]
-   [darkleaf.effect.core-analogs :as e.ca]))
+   [darkleaf.effect.core-analogs :as e.ca]
+   [datascript.core :as d]))
 
 (defn- stream->view [stream]
   (with-effects
     (let [session        (! (effect [:session/get]))
           lang           (get session :lang :ru)
-          id             (-> stream agg/root :agg/id)
+          id             (d/q '[:find ?v . :where [:root :agg/id ?v]] stream)
           edit-ex-effect (! (edit/precondition id))]
       {:agg/id           id
        :ui/can-edit?     (nil? edit-ex-effect)
-       :stream.view/name (agg/q stream '[:find ?name .
-                                         :in ?lang
-                                         :where
-                                         [?t :stream.translation/stream :root]
-                                         [?t :stream.translation/lang ?lang]
-                                         [?t :stream.translation/name ?name]]
-                                lang)})))
+       :stream.view/name (d/q '[:find ?name .
+                                :in $ ?lang
+                                :where
+                                [?t :stream.translation/stream :root]
+                                [?t :stream.translation/lang ?lang]
+                                [?t :stream.translation/name ?name]]
+                              stream lang)})))
 
 (defn precondition [])
 
@@ -27,7 +28,7 @@
   (with-effects
     (if-some [ex-effect (! (precondition))]
       (! ex-effect)
-      (let [streams (! (effect [:persistence/active-streams]))
+      (let [streams (! (effect [:persistence.stream/active]))
             ;; здесь можно вызвать (! (effect [:persistence.hint/preload...]))
             ;; для устранения возможного N+1
             views   (! (e.ca/mapv! stream->view streams))]
