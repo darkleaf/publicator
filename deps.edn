@@ -1,7 +1,7 @@
 {:deps {org.clojure/clojure       {:mvn/version "1.10.1"}
         org.clojure/clojurescript {:mvn/version "1.10.520"}
         datascript                {:mvn/version "0.18.10"}
-        darkleaf/effect           {:mvn/version "0.0.15"}}
+        darkleaf/effect           {:mvn/version "0.0.17"}}
 
  :aliases {:dev       {:extra-paths ["dev" "test"]}
            :cljs-test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.7.0"}}
