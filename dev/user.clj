@@ -1,3 +1,1 @@
-(ns user
-  (:require
-   [publicator.init]))
+(ns user)
