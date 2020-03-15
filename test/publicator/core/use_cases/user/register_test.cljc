@@ -32,16 +32,16 @@
 
                 {:effect   [:ui.form/edit
                             (-> (agg/allocate)
-                                (d/db-with [{:db/ident                    :root
-                                             :user/login                  "wrong_john"
+                                (d/db-with [{:db/ident      :root
+                                             :user/login    "wrong_john"
                                              :user/password "password"}
                                             {:db/id        3
                                              :error/attr   :user/login
                                              :error/entity :root
                                              :error/type   ::register/existed-login
                                              :error/value  "wrong_john"}]))]
-                 :coeffect [{:db/ident                    :root
-                             :user/login                  "john"
+                 :coeffect [{:db/ident      :root
+                             :user/login    "john"
                              :user/password "password"}]}
 
                 {:effect   [:persistence.user/exists-by-login "john"]
