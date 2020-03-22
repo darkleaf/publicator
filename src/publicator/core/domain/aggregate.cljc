@@ -8,9 +8,10 @@
                        :error/entity {:db/valueType :db.type/ref}
                        :error/attr   {:db/index true}}))
 
-(defn allocate []
+(defn allocate [& tx-data]
   (-> (d/empty-db @schema)
-      (d/db-with [[:db/add 1 :db/ident :root]])))
+      (d/db-with [[:db/add 1 :db/ident :root]])
+      (d/db-with tx-data)))
 
 (defn remove-errors [agg]
   (->> (d/datoms agg :aevt :error/entity)

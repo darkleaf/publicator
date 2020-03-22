@@ -9,23 +9,21 @@
 
 (t/deftest process-success
   (let [session      {:current-user-id 1}
-        user         (-> (agg/allocate)
-                         (d/db-with [{:db/ident             :root
-                                      :agg/id               1
-                                      :user/login           "admin"
-                                      :user/password-digest "digest"
-                                      :user/state           :active
-                                      :user/role            :admin}]))
-        stream       (-> (agg/allocate)
-                         (d/db-with [{:db/ident     :root
-                                      :agg/id       1
-                                      :stream/state :active}
-                                     {:stream.translation/stream :root
-                                      :stream.translation/lang   :en
-                                      :stream.translation/name   "Stream"}
-                                     {:stream.translation/stream :root
-                                      :stream.translation/lang   :ru
-                                      :stream.translation/name   "Поток"}]))
+        user         (agg/allocate {:db/ident             :root
+                                    :agg/id               1
+                                    :user/login           "admin"
+                                    :user/password-digest "digest"
+                                    :user/state           :active
+                                    :user/role            :admin})
+        stream       (agg/allocate {:db/ident     :root
+                                    :agg/id       1
+                                    :stream/state :active}
+                                   {:stream.translation/stream :root
+                                    :stream.translation/lang   :en
+                                    :stream.translation/name   "Stream"}
+                                   {:stream.translation/stream :root
+                                    :stream.translation/lang   :ru
+                                    :stream.translation/name   "Поток"})
         script       [{:args [1]}
                       {:tag      10
                        :effect   [:session/get]
@@ -48,18 +46,18 @@
                                    :stream.translation/name "Новый Поток"}]}
                       {:tag      70
                        :effect   [:persistence.stream/update
-                                  (-> (agg/allocate)
-                                      (d/db-with [{:db/ident     :root
-                                                   :agg/id       1
-                                                   :stream/state :active}
-                                                  {:stream.translation/stream :root
-                                                   :stream.translation/lang   :en
-                                                   :stream.translation/name   "Stream"}
-                                                  {:stream.translation/stream :root
-                                                   :stream.translation/lang   :ru
-                                                   :stream.translation/name   "Новый Поток"}]))]
+                                  (agg/allocate
+                                   {:db/ident     :root
+                                    :agg/id       1
+                                    :stream/state :active}
+                                   {:stream.translation/stream :root
+                                    :stream.translation/lang   :en
+                                    :stream.translation/name   "Stream"}
+                                   {:stream.translation/stream :root
+                                    :stream.translation/lang   :ru
+                                    :stream.translation/name   "Новый Поток"})]
                        :coeffect nil}
                       {:tag          80
-                       :final-effect [:ui/show-main-screen]}]
+                       :final-effect [:ui.screen.main/show]}]
         continuation (e/continuation edit/process)]
     (script/test continuation script)))

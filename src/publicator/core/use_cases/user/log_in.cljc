@@ -41,7 +41,7 @@
     (if (-> (! (effect [:session/get]))
             :current-user-id
             some?)
-      (effect [:ui.screen/show :main]))))
+      (effect [:ui.screen.main/show]))))
 
 (defn process []
   (with-effects
@@ -60,4 +60,4 @@
                   user  (! (effect [:persistence.user/get-by-login login]))
                   id    (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
               (! (effect [:session/assoc :current-user-id id]))
-              (! (effect [:ui.screen/show :main])))))))))
+              (! (effect [:ui.screen.main/show])))))))))

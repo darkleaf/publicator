@@ -14,7 +14,7 @@
   (with-effects
     (if-some [stream (! (effect [:persistence.stream/get-by-id id]))]
       stream
-      (! (effect [:ui/show-main-screen])))))
+      (! (effect [:ui.screen.main/show])))))
 
 (defn stream->form [stream]
   stream)
@@ -39,7 +39,7 @@
           user    (! (effect [:persistence.user/get-by-id user-id]))]
       (if-not (and (user/active? user)
                    (user/admin? user))
-        (effect [:ui/show-main-screen])))))
+        (effect [:ui.screen.main/show])))))
 
 (defn process [id]
   (with-effects
@@ -63,4 +63,4 @@
                                (stream/validate)
                                (agg/check-errors!))]
                 (! (effect [:persistence.stream/update stream]))
-                (! (effect [:ui/show-main-screen]))))))))))
+                (! (effect [:ui.screen.main/show]))))))))))

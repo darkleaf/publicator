@@ -32,4 +32,4 @@
             ;; здесь можно вызвать (! (effect [:persistence.hint/preload...]))
             ;; для устранения возможного N+1
             views   (! (e.ca/mapv! stream->view streams))]
-        (! (effect [:ui.screen/show :streams views]))))))
+        (! (effect [:ui.screen.streams/show views]))))))

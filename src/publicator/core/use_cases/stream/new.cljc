@@ -58,5 +58,5 @@
                               (stream/validate)
                               (agg/check-errors!)
                               (fill-id))]
-              (! (effect [:persistence/create stream]))
-              (! (effect [:ui.screen/show :main])))))))))
+              (! (effect [:persistence.stream/create stream]))
+              (! (effect [:ui.screen.main/show])))))))))
