@@ -2,24 +2,37 @@
   (:require
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.user :as user]
-   [publicator.util :as u]
+   [publicator.core.use-cases.services.user-session :as user-session]
+   [publicator.util :as u :refer [<<-]]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]
    [datascript.core :as d]))
 
 (defn- login-validator [agg]
-  (u/<<-
-   (with-effects)
-   (if (agg/has-errors? agg)
-     agg)
-   (let [login   (d/q '[:find ?v . :where [:root :user/login ?v]] agg)
-         exists? (! (effect [:persistence.user/exists-by-login login]))])
-   (if exists?
-     (d/db-with agg [{:error/type   ::existed-login
-                      :error/entity :root
-                      :error/attr   :user/login
-                      :error/value  login}]))
-   agg))
+  (with-effects
+    (let [{:keys [user/login]} (d/entity agg :root)]
+      (cond
+        (agg/has-errors? agg)
+        agg
+
+        (! (effect [:persistence.user/exists-by-login login]))
+        (d/db-with agg [{:error/type   ::existed-login
+                         :error/entity :root
+                         :error/attr   :user/login
+                         :error/value  login}])
+
+        :else agg))))
+
+(defn- make-user [form]
+  (with-effects
+    (let [{:keys [user/login
+                  user/password]} (d/entity form :root)
+          password-digest         (! (effect [:hasher/derive password]))]
+      (agg/allocate {:db/ident             :root
+                     :user/login           login
+                     :user/password-digest password-digest
+                     :user/state           :active
+                     :user/role            :regular}))))
 
 (defn validate-form [form]
   (with-effects
@@ -28,53 +41,37 @@
          (agg/required-validator {:root [:user/login :user/password]})
          (login-validator))))
 
-(defn- fill-defaults [user]
-  (d/db-with user [{:db/ident   :root
-                    :user/state :active
-                    :user/role  :regular}]))
+(defn- check-form! [form]
+  (if (agg/has-errors? form)
+    (effect [::invalid-form form])
+    form))
 
-(defn- fill-id [user]
-  (with-effects
-    (let [id (! (effect [:persistence.user/next-id]))]
-      (d/db-with user [[:db/add :root :agg/id id]]))))
-
-(defn- fill-password-digest [user]
-  (with-effects
-    (let [password (d/q '[:find ?v . :where [:root :user/password ?v]] user)
-          digest   (! (effect [:hasher/derive password]))]
-      (d/db-with user [[:db/add :root :user/password-digest digest]
-                       [:db/retract :root :user/password password]]))))
-
-(def allowed-attrs #{:user/login :user/password})
+(defn- save-user [user]
+  (effect [:persistence.user/create user]))
 
 (defn precondition []
   (with-effects
-    (when (-> (! (effect [:session/get]))
-              :current-user-id
-              some?)
-      (effect [:ui.screen.main/show]))))
+    (if (! (user-session/logged-in?))
+      (effect [::already-logged-in]))))
 
-(defn process []
-  (with-effects
-    (if-some [ex-effect (! (precondition))]
-      (! ex-effect)
-      (loop [form (agg/allocate)]
-        (let [tx-data (! (effect [:ui.form/edit form]))
-              form    (->! form
-                           (d/with tx-data)
-                           (agg/check-report-tx-data! (comp allowed-attrs :a))
-                           :db-after
-                           (validate-form))]
-          (if (agg/has-errors? form)
-            (recur form)
-            (let [user (->! (agg/allocate)
-                            (d/db-with tx-data)
-                            (fill-password-digest)
-                            (fill-defaults)
-                            (user/validate)
-                            (agg/check-errors!)
-                            (fill-id))
-                  id   (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
-              (! (effect [:persistence.user/create user]))
-              (! (effect [:session/assoc :current-user-id id]))
-              (! (effect [:ui.screen.main/show])))))))))
+(defn form []
+  (<<-
+   (with-effects)
+   (if-some [ex-effect (! (precondition))]
+     (! ex-effect))
+   (! (effect [::form (agg/allocate)]))))
+
+(defn process [form]
+  (<<-
+   (with-effects)
+   (if-some [ex-effect (! (precondition))]
+     (! ex-effect))
+   (let [user (->! form
+                   (validate-form)
+                   (check-form!)
+                   (make-user)
+                   (user/validate)
+                   (agg/check-errors!)
+                   (save-user))]
+     (! (user-session/log-in! user))
+     (! (effect [::processed user])))))
