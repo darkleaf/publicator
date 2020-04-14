@@ -1,7 +1,6 @@
 (ns publicator.core.domain.aggregate-test
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.util :as u]
    [datascript.core :as d]
    [clojure.test :as t]))
 

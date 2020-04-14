@@ -3,7 +3,7 @@
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.user :as user]
    [publicator.core.use-cases.services.user-session :as user-session]
-   [publicator.util :as u :refer [<<-]]
+   [publicator.utils :as u :refer [<<-]]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]
    [datascript.core :as d]))

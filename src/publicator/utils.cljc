@@ -1,4 +1,4 @@
-(ns publicator.util
+(ns publicator.utils
   (:refer-clojure :exclude [type]))
 
 (defmacro <<- [& body]

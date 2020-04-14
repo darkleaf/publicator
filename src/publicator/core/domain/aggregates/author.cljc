@@ -1,8 +1,7 @@
 (ns publicator.core.domain.aggregates.author
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.domain.languages :as langs]
-   [publicator.util :as u]))
+   [publicator.core.domain.languages :as langs]))
 
 (def states #{:active :archived})
 (def stream-participation-roles #{:regular :admin})

@@ -1,6 +1,6 @@
 (ns publicator.core.domain.aggregate
   (:require
-   [publicator.util :as u]
+   [publicator.utils :as u]
    [datascript.core :as d]
    [datascript.db :as d.db]))
 

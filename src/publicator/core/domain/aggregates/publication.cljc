@@ -1,6 +1,5 @@
 (ns publicator.core.domain.aggregates.publication
   (:require
-   [publicator.util :as u]
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.languages :as langs]))
 

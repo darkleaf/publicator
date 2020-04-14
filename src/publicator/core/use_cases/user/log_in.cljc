@@ -2,13 +2,13 @@
   (:require
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.user :as user]
-   [publicator.util :as u]
+   [publicator.utils :as u :refer [<<-]]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]
    [datascript.core :as d]))
 
 (defn- authentication-validator [form]
-  (u/<<-
+  (<<-
    (with-effects)
    (if (agg/has-errors? form)
      form)
