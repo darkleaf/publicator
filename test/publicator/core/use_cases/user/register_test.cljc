@@ -45,7 +45,7 @@
                       {:effect   [:persistence.user/create user]
                        :coeffect persisted}
                       {:effect   [:session/modify assoc ::user-session/id user-id]
-                       :coeffect nil}
+                       :coeffect {::user-session/id user-id}}
                       {:final-effect [::register/processed persisted]}]
         continuation (e/continuation register/process)]
     (script/test continuation script)))
