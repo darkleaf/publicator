@@ -1,6 +1,6 @@
-(ns publicator.core.use-cases.user.register-test
+(ns publicator.core.use-cases.interactors.user.register-test
   (:require
-   [publicator.core.use-cases.user.register :as register]
+   [publicator.core.use-cases.interactors.user.register :as register]
    [publicator.core.use-cases.services.user-session :as user-session]
    [publicator.core.domain.aggregate :as agg]
    [darkleaf.effect.core :as e]
