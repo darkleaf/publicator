@@ -1,4 +1,4 @@
-(ns publicator.core.use-cases.user.log-in
+(ns publicator.core.use-cases.interactors.user.log-in
   (:require
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.user :as user]

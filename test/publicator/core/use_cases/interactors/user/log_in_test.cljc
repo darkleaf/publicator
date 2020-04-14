@@ -1,6 +1,6 @@
-(ns publicator.core.use-cases.user.log-in-test
+(ns publicator.core.use-cases.interactors.user.log-in-test
   (:require
-   [publicator.core.use-cases.user.log-in :as log-in]
+   [publicator.core.use-cases.interactors.user.log-in :as log-in]
    [publicator.core.domain.aggregate :as agg]
    [darkleaf.effect.core :as e]
    [darkleaf.effect.script :as script]
