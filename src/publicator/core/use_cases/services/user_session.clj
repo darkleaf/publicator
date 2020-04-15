@@ -18,10 +18,10 @@
 
 (defn log-in! [user]
   (let [id (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
-    (effect [:session/modify assoc ::id id])))
+    (effect [:session/swap assoc ::id id])))
 
 (defn log-out! []
-  (effect [:session/modify dissoc ::id]))
+  (effect [:session/swap dissoc ::id]))
 
 (defn user []
   (with-effects
