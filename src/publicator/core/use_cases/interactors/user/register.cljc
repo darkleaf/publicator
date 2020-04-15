@@ -43,7 +43,7 @@
 
 (defn- check-form! [form]
   (if (agg/has-errors? form)
-    (effect [::invalid-form form])
+    (effect [::->invalid-form form])
     form))
 
 (defn- save-user [user]
@@ -52,12 +52,12 @@
 (defn precondition []
   (with-effects
     (if (! (user-session/logged-in?))
-      (effect [::already-logged-in]))))
+      (effect [::->already-logged-in]))))
 
 (defn form []
   (with-effects
     (! (precondition))
-    (! (effect [::form (agg/allocate)]))))
+    (! (effect [::->form (agg/allocate)]))))
 
 (defn process [form]
   (with-effects
@@ -71,4 +71,4 @@
                     (agg/check-errors!)
                     (save-user))]
       (! (user-session/log-in! user))
-      (! (effect [::processed user])))))
+      (! (effect [::->processed user])))))

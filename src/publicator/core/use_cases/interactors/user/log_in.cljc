@@ -39,18 +39,18 @@
 
 (defn- check-form! [form]
   (if (agg/has-errors? form)
-    (effect [::invalid-form form])
+    (effect [::->invalid-form form])
     form))
 
 (defn precondition []
   (with-effects
     (if (! (user-session/logged-in?))
-      (effect [::already-logged-in]))))
+      (effect [::->already-logged-in]))))
 
 (defn form []
   (with-effects
     (! (precondition))
-    (! (effect [::form (agg/allocate)]))))
+    (! (effect [::->form (agg/allocate)]))))
 
 (defn process [form]
   (with-effects
@@ -60,4 +60,4 @@
          (check-form!))
     (let [user (! (get-user form))]
       (! (user-session/log-in! user))
-      (! (effect [::processed])))))
+      (! (effect [::->processed])))))

@@ -12,7 +12,7 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:final-effect [::register/form (agg/allocate)]}]
+                      {:final-effect [::register/->form (agg/allocate)]}]
         continuation (e/continuation register/form)]
     (script/test continuation script)))
 
@@ -20,7 +20,7 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
-                      {:final-effect [::register/already-logged-in]}]
+                      {:final-effect [::register/->already-logged-in]}]
         continuation (e/continuation register/form)]
     (script/test continuation script)))
 
@@ -46,7 +46,7 @@
                        :coeffect persisted}
                       {:effect   [:session/swap assoc ::user-session/id user-id]
                        :coeffect {::user-session/id user-id}}
-                      {:final-effect [::register/processed persisted]}]
+                      {:final-effect [::register/->processed persisted]}]
         continuation (e/continuation register/process)]
     (script/test continuation script)))
 
@@ -57,7 +57,7 @@
         script       [{:args [form]}
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
-                      {:final-effect [::register/already-logged-in]}]
+                      {:final-effect [::register/->already-logged-in]}]
         continuation (e/continuation register/process)]
     (script/test continuation script)))
 
@@ -67,7 +67,7 @@
                                        [{:args [form]}
                                         {:effect   [:session/get]
                                          :coeffect {}}
-                                        {:final-effect [::register/invalid-form invalid]}])
+                                        {:final-effect [::register/->invalid-form invalid]}])
       (agg/allocate {:db/ident :root})
       (agg/allocate {:db/ident :root}
                     {:error/entity :root
@@ -108,6 +108,6 @@
                        :coeffect {}}
                       {:effect   [:persistence.user/exists-by-login "john"]
                        :coeffect true}
-                      {:final-effect [::register/invalid-form invalid]}]
+                      {:final-effect [::register/->invalid-form invalid]}]
         continuation (e/continuation register/process)]
      (script/test continuation script)))

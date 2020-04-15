@@ -12,7 +12,7 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:final-effect [::log-in/form (agg/allocate)]}]
+                      {:final-effect [::log-in/->form (agg/allocate)]}]
         continuation (e/continuation log-in/form)]
     (script/test continuation script)))
 
@@ -20,7 +20,7 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
-                      {:final-effect [::log-in/already-logged-in]}]
+                      {:final-effect [::log-in/->already-logged-in]}]
         continuation (e/continuation log-in/form)]
     (script/test continuation script)))
 
@@ -46,7 +46,7 @@
                        :coeffect user}
                       {:effect   [:session/swap assoc ::user-session/id user-id]
                        :coeffect {::user-session/id user-id}}
-                      {:final-effect [::log-in/processed]}]
+                      {:final-effect [::log-in/->processed]}]
         continuation (e/continuation log-in/process)]
     (script/test continuation script)))
 
@@ -57,6 +57,6 @@
         script       [{:args [form]}
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
-                      {:final-effect [::log-in/already-logged-in]}]
+                      {:final-effect [::log-in/->already-logged-in]}]
         continuation (e/continuation log-in/process)]
     (script/test continuation script)))
