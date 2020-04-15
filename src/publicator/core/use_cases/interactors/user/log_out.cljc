@@ -10,6 +10,6 @@
 
 (defn process []
   (with-effects
-    (! (precondition))
+    (! (! (precondition)))
     (! (user-session/log-out!))
     (! (effect [::->processed]))))

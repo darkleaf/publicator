@@ -56,12 +56,12 @@
 
 (defn form []
   (with-effects
-    (! (precondition))
+    (! (! (precondition)))
     (! (effect [::->form (agg/allocate)]))))
 
 (defn process [form]
   (with-effects
-    (! (precondition))
+    (! (! (precondition)))
     (->! form
          (validate-form)
          (check-form!))
@@ -71,4 +71,4 @@
                     (agg/check-errors!)
                     (save-user))]
       (! (user-session/log-in! user))
-      (! (effect [::->processed user])))))
+      (effect [::->processed user]))))

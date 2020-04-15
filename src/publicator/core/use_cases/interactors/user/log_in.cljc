@@ -49,12 +49,12 @@
 
 (defn form []
   (with-effects
-    (! (precondition))
+    (! (! (precondition)))
     (! (effect [::->form (agg/allocate)]))))
 
 (defn process [form]
   (with-effects
-    (! (precondition))
+    (! (! (precondition)))
     (->! form
          (validate-form)
          (check-form!))

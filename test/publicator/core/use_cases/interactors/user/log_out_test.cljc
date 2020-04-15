@@ -2,11 +2,9 @@
   (:require
    [publicator.core.use-cases.interactors.user.log-out :as log-out]
    [publicator.core.use-cases.services.user-session :as user-session]
-   #_[publicator.core.domain.aggregate :as agg]
    [darkleaf.effect.core :as e]
    [darkleaf.effect.script :as script]
-   [clojure.test :as t]
-   #_[datascript.core :as d]))
+   [clojure.test :as t]))
 
 (t/deftest process-success
   (let [script       [{:args []}
