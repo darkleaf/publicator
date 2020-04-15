@@ -1,7 +1,7 @@
 (ns publicator.core.use-cases.stream.list-test
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.use-cases.stream.list :as list]
+   [publicator.core.use-cases.interactors.stream.list :as list]
    [clojure.test :as t]
    [darkleaf.effect.core :as e]
    [darkleaf.effect.script :as script]

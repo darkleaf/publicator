@@ -1,7 +1,7 @@
-(ns publicator.core.use-cases.stream.edit-test
+(ns publicator.core.use-cases.interactors.stream.edit-test
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.use-cases.stream.edit :as edit]
+   [publicator.core.use-cases.interactors.stream.edit :as edit]
    [clojure.test :as t]
    [darkleaf.effect.core :as e]
    [darkleaf.effect.script :as script]

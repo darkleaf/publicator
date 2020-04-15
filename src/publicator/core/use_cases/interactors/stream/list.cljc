@@ -1,7 +1,7 @@
-(ns publicator.core.use-cases.stream.list
+(ns publicator.core.use-cases.interactors.stream.list
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.use-cases.stream.edit :as edit]
+   [publicator.core.use-cases.interactors.stream.edit :as edit]
    [darkleaf.effect.core :refer [with-effects effect !]]
    [darkleaf.effect.core-analogs :as e.ca]
    [datascript.core :as d]))

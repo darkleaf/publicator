@@ -1,4 +1,4 @@
-(ns publicator.core.use-cases.stream.new
+(ns publicator.core.use-cases.interactors.stream.new
   (:require
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.user :as user]
