@@ -55,23 +55,20 @@
       (effect [::already-logged-in]))))
 
 (defn form []
-  (<<-
-   (with-effects)
-   (if-some [ex-effect (! (precondition))]
-     (! ex-effect))
-   (! (effect [::form (agg/allocate)]))))
+  (with-effects
+    (! (precondition))
+    (! (effect [::form (agg/allocate)]))))
 
 (defn process [form]
-  (<<-
-   (with-effects)
-   (if-some [ex-effect (! (precondition))]
-     (! ex-effect))
-   (let [user (->! form
-                   (validate-form)
-                   (check-form!)
-                   (make-user)
-                   (user/validate)
-                   (agg/check-errors!)
-                   (save-user))]
-     (! (user-session/log-in! user))
-     (! (effect [::processed user])))))
+  (with-effects
+    (! (precondition))
+    (->! form
+         (validate-form)
+         (check-form!))
+    (let [user (->! form
+                    (make-user)
+                    (user/validate)
+                    (agg/check-errors!)
+                    (save-user))]
+      (! (user-session/log-in! user))
+      (! (effect [::processed user])))))
