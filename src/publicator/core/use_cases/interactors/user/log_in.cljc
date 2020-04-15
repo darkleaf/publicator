@@ -2,29 +2,32 @@
   (:require
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.user :as user]
+   [publicator.core.use-cases.services.user-session :as user-session]
    [publicator.utils :as u :refer [<<-]]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]
    [datascript.core :as d]))
 
-(defn- authentication-validator [form]
+(defn- get-user [form]
+  (let [{:keys [user/login]} (d/entity form :root)]
+    (effect [:persistence.user/get-by-login login])))
+
+(defn- correct-password? [user form]
+  (let [{:keys [user/password-digest]} (d/entity user :root)
+        {:keys [user/password]}        (d/entity form :root)]
+    (effect [:hasher/check password password-digest])))
+
+(defn- auth-validator [form]
   (<<-
    (with-effects)
    (if (agg/has-errors? form)
      form)
-   (let [login    (d/q '[:find ?v . :where [:root :user/login ?v]] form)
-         user     (! (effect [:persistence.user/get-by-login login]))
-         error-tx [{:error/type   ::wrong-login-or-password
-                    :error/entity :root}]])
-   (if (nil? user)
-     (d/db-with form error-tx))
-   (if-not (user/active? user)
-     (d/db-with form error-tx))
-   (let [password (d/q '[:find ?v . :where [:root :user/password ?v]] form)
-         digest   (d/q '[:find ?v . :where [:root :user/password-digest ?v]] user)
-         correct? (! (effect [:hasher/check password digest]))])
-   (if-not correct?
-     (d/db-with form error-tx))
+   (let [user (! (get-user form))])
+   (if (or (nil? user)
+           (not (user/active? user))
+           (not (! (correct-password? user form))))
+     (d/db-with form [{:error/type   ::wrong-login-or-password
+                       :error/entity :root}]))
    form))
 
 (defn validate-form [form]
@@ -32,32 +35,33 @@
     (->! form
          (agg/validate)
          (agg/required-validator {:root [:user/login :user/password]})
-         (authentication-validator))))
+         (auth-validator))))
 
-(def allowed-attributes #{:user/login :user/password})
+(defn- check-form! [form]
+  (if (agg/has-errors? form)
+    (effect [::invalid-form form])
+    form))
 
 (defn precondition []
   (with-effects
-    (if (-> (! (effect [:session/get]))
-            :current-user-id
-            some?)
-      (effect [:ui.screen.main/show]))))
+    (if (! (user-session/logged-in?))
+      (effect [::already-logged-in]))))
 
-(defn process []
-  (with-effects
-    (if-some [ex-effect (! (precondition))]
-      (! ex-effect)
-      (loop [form (agg/allocate)]
-        (let [tx-data (! (effect [:ui.form/edit form]))
-              form    (->! form
-                           (d/with tx-data)
-                           (agg/check-report-tx-data! (comp allowed-attributes :a))
-                           :db-after
-                           (validate-form))]
-          (if (agg/has-errors? form)
-            (recur form)
-            (let [login (d/q '[:find ?v . :where [:root :user/login ?v]] form)
-                  user  (! (effect [:persistence.user/get-by-login login]))
-                  id    (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
-              (! (effect [:session/assoc :current-user-id id]))
-              (! (effect [:ui.screen.main/show])))))))))
+(defn form []
+  (<<-
+   (with-effects)
+   (if-some [ex-effect (! (precondition))]
+     (! ex-effect))
+   (! (effect [::form (agg/allocate)]))))
+
+(defn process [form]
+  (<<-
+   (with-effects)
+   (if-some [ex-effect (! (precondition))]
+     (! ex-effect))
+   (let [user (->! form
+                   (validate-form)
+                   (check-form!)
+                   (get-user))]
+     (! (user-session/log-in! user))
+     (! (effect [::processed])))))
