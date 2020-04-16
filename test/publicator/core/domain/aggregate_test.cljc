@@ -127,3 +127,19 @@
               [4 :error/type :count]]
              (->> (d/seek-datoms agg :eavt 4)
                   (map (juxt :e :a :v)))))))
+
+
+(t/deftest permitted-attrs-validator
+  (let [agg (-> (agg/allocate)
+                (d/db-with [{:db/ident                                 :root
+                             :permitted-attrs-validator-test/permitted true
+                             :permitted-attrs-validator-test/rejected  true}
+                            {:error/type   :some-error
+                             :error/entity :root}])
+                (agg/permitted-attrs-validator #{:permitted-attrs-validator-test/permitted}))]
+    (t/is (= [[3 :error/attr :permitted-attrs-validator-test/rejected]
+              [3 :error/entity 1]
+              [3 :error/type :rejected]
+              [3 :error/value true]]
+             (->> (d/seek-datoms agg :eavt 3)
+                  (map (juxt :e :a :v)))))))
