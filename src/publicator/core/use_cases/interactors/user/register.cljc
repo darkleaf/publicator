@@ -45,7 +45,7 @@
     (effect [::->invalid-form form])
     form))
 
-(defn- save-user [user]
+(defn- create-user [user]
   (effect [:persistence.user/create user]))
 
 (defn precondition []
@@ -69,6 +69,6 @@
                     (make-user)
                     (user/validate)
                     (agg/check-errors!)
-                    (save-user))]
+                    (create-user))]
       (! (user-session/log-in! user))
       (effect [::->processed user]))))
