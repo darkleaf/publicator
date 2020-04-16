@@ -45,7 +45,8 @@
 (defn precondition []
   (with-effects
     (if (! (user-session/logged-in?))
-      (effect [::->already-logged-in]))))
+      (effect [::->already-logged-in])
+      :pass)))
 
 (defn form []
   (with-effects

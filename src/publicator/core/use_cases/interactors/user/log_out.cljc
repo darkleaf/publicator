@@ -6,7 +6,8 @@
 (defn precondition []
   (with-effects
     (if (! (user-session/logged-out?))
-      (effect [::->already-logged-out]))))
+      (effect [::->already-logged-out])
+      :pass)))
 
 (defn process []
   (with-effects
