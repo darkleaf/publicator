@@ -1,4 +1,4 @@
-(ns publicator.core.use-cases.stream.list-test
+(ns publicator.core.use-cases.interactors.stream.list-test
   (:require
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.use-cases.interactors.stream.list :as list]
