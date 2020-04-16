@@ -9,19 +9,17 @@
    [datascript.core :as d]))
 
 (defn- login-validator [agg]
-  (with-effects
-    (let [{:keys [user/login]} (d/entity agg :root)]
-      (cond
-        (agg/has-errors? agg)
-        agg
-
-        (! (effect [:persistence.user/exists-by-login login]))
-        (d/db-with agg [{:error/type   ::existed-login
-                         :error/entity :root
-                         :error/attr   :user/login
-                         :error/value  login}])
-
-        :else agg))))
+  (<<-
+   (with-effects)
+   (if (agg/has-errors? agg)
+     agg)
+   (let [{:keys [user/login]} (d/entity agg :root)])
+   (if (! (effect [:persistence.user/exists-by-login login]))
+     (d/db-with agg [{:error/type   ::existed-login
+                      :error/entity :root
+                      :error/attr   :user/login
+                      :error/value  login}]))
+   agg))
 
 (defn- make-user [form]
   (with-effects
