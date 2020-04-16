@@ -1,7 +1,7 @@
-(ns publicator.core.use-cases.interactors.stream.new-test
+(ns publicator.core.use-cases.interactors.stream.create-test
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.use-cases.interactors.stream.new :as new]
+   [publicator.core.use-cases.interactors.stream.create :as create]
    [publicator.core.use-cases.services.user-session :as user-session]
    [clojure.test :as t]
    [darkleaf.effect.core :as e]
@@ -21,8 +21,8 @@
                        :coeffect session}
                       {:effect   [:persistence.user/get-by-id 1]
                        :coeffect user}
-                      {:final-effect [::new/->form (agg/allocate)]}]
-        continuation (e/continuation new/form)]
+                      {:final-effect [::create/->form (agg/allocate)]}]
+        continuation (e/continuation create/form)]
     (script/test continuation script)))
 
 (t/deftest process-success
@@ -48,6 +48,6 @@
                        :coeffect user}
                       {:effect   [:persistence.stream/create stream]
                        :coeffect persisted}
-                      {:final-effect [::new/->processed persisted]}]
-        continuation (e/continuation new/process)]
+                      {:final-effect [::create/->processed persisted]}]
+        continuation (e/continuation create/process)]
     (script/test continuation script)))
