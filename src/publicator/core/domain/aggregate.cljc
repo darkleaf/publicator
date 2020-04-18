@@ -122,11 +122,8 @@
                        :error/actual-count   actual-count
                        :error/expected-count expected-count}]))))
 
-(defn default-permitted-attr? [a]
-  (#{"db" "error"} (namespace a)))
-
 (defn permitted-attrs-validator [agg permitted-attr?]
-  (let [pred   (comp (some-fn default-permitted-attr?
+  (let [pred   (comp (some-fn #(#{"db" "error"} (namespace %))
                               permitted-attr?)
                      :a)
         errors (->> (d/datoms agg :eavt)
