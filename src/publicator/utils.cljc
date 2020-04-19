@@ -1,11 +1,9 @@
 (ns publicator.utils
-  (:refer-clojure :exclude [type]))
+  (:refer-clojure :exclude [type #?(:cljs regexp?)])
+  #?(:cljs (:require-macros [publicator.utils :refer [<<-]])))
 
 (defmacro <<- [& body]
   `(->> ~@(reverse body)))
-
-(defmacro fn-> [& body]
-  `(fn [arg#] (-> arg# ~@body)))
 
 (defn map-vals [f m]
   (reduce-kv

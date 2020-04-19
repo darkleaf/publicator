@@ -3,7 +3,8 @@
    [publicator.core.domain.aggregate :as agg]
    [darkleaf.effect.core :refer [effect]]
    [datascript.core :as d]
-   [clojure.data :as data]))
+   [clojure.data :as data])
+  #?(:cljs (:require-macros [publicator.core.use-cases.services.form :refer [check-errors]])))
 
 (defn agg->form [agg readable-attr?]
   (let [datoms (->> (d/datoms agg :eavt)
