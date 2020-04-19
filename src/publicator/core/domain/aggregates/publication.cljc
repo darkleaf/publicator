@@ -8,7 +8,7 @@
 
 (swap! agg/schema merge
        {:publication/state                    {:db/index true :agg/predicate states}
-        :publication/stream-id                {:agg/predicate pos-int?}
+        :publication/author-id                {:agg/predicate pos-int?}
         :publication.translation/publication  {:db/valueType :db.type/ref}
         :publication.translation/lang         {:agg/predicate langs/languages
                                                :agg/uniq      true}
@@ -27,7 +27,7 @@
       (agg/validate)
       (agg/required-validator
        {:root                                       [:publication/state
-                                                     :publication/stream-id]
+                                                     :publication/author-id]
         :publication.translation/_publication       [:publication.translation/title
                                                      :publication.translation/state
                                                      :publication.translation/lang]

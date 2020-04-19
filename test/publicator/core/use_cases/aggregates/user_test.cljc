@@ -1,7 +1,7 @@
-(ns publicator.core.domain.aggregates.user-test
+(ns publicator.core.use-cases.aggregates.user-test
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.domain.aggregates.user :as user]
+   [publicator.core.use-cases.aggregates.user :as user]
    [datascript.core :as d]
    [clojure.test :as t]))
 
@@ -9,7 +9,7 @@
   (let [agg (-> (agg/allocate)
                 (d/db-with [{:db/ident             :root
                              :user/state           :active
-                             :user/role            :regular
+                             :user/role            [:admin :author]
                              :user/login           "john"
                              :user/password        "some password"
                              :user/password-digest "some digest"}])

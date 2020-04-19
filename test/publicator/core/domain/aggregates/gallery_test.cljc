@@ -9,7 +9,7 @@
   (let [agg (-> (agg/allocate)
                 (d/db-with [{:db/ident              :root
                              :publication/state     :active
-                             :publication/stream-id 1
+                             :publication/author-id 1
                              :gallery/image-urls    ["http://cats.com/cat.jpg"
                                                      "http://cats.com/cute.jpg"]}
                             {:publication.translation/publication  :root
