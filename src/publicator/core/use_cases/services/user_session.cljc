@@ -1,5 +1,6 @@
 (ns publicator.core.use-cases.services.user-session
   (:require
+   [publicator.core.domain.languages :as langs]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [datascript.core :as d]))
 
@@ -27,3 +28,8 @@
   (with-effects
     (when-let [id (! (user-id))]
       (! (effect [:persistence.user/get-by-id id])))))
+
+(defn language []
+  (with-effects
+    (let [session (! (effect [:session/get]))]
+      (get session ::lang (first langs/languages)))))

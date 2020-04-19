@@ -10,7 +10,8 @@
        {:publication/state                    {:db/index true :agg/predicate states}
         :publication/author-id                {:agg/predicate pos-int?}
         :publication.translation/publication  {:db/valueType :db.type/ref}
-        :publication.translation/lang         {:agg/predicate langs/languages
+        :publication.translation/lang         {:db/index      true
+                                               :agg/predicate langs/languages
                                                :agg/uniq      true}
         :publication.translation/state        {:agg/predicate translation-states}
         :publication.translation/title        {:agg/predicate #".{1,255}"}

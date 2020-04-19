@@ -5,7 +5,7 @@
 
 (swap! agg/schema merge
        {:author.translation/author     {:db/valueType :db.type/ref}
-        :author.translation/lang       {:agg/predicate langs/languages, :agg/uniq true}
+        :author.translation/lang       {:db/index true :agg/predicate langs/languages :agg/uniq true}
         :author.translation/first-name {:agg/predicate #".{1,255}"}
         :author.translation/last-name  {:agg/predicate #".{1,255}"}})
 
