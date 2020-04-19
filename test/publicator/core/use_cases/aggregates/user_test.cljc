@@ -9,7 +9,6 @@
   (let [agg (-> (agg/allocate)
                 (d/db-with [{:db/ident             :root
                              :user/state           :active
-                             :user/role            [:admin :author]
                              :user/login           "john"
                              :user/password        "some password"
                              :user/password-digest "some digest"}])

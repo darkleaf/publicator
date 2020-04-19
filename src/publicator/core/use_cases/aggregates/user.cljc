@@ -1,6 +1,7 @@
 (ns publicator.core.use-cases.aggregates.user
   (:require
    [publicator.core.domain.aggregate :as agg]
+   [publicator.core.domain.aggregates.author :as author]
    [datascript.core :as d]))
 
 (def states #{:active :archived})
@@ -13,18 +14,23 @@
         :user/password-digest {:agg/predicate #".{1,255}"}
         :user/password        {:agg/predicate #".{8,255}"}})
 
-(defn validate [agg]
-  (-> agg
-      (agg/validate)
-      (agg/required-validator
-       {:root [:user/login
-               :user/state
-               :user/password-digest]})))
-
 (defn active? [user]
-  (and (some? user)
-       (seq (d/datoms user :eavt :root :user/state :active))))
+  (boolean
+   (and (some? user)
+        (seq (d/datoms user :eavt :root :user/state :active)))))
 
 (defn admin? [user]
-  (and (some? user)
-       (seq (d/datoms user :eavt :root :user/role :admin))))
+  (boolean
+   (and (some? user)
+        (seq (d/datoms user :eavt :root :user/role :admin)))))
+
+(defn author? [user]
+  (boolean
+   (and (some? user)
+        (seq (d/datoms user :eavt :root :user/role :author)))))
+
+(defn validate [user]
+  (cond-> user
+    :always        (agg/validate)
+    :always        (agg/required-validator {:root #{:user/login :user/state :user/password-digest}})
+    (author? user) (author/validate)))
