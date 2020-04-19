@@ -86,10 +86,11 @@
    (let [{:agg/keys [id]} (d/entity form :root)
          user             (! (find-user id))])
    (do (! (! (precondition user))))
-   (let [user (->! user
-                   (form/apply-form! form (! (->updatable-attr?)))
-                   (update-password)
-                   (user/validate)
-                   (agg/check-errors!)
-                   (update-user))])
+   (let [changes (form/changes user form (! (->updatable-attr?)))
+         user    (->! user
+                      (d/db-with changes)
+                      (update-password)
+                      (user/validate)
+                      (agg/check-errors)
+                      (update-user))])
    (! (effect [::->processed user]))))

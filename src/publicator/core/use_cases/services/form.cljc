@@ -15,19 +15,20 @@
         schema (:schema agg)]
     (d/init-db datoms schema)))
 
-(defn apply-form! [agg form updatable-attr?]
-  (let [[agg-datoms form-datoms _] (data/diff agg form)
+(defn changes [agg form updatable-attr?]
+  (let [pred                       (comp updatable-attr? :a)
+        [agg-datoms form-datoms _] (data/diff agg form)
         del                        (->> agg-datoms
-                                        (filter (comp updatable-attr? :a))
+                                        (filter pred)
                                         (map #(assoc % :added false)))
         add                        form-datoms
         changes                    (concat del add)
         rejected                   (->> changes
-                                        (remove (comp updatable-attr? :a))
+                                        (remove pred)
                                         (not-empty))]
     (if (some? rejected)
-      (throw (ex-info "Rejected datoms" {:rejected rejected}))
-      (d/db-with agg changes))))
+      (throw (ex-info "Rejected datoms" {:rejected rejected})))
+    changes))
 
 (defn check-errors* [form ns-name]
   (let [key (keyword ns-name "->invalid-form")]

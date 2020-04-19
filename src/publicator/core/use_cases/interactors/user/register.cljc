@@ -63,7 +63,7 @@
     (let [user (->! form
                     (make-user)
                     (user/validate)
-                    (agg/check-errors!)
+                    (agg/check-errors)
                     (create-user))]
       (! (user-session/log-in! user))
       (effect [::->processed user]))))

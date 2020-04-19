@@ -67,7 +67,7 @@
 (defn has-no-errors? [agg]
   (not (has-errors? agg)))
 
-(defn check-errors! [agg]
+(defn check-errors [agg]
   (if (has-errors? agg)
     (throw (ex-info "Invalid aggregate"
                     {:agg agg}))
