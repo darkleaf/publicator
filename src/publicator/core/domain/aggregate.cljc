@@ -18,7 +18,7 @@
        (map (fn [{:keys [e]}] [:db.fn/retractEntity e]))
        (d/db-with agg)))
 
-(defn apply-predicate [p x]
+(defn- apply-predicate [p x]
   (cond
     (nil? p)          true
     (ifn? p)          (p x)
