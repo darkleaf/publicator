@@ -31,7 +31,6 @@
         user         (agg/allocate {:db/ident             :root
                                     :user/login           "john"
                                     :user/password-digest "digest"
-                                    :user/role            :regular
                                     :user/state           :active})
         user-id      1
         persisted    (d/db-with user [[:db/add :root :agg/id user-id]])

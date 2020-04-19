@@ -19,7 +19,6 @@
       (agg/required-validator
        {:root [:user/login
                :user/state
-               :user/role
                :user/password-digest]})))
 
 (defn active? [user]

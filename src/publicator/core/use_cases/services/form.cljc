@@ -26,10 +26,11 @@
       (d/db-with agg changes))))
 
 (defn check-errors* [form ns-name]
-  (let [key (keyword (str ns-name) "->invalid-form")]
+  (let [key (keyword ns-name "->invalid-form")]
     (if (agg/has-errors? form)
       (effect [key form])
       form)))
 
 (defmacro check-errors [form]
-  `(check-errors* ~form (ns-name *ns*)))
+  (let [ns (-> *ns* ns-name str)]
+    `(check-errors* ~form ~ns)))

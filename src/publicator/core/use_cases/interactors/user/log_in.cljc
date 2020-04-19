@@ -1,7 +1,7 @@
 (ns publicator.core.use-cases.interactors.user.log-in
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.domain.aggregates.user :as user]
+   [publicator.core.use-cases.aggregates.user :as user]
    [publicator.core.use-cases.services.user-session :as user-session]
    [publicator.core.use-cases.services.form :as form]
    [publicator.utils :as u :refer [<<-]]

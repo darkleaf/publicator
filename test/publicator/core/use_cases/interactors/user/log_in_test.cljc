@@ -33,7 +33,6 @@
                                     :agg/id               user-id
                                     :user/login           "john"
                                     :user/password-digest "digest"
-                                    :user/role            :regular
                                     :user/state           :active})
         script       [{:args [form]}
                       {:effect   [:session/get]

@@ -1,7 +1,7 @@
 (ns publicator.core.use-cases.interactors.user.register
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.domain.aggregates.user :as user]
+   [publicator.core.use-cases.aggregates.user :as user]
    [publicator.core.use-cases.services.user-session :as user-session]
    [publicator.core.use-cases.services.form :as form]
    [publicator.utils :as u :refer [<<-]]
@@ -30,8 +30,7 @@
       (agg/allocate {:db/ident             :root
                      :user/login           login
                      :user/password-digest password-digest
-                     :user/state           :active
-                     :user/role            :regular}))))
+                     :user/state           :active}))))
 
 (defn validate-form [form]
   (with-effects
