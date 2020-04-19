@@ -7,8 +7,11 @@
   #?(:cljs (:require-macros [publicator.core.use-cases.services.form :refer [check-errors]])))
 
 (defn agg->form [agg readable-attr?]
-  (let [datoms (->> (d/datoms agg :eavt)
-                    (filter (comp readable-attr? :a)))
+  (let [pred   (comp (some-fn #(#{"db"} (namespace %))
+                              readable-attr?)
+                     :a)
+        datoms (->> (d/datoms agg :eavt)
+                    (filter pred))
         schema (:schema agg)]
     (d/init-db datoms schema)))
 
