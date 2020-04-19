@@ -1,5 +1,7 @@
 (ns publicator.core.use-cases.services.form
   (:require
+   [publicator.core.domain.aggregate :as agg]
+   [darkleaf.effect.core :refer [effect]]
    [datascript.core :as d]
    [clojure.data :as data]))
 
@@ -22,3 +24,12 @@
     (if (some? rejected)
       (throw (ex-info "Rejected datoms" {:rejected rejected}))
       (d/db-with agg changes))))
+
+(defn check-errors* [form ns-name]
+  (let [key (keyword (str ns-name) "->invalid-form")]
+    (if (agg/has-errors? form)
+      (effect [key form])
+      form)))
+
+(defmacro check-errors [form]
+  `(check-errors* ~form (ns-name *ns*)))

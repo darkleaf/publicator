@@ -3,6 +3,7 @@
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.user :as user]
    [publicator.core.use-cases.services.user-session :as user-session]
+   [publicator.core.use-cases.services.form :as form]
    [publicator.utils :as u :refer [<<-]]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]
@@ -40,11 +41,6 @@
          (agg/permitted-attrs-validator #{:user/login :user/password})
          (login-validator))))
 
-(defn- check-form! [form]
-  (if (agg/has-errors? form)
-    (effect [::->invalid-form form])
-    form))
-
 (defn- create-user [user]
   (effect [:persistence.user/create user]))
 
@@ -64,7 +60,7 @@
     (! (! (precondition)))
     (->! form
          (validate-form)
-         (check-form!))
+         (form/check-errors))
     (let [user (->! form
                     (make-user)
                     (user/validate)

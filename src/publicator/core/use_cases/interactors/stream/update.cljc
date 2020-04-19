@@ -38,11 +38,6 @@
         (agg/required-validator {:root [:agg/id]})
         (agg/permitted-attrs-validator (! (->readable-attr?))))))
 
-(defn- check-form! [form]
-  (if (agg/has-errors? form)
-    (effect [::->invalid-form form])
-    form))
-
 (defn- update-stream [stream]
   (effect [:persistence.stream/update stream]))
 
@@ -65,7 +60,7 @@
   (with-effects
     (->! form
          (validate-form)
-         (check-form!))
+         (form/check-errors))
     (let [{:keys [agg/id]} (d/entity form :root)
           stream           (! (find-stream id))
           _                (! (! (precondition stream)))

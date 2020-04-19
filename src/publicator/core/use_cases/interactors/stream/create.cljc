@@ -5,6 +5,7 @@
    [publicator.core.domain.aggregates.stream :as stream]
    [publicator.core.domain.languages :as langs]
    [publicator.core.use-cases.services.user-session :as user-session]
+   [publicator.core.use-cases.services.form :as form]
    [darkleaf.effect.core :refer [with-effects effect !]]
    [darkleaf.effect.core-analogs :refer [->!]]
    [datascript.core :as d]))
@@ -24,11 +25,6 @@
       (agg/permitted-attrs-validator #{:stream.translation/stream
                                        :stream.translation/lang
                                        :stream.translation/name})))
-
-(defn- check-form! [form]
-  (if (agg/has-errors? form)
-    (effect [::->invalid-form form])
-    form))
 
 (defn- create-stream [stream]
   (effect [:persistence.stream/create stream]))
@@ -51,7 +47,7 @@
     (! (! (precondition)))
     (->! form
          (validate-form)
-         (check-form!))
+         (form/check-errors))
     (let [stream (->! form
                       (fill-defaults)
                       (stream/validate)
