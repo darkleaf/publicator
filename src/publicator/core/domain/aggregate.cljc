@@ -57,7 +57,6 @@
 
 (defn validate [agg]
   (-> agg
-      (remove-errors)
       (predicate-validator)
       (uniq-validator)))
 

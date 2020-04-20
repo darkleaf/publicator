@@ -58,6 +58,7 @@
   (with-effects
     (! (! (precondition)))
     (->! form
+         (agg/remove-errors)
          (validate-form)
          (form/check-errors))
     (let [user (->! form

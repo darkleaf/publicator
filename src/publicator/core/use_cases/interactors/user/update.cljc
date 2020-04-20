@@ -81,6 +81,7 @@
   (<<-
    (with-effects)
    (do (->! form
+            (agg/remove-errors)
             (validate-form)
             (form/check-errors)))
    (let [{:agg/keys [id]} (d/entity form :root)
