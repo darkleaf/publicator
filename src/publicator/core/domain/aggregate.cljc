@@ -1,6 +1,7 @@
 (ns publicator.core.domain.aggregate
   (:require
    [publicator.utils :as u]
+   [medley.core :as m]
    [datascript.core :as d]
    [datascript.db :as d.db]))
 
@@ -8,8 +9,12 @@
                        :error/entity {:db/valueType :db.type/ref}
                        :error/attr   {:db/index true}}))
 
+(defn- datascript-schema []
+  (m/map-vals (u/fn->> (m/filter-keys #(= "db" (namespace %))))
+              @schema))
+
 (defn allocate [& tx-data]
-  (-> (d/empty-db @schema)
+  (-> (d/empty-db (datascript-schema))
       (d/db-with [[:db/add 1 :db/ident :root]])
       (d/db-with tx-data)))
 
@@ -27,7 +32,7 @@
 
 (defn predicate-validator [agg]
   (let [tx-data (for [[e a v] (d/datoms agg :aevt)
-                      :let    [pred (get-in agg [:schema a :agg/predicate])]
+                      :let    [pred (get-in @schema [a :agg/predicate])]
                       :when   (not (apply-predicate pred v))]
                   {:error/type   :predicate
                    :error/entity e
@@ -51,7 +56,7 @@
                                      (if (:agg/uniq desc)
                                        (conj acc attr)
                                        acc))
-                                   #{} (:schema agg))
+                                   #{} @schema)
         tx-data         (mapcat errors-for-attr uniq-attrs)]
     (d/db-with agg tx-data)))
 

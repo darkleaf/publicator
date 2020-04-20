@@ -5,18 +5,11 @@
 (defmacro <<- [& body]
   `(->> ~@(reverse body)))
 
-(defn map-vals [f m]
-  (reduce-kv
-   (fn [acc k v] (assoc acc k (f v)))
-   {} m))
+(defmacro fn-> [& body]
+  `(fn [arg#] (-> arg# ~@body)))
 
-(defn map-keys [f m]
-  (reduce-kv
-   (fn [acc k v] (assoc acc (f k) v))
-   {} m))
-
-(defn reverse-merge [& maps]
-  (apply merge (reverse maps)))
+(defmacro fn->> [& body]
+  `(fn [arg#] (->> arg# ~@body)))
 
 (defn type [x]
   (-> x meta :type))
