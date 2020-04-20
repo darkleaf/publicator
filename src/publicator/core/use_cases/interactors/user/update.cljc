@@ -74,7 +74,7 @@
    (with-effects)
    (let [user (! (effect [:persistence.user/get-by-id id]))])
    (do (! (! (precondition user))))
-   (let [form (form/agg->form user (! (->readable-attr?)))])
+   (let [form (agg/filter-datoms user (! (->readable-attr?)))])
    (! (effect [::->form form]))))
 
 (defn process [form]

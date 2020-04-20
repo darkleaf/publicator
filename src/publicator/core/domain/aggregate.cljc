@@ -23,6 +23,15 @@
        (map (fn [{:keys [e]}] [:db.fn/retractEntity e]))
        (d/db-with agg)))
 
+(defn filter-datoms [agg allowed-attr?]
+  (let [pred   (comp (some-fn #(= "db" (namespace %))
+                              allowed-attr?)
+                     :a)
+        datoms (->> (d/datoms agg :eavt)
+                    (filter pred))
+        schema (:schema agg)]
+    (d/init-db datoms schema)))
+
 (defn- apply-predicate [p x]
   (cond
     (nil? p)          true
@@ -76,21 +85,6 @@
     (throw (ex-info "Invalid aggregate"
                     {:agg agg}))
     agg))
-
-(defn check-report-tx-data! [report allowed-datom?]
-  (if-some [extra-datoms (->> report
-                              :tx-data
-                              (remove allowed-datom?)
-                              (seq))]
-    (throw (ex-info "Extra datoms"
-                    {:extra extra-datoms}))
-    report))
-
-(defn filter-datoms [agg allowed-datom?]
-  (let [datoms (->> (d/datoms agg :eavt)
-                    (filter allowed-datom?))
-        schema (:schema agg)]
-    (d/init-db datoms schema)))
 
 (defn- entities-by-tag [agg tag]
   "the tag is an ident, ref, reveresed ref or attr-value pair"

@@ -6,15 +6,6 @@
    [clojure.data :as data])
   #?(:cljs (:require-macros [publicator.core.use-cases.services.form :refer [check-errors]])))
 
-(defn agg->form [agg readable-attr?]
-  (let [pred   (comp (some-fn #(#{"db"} (namespace %))
-                              readable-attr?)
-                     :a)
-        datoms (->> (d/datoms agg :eavt)
-                    (filter pred))
-        schema (:schema agg)]
-    (d/init-db datoms schema)))
-
 (defn changes [agg form updatable-attr?]
   (let [pred                       (comp updatable-attr? :a)
         [agg-datoms form-datoms _] (data/diff agg form)
