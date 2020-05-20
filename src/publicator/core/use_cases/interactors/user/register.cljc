@@ -4,6 +4,7 @@
    [publicator.core.use-cases.aggregates.user :as user]
    [publicator.core.use-cases.services.user-session :as user-session]
    [publicator.core.use-cases.services.form :as form]
+   [publicator.core.use-cases.contracts :as contracts]
    [publicator.utils :as u :refer [<<-]]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]
@@ -67,4 +68,23 @@
                     (agg/check-errors)
                     (create-user))]
       (! (user-session/log-in! user))
-      (effect [::->processed user]))))
+      (! (effect [::->processed user])))))
+
+(swap! contracts/registry assoc
+       `form
+       {:args (fn [[]] true)}
+
+       ::->form
+       {:effect (fn [[_ form]] (d/db? form))}
+
+       `process
+       {:args (fn [[form]] (d/db? form))}
+
+       ::->processed
+       {:effect (fn [[_ user]] (d/db? user))}
+
+       ::->already-logged-in
+       {:effect (fn [[_]] true)}
+
+       ::->invalid-form
+       {:effect (fn [[_ form]] (d/db? form))})

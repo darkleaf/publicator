@@ -2,9 +2,11 @@
   (:require
    [publicator.core.use-cases.interactors.user.register :as register]
    [publicator.core.use-cases.services.user-session :as user-session]
+   [publicator.core.use-cases.contracts :as contracts]
    [publicator.core.domain.aggregate :as agg]
    [darkleaf.effect.core :as e]
    [darkleaf.effect.script :as script]
+   [darkleaf.effect.middleware.contract :as contract]
    [datascript.core :as d]
    [clojure.test :as t]))
 
@@ -13,7 +15,9 @@
                       {:effect   [:session/get]
                        :coeffect {}}
                       {:final-effect [::register/->form (agg/allocate)]}]
-        continuation (e/continuation register/form)]
+        continuation (-> register/form
+                         (e/continuation)
+                         (contract/wrap-contract `register/form @contracts/registry))]
     (script/test continuation script)))
 
 (t/deftest form-already-logged-in
@@ -21,7 +25,9 @@
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
                       {:final-effect [::register/->already-logged-in]}]
-        continuation (e/continuation register/form)]
+        continuation (-> register/form
+                         (e/continuation)
+                         (contract/wrap-contract `register/form @contracts/registry))]
     (script/test continuation script)))
 
 (t/deftest process-success
@@ -46,7 +52,9 @@
                       {:effect   [:session/swap assoc ::user-session/id user-id]
                        :coeffect {::user-session/id user-id}}
                       {:final-effect [::register/->processed persisted]}]
-        continuation (e/continuation register/process)]
+        continuation (-> register/process
+                         (e/continuation)
+                         (contract/wrap-contract `register/process @contracts/registry))]
     (script/test continuation script)))
 
 (t/deftest process-already-logged-in
@@ -57,11 +65,15 @@
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
                       {:final-effect [::register/->already-logged-in]}]
-        continuation (e/continuation register/process)]
+        continuation (-> register/process
+                         (e/continuation)
+                         (contract/wrap-contract `register/process @contracts/registry))]
     (script/test continuation script)))
 
 (t/deftest process-invalid-form
-  (let [continuation (e/continuation register/process)]
+  (let [continuation (-> register/process
+                         (e/continuation)
+                         (contract/wrap-contract `register/process @contracts/registry))]
     (t/are [form invalid] (script/test continuation
                                        [{:args [form]}
                                         {:effect   [:session/get]
@@ -108,5 +120,7 @@
                       {:effect   [:persistence.user/exists-by-login "john"]
                        :coeffect true}
                       {:final-effect [::register/->invalid-form invalid]}]
-        continuation (e/continuation register/process)]
-     (script/test continuation script)))
+        continuation (-> register/process
+                         (e/continuation)
+                         (contract/wrap-contract `register/process @contracts/registry))]
+    (script/test continuation script)))
