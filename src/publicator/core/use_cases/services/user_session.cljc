@@ -6,7 +6,7 @@
 
 (defn user-id []
   (with-effects
-    (let [session (! (effect [:session/get]))]
+    (let [session (! (effect :session/get))]
       (::id session))))
 
 (defn logged-in? []
@@ -19,17 +19,17 @@
 
 (defn log-in! [user]
   (let [id (d/q '[:find ?v . :where [:root :agg/id ?v]] user)]
-    (effect [:session/swap assoc ::id id])))
+    (effect :session/swap assoc ::id id)))
 
 (defn log-out! []
-  (effect [:session/swap dissoc ::id]))
+  (effect :session/swap dissoc ::id))
 
 (defn user []
   (with-effects
     (when-let [id (! (user-id))]
-      (! (effect [:persistence.user/get-by-id id])))))
+      (! (effect :persistence.user/get-by-id id)))))
 
 (defn language []
   (with-effects
-    (let [session (! (effect [:session/get]))]
+    (let [session (! (effect :session/get))]
       (get session ::lang (first langs/languages)))))

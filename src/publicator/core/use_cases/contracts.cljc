@@ -7,21 +7,21 @@
 
 (swap! registry assoc
        :session/get
-       {:effect   (fn [[_]] true)
+       {:effect   (fn [] true)
         :coeffect map?}
 
        :session/swap
-       {:effect   (fn [[_ f]] (ifn? f))
+       {:effect   (fn [f & args] (ifn? f))
         :coeffect map?}
 
        :persistence.user/create
-       {:effect   (fn [[_ user]] (d/db? user))
+       {:effect   (fn [user] (d/db? user))
         :coeffect d/db?}
 
        :persistence.user/exists-by-login
-       {:effect   (fn [[_ login]] (string? login))
+       {:effect   (fn [login] (string? login))
         :coeffect boolean?}
 
        :hasher/derive
-       {:effect   (fn [[_ value]] (string? value))
+       {:effect   (fn [value] (string? value))
         :coeffect string?})

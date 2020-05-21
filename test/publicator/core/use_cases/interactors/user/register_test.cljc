@@ -17,7 +17,7 @@
                       {:final-effect [::register/->form (agg/allocate)]}]
         continuation (-> register/form
                          (e/continuation)
-                         (contract/wrap-contract `register/form @contracts/registry))]
+                         (contract/wrap-contract @contracts/registry `register/form))]
     (script/test continuation script)))
 
 (t/deftest form-already-logged-in
@@ -27,7 +27,7 @@
                       {:final-effect [::register/->already-logged-in]}]
         continuation (-> register/form
                          (e/continuation)
-                         (contract/wrap-contract `register/form @contracts/registry))]
+                         (contract/wrap-contract @contracts/registry `register/form))]
     (script/test continuation script)))
 
 (t/deftest process-success
@@ -54,7 +54,7 @@
                       {:final-effect [::register/->processed persisted]}]
         continuation (-> register/process
                          (e/continuation)
-                         (contract/wrap-contract `register/process @contracts/registry))]
+                         (contract/wrap-contract @contracts/registry `register/process))]
     (script/test continuation script)))
 
 (t/deftest process-already-logged-in
@@ -67,13 +67,13 @@
                       {:final-effect [::register/->already-logged-in]}]
         continuation (-> register/process
                          (e/continuation)
-                         (contract/wrap-contract `register/process @contracts/registry))]
+                         (contract/wrap-contract @contracts/registry `register/process))]
     (script/test continuation script)))
 
 (t/deftest process-invalid-form
   (let [continuation (-> register/process
                          (e/continuation)
-                         (contract/wrap-contract `register/process @contracts/registry))]
+                         (contract/wrap-contract @contracts/registry `register/process))]
     (t/are [form invalid] (script/test continuation
                                        [{:args [form]}
                                         {:effect   [:session/get]
@@ -122,5 +122,5 @@
                       {:final-effect [::register/->invalid-form invalid]}]
         continuation (-> register/process
                          (e/continuation)
-                         (contract/wrap-contract `register/process @contracts/registry))]
+                         (contract/wrap-contract @contracts/registry `register/process))]
     (script/test continuation script)))

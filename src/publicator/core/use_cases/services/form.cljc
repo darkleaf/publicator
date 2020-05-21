@@ -22,9 +22,9 @@
     changes))
 
 (defn check-errors* [form ns-name]
-  (let [key (keyword ns-name "->invalid-form")]
+  (let [tag (keyword ns-name "->invalid-form")]
     (if (agg/has-errors? form)
-      (effect [key form])
+      (effect tag form)
       form)))
 
 (defmacro check-errors [form]

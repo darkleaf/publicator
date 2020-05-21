@@ -16,7 +16,7 @@
    (if (agg/has-errors? agg)
      agg)
    (let [{:keys [user/login]} (d/entity agg :root)])
-   (if (! (effect [:persistence.user/exists-by-login login]))
+   (if (! (effect :persistence.user/exists-by-login login))
      (d/db-with agg [{:error/type   ::existed-login
                       :error/entity :root
                       :error/attr   :user/login
@@ -27,7 +27,7 @@
   (with-effects
     (let [{:keys [user/login
                   user/password]} (d/entity form :root)
-          password-digest         (! (effect [:hasher/derive password]))]
+          password-digest         (! (effect :hasher/derive password))]
       (agg/allocate {:db/ident             :root
                      :user/login           login
                      :user/password-digest password-digest
@@ -42,18 +42,18 @@
          (login-validator))))
 
 (defn- create-user [user]
-  (effect [:persistence.user/create user]))
+  (effect :persistence.user/create user))
 
 (defn precondition []
   (with-effects
     (if (! (user-session/logged-in?))
-      (effect [::->already-logged-in])
+      (effect ::->already-logged-in)
       :pass)))
 
 (defn form []
   (with-effects
     (! (! (precondition)))
-    (! (effect [::->form (agg/allocate)]))))
+    (! (effect ::->form (agg/allocate)))))
 
 (defn process [form]
   (with-effects
@@ -68,23 +68,23 @@
                     (agg/check-errors)
                     (create-user))]
       (! (user-session/log-in! user))
-      (! (effect [::->processed user])))))
+      (! (effect ::->processed user)))))
 
 (swap! contracts/registry assoc
        `form
-       {:args (fn [[]] true)}
+       {:args (fn [] true)}
 
        ::->form
-       {:effect (fn [[_ form]] (d/db? form))}
+       {:effect (fn [form] (d/db? form))}
 
        `process
-       {:args (fn [[form]] (d/db? form))}
+       {:args (fn [form] (d/db? form))}
 
        ::->processed
-       {:effect (fn [[_ user]] (d/db? user))}
+       {:effect (fn [user] (d/db? user))}
 
        ::->already-logged-in
-       {:effect (fn [[_]] true)}
+       {:effect (fn [] true)}
 
        ::->invalid-form
-       {:effect (fn [[_ form]] (d/db? form))})
+       {:effect (fn [form] (d/db? form))})
