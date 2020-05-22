@@ -1,14 +1,15 @@
 (ns publicator.core.use-cases.interactors.user.update
   (:require
+   [darkleaf.effect.core :refer [with-effects ! effect]]
+   [darkleaf.effect.core-analogs :refer [->!]]
+   [datascript.core :as d]
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.author :as author]
    [publicator.core.use-cases.aggregates.user :as user]
-   [publicator.core.use-cases.services.user-session :as user-session]
+   [publicator.core.use-cases.contracts :as contracts]
    [publicator.core.use-cases.services.form :as form]
-   [publicator.utils :as u :refer [<<-]]
-   [darkleaf.effect.core :refer [with-effects ! effect]]
-   [darkleaf.effect.core-analogs :refer [->!]]
-   [datascript.core :as d]))
+   [publicator.core.use-cases.services.user-session :as user-session]
+   [publicator.utils :as u :refer [<<-]]))
 
 (defn ->readable-attr? []
   (with-effects
@@ -44,17 +45,17 @@
 
 (defn- find-user [id]
   (with-effects
-    (if-some [user (! (effect [:persistence.user/get-by-id id]))]
+    (if-some [user (! (effect :persistence.user/get-by-id id))]
       user
-      (! (effect [::->user-not-found])))))
+      (! (effect ::->user-not-found)))))
 
 (defn- update-user [user]
-  (effect [:persistence.user/update user]))
+  (effect :persistence.user/update user))
 
 (defn- update-password [user]
   (with-effects
     (let [{:user/keys [password]} (d/entity user :root)
-          password-digest         (! (effect [:hasher/derive password]))]
+          password-digest         (! (effect :hasher/derive password))]
       (d/db-with user [[:db/add :root :user/password-digest password-digest]
                        [:db/retract :root :user/password password]]))))
 
@@ -62,7 +63,7 @@
   (<<-
    (with-effects)
    (let [current-user   (! (user-session/user))
-         not-authorized (effect [::->not-authorized])])
+         not-authorized (effect ::->not-authorized)])
    (if (nil? user) not-authorized)
    (if (nil? current-user) not-authorized)
    (if (= current-user user) :pass)
@@ -72,10 +73,10 @@
 (defn form [id]
   (<<-
    (with-effects)
-   (let [user (! (effect [:persistence.user/get-by-id id]))])
+   (let [user (! (effect :persistence.user/get-by-id id))])
    (do (! (! (precondition user))))
    (let [form (agg/filter-datoms user (! (->readable-attr?)))])
-   (! (effect [::->form form]))))
+   (! (effect ::->form form))))
 
 (defn process [form]
   (<<-
@@ -94,4 +95,10 @@
                       (user/validate)
                       (agg/check-errors)
                       (update-user))])
-   (! (effect [::->processed user]))))
+   (! (effect ::->processed user))))
+
+(swap! contracts/registry merge
+       {`form         {:args (fn [id] (int? id))}
+        `process      {:args (fn [form] (d/db? form))}
+        ::->form      {:effect (fn [form] (d/db? form))}
+        ::->processed {:effect (fn [user] (d/db? user))}})

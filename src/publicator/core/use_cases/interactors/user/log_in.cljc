@@ -4,6 +4,7 @@
    [publicator.core.use-cases.aggregates.user :as user]
    [publicator.core.use-cases.services.user-session :as user-session]
    [publicator.core.use-cases.services.form :as form]
+   [publicator.core.use-cases.contracts :as contracts]
    [publicator.utils :as u :refer [<<-]]
    [darkleaf.effect.core :refer [with-effects ! effect]]
    [darkleaf.effect.core-analogs :refer [->!]]
@@ -11,12 +12,12 @@
 
 (defn- get-user [form]
   (let [{:keys [user/login]} (d/entity form :root)]
-    (effect [:persistence.user/get-by-login login])))
+    (effect :persistence.user/get-by-login login)))
 
 (defn- correct-password? [user form]
   (let [{:keys [user/password-digest]} (d/entity user :root)
         {:keys [user/password]}        (d/entity form :root)]
-    (effect [:hasher/check password password-digest])))
+    (effect :hasher/check password password-digest)))
 
 (defn- auth-validator [form]
   (<<-
@@ -42,13 +43,13 @@
 (defn precondition []
   (with-effects
     (if (! (user-session/logged-in?))
-      (effect [::->already-logged-in])
+      (effect ::->already-logged-in)
       :pass)))
 
 (defn form []
   (with-effects
     (! (! (precondition)))
-    (! (effect [::->form (agg/allocate)]))))
+    (! (effect ::->form (agg/allocate)))))
 
 (defn process [form]
   (with-effects
@@ -59,4 +60,12 @@
          (form/check-errors))
     (let [user (! (get-user form))]
       (! (user-session/log-in! user))
-      (! (effect [::->processed])))))
+      (! (effect ::->processed)))))
+
+(swap! contracts/registry merge
+       {`form                 {:args (fn [] true)}
+        `process              {:args (fn [form] (d/db? form))}
+        ::->form              {:effect (fn [form] (d/db? form))}
+        ::->already-logged-in {:effect (fn [] true)}
+        ::->processed         {:effect (fn [] true)}})
+;; TODO: тут еще могут быть ошибки формы, но на него нет теста

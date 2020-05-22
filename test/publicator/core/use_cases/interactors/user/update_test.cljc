@@ -1,12 +1,14 @@
 (ns publicator.core.use-cases.interactors.user.update-test
   (:require
-   [publicator.core.use-cases.interactors.user.update :as update]
-   [publicator.core.use-cases.services.user-session :as user-session]
-   [publicator.core.domain.aggregate :as agg]
+   [clojure.test :as t]
    [darkleaf.effect.core :as e]
+   [darkleaf.effect.middleware.contract :as contract]
    [darkleaf.effect.script :as script]
    [datascript.core :as d]
-   [clojure.test :as t]))
+   [publicator.core.domain.aggregate :as agg]
+   [publicator.core.use-cases.contracts :as contracts]
+   [publicator.core.use-cases.interactors.user.update :as update]
+   [publicator.core.use-cases.services.user-session :as user-session]))
 
 (t/deftest form-success
   (let [user-id      1
@@ -27,7 +29,9 @@
                       {:effect   [:persistence.user/get-by-id user-id]
                        :coeffect user}
                       {:final-effect [::update/->form form]}]
-        continuation (e/continuation update/form)]
+        continuation (-> update/form
+                         (e/continuation)
+                         (contract/wrap-contract @contracts/registry `update/form))]
     (script/test continuation script)))
 
 (t/deftest process-success
@@ -85,5 +89,7 @@
                    {:effect   [:persistence.user/update persisted]
                     :coeffect persisted}
                    {:final-effect [::update/->processed persisted]}]
-        continuation (e/continuation update/process)]
+        continuation (-> update/process
+                         (e/continuation)
+                         (contract/wrap-contract @contracts/registry `update/process))]
     (script/test continuation script)))

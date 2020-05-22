@@ -1,11 +1,13 @@
 (ns publicator.core.use-cases.interactors.user.list-test
   (:require
-   [publicator.core.use-cases.interactors.user.list :as list]
-   [publicator.core.domain.aggregate :as agg]
+   [clojure.test :as t]
    [darkleaf.effect.core :as e]
+   [darkleaf.effect.middleware.contract :as contract]
    [darkleaf.effect.script :as script]
    [datascript.core :as d]
-   [clojure.test :as t]))
+   [publicator.core.domain.aggregate :as agg]
+   [publicator.core.use-cases.contracts :as contracts]
+   [publicator.core.use-cases.interactors.user.list :as list]))
 
 (t/deftest process-success
   (let [users        [(agg/allocate {:db/ident             :root
@@ -49,5 +51,7 @@
                       {:effect   [:session/get]
                        :coeffect {}}
                       {:final-effect [::list/->processed views]}]
-        continuation (e/continuation list/process)]
+        continuation (-> list/process
+                         (e/continuation)
+                         (contract/wrap-contract @contracts/registry `list/process))]
     (script/test continuation script)))

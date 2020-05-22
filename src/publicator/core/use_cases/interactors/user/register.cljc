@@ -70,21 +70,10 @@
       (! (user-session/log-in! user))
       (! (effect ::->processed user)))))
 
-(swap! contracts/registry assoc
-       `form
-       {:args (fn [] true)}
-
-       ::->form
-       {:effect (fn [form] (d/db? form))}
-
-       `process
-       {:args (fn [form] (d/db? form))}
-
-       ::->processed
-       {:effect (fn [user] (d/db? user))}
-
-       ::->already-logged-in
-       {:effect (fn [] true)}
-
-       ::->invalid-form
-       {:effect (fn [form] (d/db? form))})
+(swap! contracts/registry merge
+       {`form                 {:args (fn [] true)}
+        ::->form              {:effect (fn [form] (d/db? form))}
+        `process              {:args (fn [form] (d/db? form))}
+        ::->processed         {:effect (fn [user] (d/db? user))}
+        ::->already-logged-in {:effect (fn [] true)}
+        ::->invalid-form      {:effect (fn [form] (d/db? form))}})
