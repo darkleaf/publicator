@@ -67,5 +67,5 @@
         `process              {:args (fn [form] (d/db? form))}
         ::->form              {:effect (fn [form] (d/db? form))}
         ::->already-logged-in {:effect (fn [] true)}
-        ::->processed         {:effect (fn [] true)}})
-;; TODO: тут еще могут быть ошибки формы, но на него нет теста
+        ::->processed         {:effect (fn [] true)}
+        ::->invalid-form      {:effect (fn [form] (d/db? form))}})

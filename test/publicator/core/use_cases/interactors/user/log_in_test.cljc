@@ -69,3 +69,20 @@
                          (e/continuation)
                          (contract/wrap-contract @contracts/registry `log-in/process))]
     (script/test continuation script)))
+
+(t/deftest process-invalid-form
+  (let [form         (agg/allocate {:db/ident :root})
+        with-errors  (agg/allocate #:error{:attr   :user/login
+                                           :entity :root
+                                           :type   :required}
+                                   #:error{:attr   :user/password
+                                           :entity :root
+                                           :type   :required})
+        script       [{:args [form]}
+                      {:effect   [:session/get]
+                       :coeffect {}}
+                      {:final-effect [::log-in/->invalid-form with-errors]}]
+        continuation (-> log-in/process
+                         (e/continuation)
+                         (contract/wrap-contract @contracts/registry `log-in/process))]
+    (script/test continuation script)))

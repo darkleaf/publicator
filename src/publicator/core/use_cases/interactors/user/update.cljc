@@ -73,7 +73,7 @@
 (defn form [id]
   (<<-
    (with-effects)
-   (let [user (! (effect :persistence.user/get-by-id id))])
+   (let [user (! (find-user id))])
    (do (! (! (precondition user))))
    (let [form (agg/filter-datoms user (! (->readable-attr?)))])
    (! (effect ::->form form))))
@@ -98,7 +98,10 @@
    (! (effect ::->processed user))))
 
 (swap! contracts/registry merge
-       {`form         {:args (fn [id] (int? id))}
-        `process      {:args (fn [form] (d/db? form))}
-        ::->form      {:effect (fn [form] (d/db? form))}
-        ::->processed {:effect (fn [user] (d/db? user))}})
+       {`form              {:args (fn [id] (int? id))}
+        `process           {:args (fn [form] (d/db? form))}
+        ::->form           {:effect (fn [form] (d/db? form))}
+        ::->processed      {:effect (fn [user] (d/db? user))}
+        ::->not-authorized {:effect (fn [] true)}
+        ::->user-not-found {:effect (fn [] true)}
+        ::->invalid-form   {:effect (fn [form] (d/db? form))}})

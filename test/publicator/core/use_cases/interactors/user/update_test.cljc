@@ -34,6 +34,43 @@
                          (contract/wrap-contract @contracts/registry `update/form))]
     (script/test continuation script)))
 
+(t/deftest form-not-authorized
+  (let [user-id       1
+        user          (agg/allocate {:db/ident             :root
+                                     :agg/id               user-id
+                                     :user/login           "john"
+                                     :user/password-digest "digest"
+                                     :user/state           :active})
+        other-user-id 2
+        other-user    (agg/allocate {:db/ident             :root
+                                     :agg/id               other-user-id
+                                     :user/login           "other-john"
+                                     :user/password-digest "digest"
+                                     :user/state           :active})
+        script        [{:args [other-user-id]}
+                       {:effect   [:persistence.user/get-by-id other-user-id]
+                        :coeffect other-user}
+                       {:effect   [:session/get]
+                        :coeffect {::user-session/id user-id}}
+                       {:effect   [:persistence.user/get-by-id user-id]
+                        :coeffect user}
+                       {:final-effect [::update/->not-authorized]}]
+        continuation  (-> update/form
+                          (e/continuation)
+                          (contract/wrap-contract @contracts/registry `update/form))]
+    (script/test continuation script)))
+
+(t/deftest form-user-not-found
+  (let [user-id      1
+        script       [{:args [user-id]}
+                      {:effect   [:persistence.user/get-by-id user-id]
+                       :coeffect nil}
+                      {:final-effect [::update/->user-not-found]}]
+        continuation (-> update/form
+                         (e/continuation)
+                         (contract/wrap-contract @contracts/registry `update/form))]
+    (script/test continuation script)))
+
 (t/deftest process-success
   (let [user-id   1
         form      (agg/allocate {:db/ident      :root
@@ -89,6 +126,24 @@
                    {:effect   [:persistence.user/update persisted]
                     :coeffect persisted}
                    {:final-effect [::update/->processed persisted]}]
+        continuation (-> update/process
+                         (e/continuation)
+                         (contract/wrap-contract @contracts/registry `update/process))]
+    (script/test continuation script)))
+
+(t/deftest process-invalid-form
+  (let [form         (agg/allocate {:db/ident :root})
+        with-errors  (agg/allocate #:error{:attr   :agg/id
+                                           :entity :root
+                                           :type   :required}
+                                   #:error{:attr   :user/login
+                                           :entity :root
+                                           :type   :required}
+                                   #:error{:attr   :user/state
+                                           :entity :root
+                                           :type   :required})
+        script       [{:args [form]}
+                      {:final-effect [::update/->invalid-form with-errors]}]
         continuation (-> update/process
                          (e/continuation)
                          (contract/wrap-contract @contracts/registry `update/process))]

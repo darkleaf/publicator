@@ -17,5 +17,6 @@
     (! (effect ::->processed))))
 
 (swap! contracts/registry merge
-       {`process      {:args (fn [] true)}
-        ::->processed {:effect (fn [] true)}})
+       {`process               {:args (fn [] true)}
+        ::->processed          {:effect (fn [] true)}
+        ::->already-logged-out {:effect (fn [] true)}})

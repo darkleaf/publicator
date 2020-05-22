@@ -19,3 +19,13 @@
                          (e/continuation)
                          (contract/wrap-contract @contracts/registry `log-out/process))]
     (script/test continuation script)))
+
+(t/deftest process-already-logged-out
+  (let [script       [{:args []}
+                      {:effect   [:session/get]
+                       :coeffect {}}
+                      {:final-effect [::log-out/->already-logged-out]}]
+        continuation (-> log-out/process
+                         (e/continuation)
+                         (contract/wrap-contract @contracts/registry `log-out/process))]
+    (script/test continuation script)))
