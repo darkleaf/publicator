@@ -18,7 +18,6 @@
                                     :user/password-digest "digest"
                                     :user/state           :active})
         form         (agg/allocate {:db/ident   :root
-                                    :agg/id     user-id
                                     :user/login "john"
                                     :user/state :active})
         script       [{:args [user-id]}
@@ -74,7 +73,6 @@
 (t/deftest process-success
   (let [user-id   1
         form      (agg/allocate {:db/ident      :root
-                                 :agg/id        user-id
                                  :user/login    "john"
                                  :user/password "new password"
                                  :user/state    :active
@@ -106,7 +104,7 @@
                                  :author.translation/lang       :ru
                                  :author.translation/first-name "Иван"
                                  :author.translation/last-name  "Иванов"})
-        script    [{:args [form]}
+        script    [{:args [user-id form]}
                    {:effect   [:persistence.user/get-by-id user-id]
                     :coeffect user}
 
@@ -133,16 +131,13 @@
 
 (t/deftest process-invalid-form
   (let [form         (agg/allocate {:db/ident :root})
-        with-errors  (agg/allocate #:error{:attr   :agg/id
-                                           :entity :root
-                                           :type   :required}
-                                   #:error{:attr   :user/login
+        with-errors  (agg/allocate #:error{:attr   :user/login
                                            :entity :root
                                            :type   :required}
                                    #:error{:attr   :user/state
                                            :entity :root
                                            :type   :required})
-        script       [{:args [form]}
+        script       [{:args [1 form]}
                       {:final-effect [::update/->invalid-form with-errors]}]
         continuation (-> update/process
                          (e/continuation)

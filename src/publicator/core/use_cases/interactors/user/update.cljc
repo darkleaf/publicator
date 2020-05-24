@@ -13,8 +13,7 @@
 
 (defn ->readable-attr? []
   (with-effects
-    #{:agg/id
-      :user/login
+    #{:user/login
       :user/state
       :user/admin?
       :user/author?
@@ -39,7 +38,7 @@
   (with-effects
     (cond-> form
       :always             (agg/validate)
-      :always             (agg/required-validator {:root [:agg/id :user/login :user/state]})
+      :always             (agg/required-validator {:root [:user/login :user/state]})
       :always             (agg/permitted-attrs-validator (! (->readable-attr?)))
       (user/author? form) (author/validate))))
 
@@ -78,15 +77,14 @@
    (let [form (agg/filter-datoms user (! (->readable-attr?)))])
    (! (effect ::->form form))))
 
-(defn process [form]
+(defn process [id form]
   (<<-
    (with-effects)
    (do (->! form
             (agg/remove-errors)
             (validate-form)
             (form/check-errors)))
-   (let [{:agg/keys [id]} (d/entity form :root)
-         user             (! (find-user id))])
+   (let [user (! (find-user id))])
    (do (! (! (precondition user))))
    (let [changes (form/changes user form (! (->updatable-attr?)))
          user    (->! user
@@ -98,8 +96,8 @@
    (! (effect ::->processed user))))
 
 (swap! contracts/registry merge
-       {`form              {:args (fn [id] (int? id))}
-        `process           {:args (fn [form] (d/db? form))}
+       {`form              {:args (fn [id] (pos-int? id))}
+        `process           {:args (fn [id form] (and (pos-int? id) (d/db? form)))}
         ::->form           {:effect (fn [form] (d/db? form))}
         ::->processed      {:effect (fn [user] (d/db? user))}
         ::->not-authorized {:effect (fn [] true)}
