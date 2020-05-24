@@ -27,7 +27,7 @@
 (t/deftest user-log-in-post
   (let [request          {:request-method :post
                           :uri            "/user/log-in"
-                          :body           (agg/allocate)}
+                          :body           (agg/build)}
         [process & args] ((handler) request)
         args-predicate   (get-in @contracts/registry [`user.log-in/process :args])]
     (t/is (= user.log-in/process process))
@@ -54,7 +54,7 @@
 (t/deftest user-register-post
   (let [request          {:request-method :post
                           :uri            "/user/register"
-                          :body           (agg/allocate)}
+                          :body           (agg/build)}
         [process & args] ((handler) request)
         args-predicate   (get-in @contracts/registry [`user.register/process :args])]
     (t/is (= user.register/process process))
@@ -81,7 +81,7 @@
 (t/deftest user-update-post
   (let [request          {:request-method :post
                           :uri            "/user/update/1"
-                          :body           (agg/allocate)}
+                          :body           (agg/build)}
         [process & args] ((handler) request)
         args-predicate   (get-in @contracts/registry [`user.update/process :args])]
     (t/is (= user.update/process process))

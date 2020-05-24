@@ -28,10 +28,10 @@
     (let [{:keys [user/login
                   user/password]} (d/entity form :root)
           password-digest         (! (effect :hasher/derive password))]
-      (agg/allocate {:db/ident             :root
-                     :user/login           login
-                     :user/password-digest password-digest
-                     :user/state           :active}))))
+      (agg/build {:db/ident                :root
+                  :user/login           login
+                  :user/password-digest password-digest
+                  :user/state           :active}))))
 
 (defn validate-form [form]
   (with-effects
@@ -53,7 +53,7 @@
 (defn form []
   (with-effects
     (! (! (precondition)))
-    (! (effect ::->form (agg/allocate)))))
+    (! (effect ::->form (agg/build)))))
 
 (defn process [form]
   (with-effects

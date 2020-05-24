@@ -5,19 +5,18 @@
    [clojure.test :as t]))
 
 (swap! agg/schema merge
-       {:allocate-test/many {:db/cardinality :db.cardinality/many}})
+       {:build-test/many {:db/cardinality :db.cardinality/many}})
 
-(t/deftest allocate
-  (let [agg (agg/allocate)]
+(t/deftest build
+  (let [agg (agg/build)]
     (t/is (some? agg))
-    (t/is (-> agg :schema (contains? :allocate-test/many)))
+    (t/is (-> agg :schema (contains? :build-test/many)))
     (t/is (= 1 (d/q '[:find ?e . :where [?e :db/ident :root]]
                     agg)))))
 
 
 (t/deftest remove-errors
-  (let [agg (-> (agg/allocate)
-                (d/db-with [{:error/entity :root}]))]
+  (let [agg (-> (agg/build {:error/entity :root}))]
     (t/is (-> agg agg/has-errors?))
     (t/is (-> agg agg/remove-errors agg/has-no-errors?))))
 
@@ -26,9 +25,8 @@
        {:predicate-validator-test/attr {:agg/predicate #{:ok}}})
 
 (t/deftest predicate-validator
-  (let [agg (-> (agg/allocate)
-                (d/db-with [[:db/add 2 :predicate-validator-test/attr :wrong]
-                            [:db/add 3 :predicate-validator-test/attr :ok]])
+  (let [agg (-> (agg/build [:db/add 2 :predicate-validator-test/attr :wrong]
+                           [:db/add 3 :predicate-validator-test/attr :ok])
                 (agg/predicate-validator))]
     (t/is (= [[4 :error/attr :predicate-validator-test/attr]
               [4 :error/entity 2]
@@ -43,13 +41,12 @@
                                    :agg/uniq       true}})
 
 (t/deftest uniq-validator
-  (let [agg (-> (agg/allocate)
-                (d/db-with [{:uniq-validator-test/attr  1
-                             :uniq-validator-test/other 1}
-                            {:uniq-validator-test/attr  [2 3]
-                             :uniq-validator-test/other 1}
-                            {:uniq-validator-test/attr  [1 3]
-                             :uniq-validator-test/other 1}])
+  (let [agg (-> (agg/build {:uniq-validator-test/attr  1
+                            :uniq-validator-test/other 1}
+                           {:uniq-validator-test/attr  [2 3]
+                            :uniq-validator-test/other 1}
+                           {:uniq-validator-test/attr  [1 3]
+                            :uniq-validator-test/other 1})
                 (agg/uniq-validator))]
     (t/is (= [[5 :error/attr :uniq-validator-test/attr]
               [5 :error/entity 4]
@@ -69,20 +66,19 @@
         :required-validator-test.nested/status {:db/index true}})
 
 (t/deftest required-validator
-  (let [agg (-> (agg/allocate)
-                (d/db-with [{:db/ident                  :root
-                             :required-validator-test/a :ok}
-                            {:db/id                               2
-                             :required-validator-test/c           :ok
-                             :required-validator-test.nested/root :root}
-                            {:db/id                               3
-                             :required-validator-test/d           :ok
-                             :required-validator-test.nested/root :root}
-                            {:db/id                                 4
-                             :required-validator-test/c             :ok
-                             :required-validator-test/d             :ok
-                             :required-validator-test.nested/root   :root
-                             :required-validator-test.nested/status :ready}])
+  (let [agg (-> (agg/build {:db/ident                  :root
+                            :required-validator-test/a :ok}
+                           {:db/id                               2
+                            :required-validator-test/c           :ok
+                            :required-validator-test.nested/root :root}
+                           {:db/id                               3
+                            :required-validator-test/d           :ok
+                            :required-validator-test.nested/root :root}
+                           {:db/id                                 4
+                            :required-validator-test/c             :ok
+                            :required-validator-test/d             :ok
+                            :required-validator-test.nested/root   :root
+                            :required-validator-test.nested/status :ready})
                 (agg/required-validator {:root
                                          [:required-validator-test/a :required-validator-test/b]
 
@@ -114,11 +110,10 @@
        {:count-validator-test.nested/root {:db/valueType :db.type/ref}})
 
 (t/deftest count-validator
-  (let [agg (-> (agg/allocate)
-                (d/db-with [{:count-validator-test.nested/root :root
-                             :count-validator-test.nested/attr 1}
-                            {:count-validator-test.nested/root :root
-                             :count-validator-test.nested/attr 1}])
+  (let [agg (-> (agg/build {:count-validator-test.nested/root :root
+                            :count-validator-test.nested/attr 1}
+                           {:count-validator-test.nested/root :root
+                            :count-validator-test.nested/attr 1})
                 (agg/count-validator :count-validator-test.nested/attr 3))]
     (t/is (= [[4 :error/actual-count 2]
               [4 :error/attr :count-validator-test.nested/attr]
@@ -130,12 +125,11 @@
 
 
 (t/deftest permitted-attrs-validator
-  (let [agg (-> (agg/allocate)
-                (d/db-with [{:db/ident                                 :root
-                             :permitted-attrs-validator-test/permitted true
-                             :permitted-attrs-validator-test/rejected  true}
-                            {:error/type   :some-error
-                             :error/entity :root}])
+  (let [agg (-> (agg/build {:db/ident                                 :root
+                            :permitted-attrs-validator-test/permitted true
+                            :permitted-attrs-validator-test/rejected  true}
+                           {:error/type   :some-error
+                            :error/entity :root})
                 (agg/permitted-attrs-validator #{:permitted-attrs-validator-test/permitted}))]
     (t/is (= [[3 :error/attr :permitted-attrs-validator-test/rejected]
               [3 :error/entity 1]

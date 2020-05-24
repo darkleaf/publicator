@@ -12,14 +12,14 @@
 
 (t/deftest form-success
   (let [user-id      1
-        user         (agg/allocate {:db/ident             :root
-                                    :agg/id               user-id
-                                    :user/login           "john"
-                                    :user/password-digest "digest"
-                                    :user/state           :active})
-        form         (agg/allocate {:db/ident   :root
-                                    :user/login "john"
-                                    :user/state :active})
+        user         (agg/build {:db/ident             :root
+                                 :agg/id               user-id
+                                 :user/login           "john"
+                                 :user/password-digest "digest"
+                                 :user/state           :active})
+        form         (agg/build {:db/ident   :root
+                                 :user/login "john"
+                                 :user/state :active})
         script       [{:args [user-id]}
                       {:effect   [:persistence.user/get-by-id user-id]
                        :coeffect user}
@@ -35,17 +35,17 @@
 
 (t/deftest form-not-authorized
   (let [user-id       1
-        user          (agg/allocate {:db/ident             :root
-                                     :agg/id               user-id
-                                     :user/login           "john"
-                                     :user/password-digest "digest"
-                                     :user/state           :active})
+        user          (agg/build {:db/ident             :root
+                                  :agg/id               user-id
+                                  :user/login           "john"
+                                  :user/password-digest "digest"
+                                  :user/state           :active})
         other-user-id 2
-        other-user    (agg/allocate {:db/ident             :root
-                                     :agg/id               other-user-id
-                                     :user/login           "other-john"
-                                     :user/password-digest "digest"
-                                     :user/state           :active})
+        other-user    (agg/build {:db/ident             :root
+                                  :agg/id               other-user-id
+                                  :user/login           "other-john"
+                                  :user/password-digest "digest"
+                                  :user/state           :active})
         script        [{:args [other-user-id]}
                        {:effect   [:persistence.user/get-by-id other-user-id]
                         :coeffect other-user}
@@ -72,38 +72,38 @@
 
 (t/deftest process-success
   (let [user-id   1
-        form      (agg/allocate {:db/ident      :root
-                                 :user/login    "john"
-                                 :user/password "new password"
-                                 :user/state    :active
-                                 :user/author?  true}
-                                {:author.translation/author     :root
-                                 :author.translation/lang       :en
-                                 :author.translation/first-name "John"
-                                 :author.translation/last-name  "Doe"}
-                                {:author.translation/author     :root
-                                 :author.translation/lang       :ru
-                                 :author.translation/first-name "Иван"
-                                 :author.translation/last-name  "Иванов"})
-        user      (agg/allocate {:db/ident             :root
-                                 :agg/id               user-id
-                                 :user/login           "john"
-                                 :user/password-digest "digest"
-                                 :user/state           :active})
-        persisted (agg/allocate {:db/ident             :root
-                                 :agg/id               user-id
-                                 :user/login           "john"
-                                 :user/password-digest "new digest"
-                                 :user/state           :active
-                                 :user/author?         true}
-                                {:author.translation/author     :root
-                                 :author.translation/lang       :en
-                                 :author.translation/first-name "John"
-                                 :author.translation/last-name  "Doe"}
-                                {:author.translation/author     :root
-                                 :author.translation/lang       :ru
-                                 :author.translation/first-name "Иван"
-                                 :author.translation/last-name  "Иванов"})
+        form      (agg/build {:db/ident      :root
+                              :user/login    "john"
+                              :user/password "new password"
+                              :user/state    :active
+                              :user/author?  true}
+                             {:author.translation/author     :root
+                              :author.translation/lang       :en
+                              :author.translation/first-name "John"
+                              :author.translation/last-name  "Doe"}
+                             {:author.translation/author     :root
+                              :author.translation/lang       :ru
+                              :author.translation/first-name "Иван"
+                              :author.translation/last-name  "Иванов"})
+        user      (agg/build {:db/ident             :root
+                              :agg/id               user-id
+                              :user/login           "john"
+                              :user/password-digest "digest"
+                              :user/state           :active})
+        persisted (agg/build {:db/ident             :root
+                              :agg/id               user-id
+                              :user/login           "john"
+                              :user/password-digest "new digest"
+                              :user/state           :active
+                              :user/author?         true}
+                             {:author.translation/author     :root
+                              :author.translation/lang       :en
+                              :author.translation/first-name "John"
+                              :author.translation/last-name  "Doe"}
+                             {:author.translation/author     :root
+                              :author.translation/lang       :ru
+                              :author.translation/first-name "Иван"
+                              :author.translation/last-name  "Иванов"})
         script    [{:args [user-id form]}
                    {:effect   [:persistence.user/get-by-id user-id]
                     :coeffect user}
@@ -130,13 +130,13 @@
     (script/test continuation script)))
 
 (t/deftest process-invalid-form
-  (let [form         (agg/allocate {:db/ident :root})
-        with-errors  (agg/allocate #:error{:attr   :user/login
-                                           :entity :root
-                                           :type   :required}
-                                   #:error{:attr   :user/state
-                                           :entity :root
-                                           :type   :required})
+  (let [form         (agg/build {:db/ident :root})
+        with-errors  (agg/build #:error{:attr   :user/login
+                                        :entity :root
+                                        :type   :required}
+                                #:error{:attr   :user/state
+                                        :entity :root
+                                        :type   :required})
         script       [{:args [1 form]}
                       {:final-effect [::update/->invalid-form with-errors]}]
         continuation (-> update/process

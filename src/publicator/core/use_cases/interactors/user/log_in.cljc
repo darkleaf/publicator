@@ -49,7 +49,7 @@
 (defn form []
   (with-effects
     (! (! (precondition)))
-    (! (effect ::->form (agg/allocate)))))
+    (! (effect ::->form (agg/build)))))
 
 (defn process [form]
   (with-effects

@@ -10,25 +10,25 @@
    [publicator.core.use-cases.interactors.user.list :as list]))
 
 (t/deftest process-success
-  (let [users        [(agg/allocate {:db/ident             :root
-                                     :agg/id               1
-                                     :user/login           "alice"
-                                     :user/password-digest "digest"
-                                     :user/state           :active})
-                      (agg/allocate {:db/ident             :root
-                                     :agg/id               2
-                                     :user/login           "john"
-                                     :user/password-digest "digest"
-                                     :user/state           :active
-                                     :user/author?         true}
-                                    {:author.translation/author     :root
-                                     :author.translation/lang       :en
-                                     :author.translation/first-name "John"
-                                     :author.translation/last-name  "Doe"}
-                                    {:author.translation/author     :root
-                                     :author.translation/lang       :ru
-                                     :author.translation/first-name "Иван"
-                                     :author.translation/last-name  "Иванов"})]
+  (let [users        [(agg/build {:db/ident             :root
+                                  :agg/id               1
+                                  :user/login           "alice"
+                                  :user/password-digest "digest"
+                                  :user/state           :active})
+                      (agg/build {:db/ident             :root
+                                  :agg/id               2
+                                  :user/login           "john"
+                                  :user/password-digest "digest"
+                                  :user/state           :active
+                                  :user/author?         true}
+                                 {:author.translation/author     :root
+                                  :author.translation/lang       :en
+                                  :author.translation/first-name "John"
+                                  :author.translation/last-name  "Doe"}
+                                 {:author.translation/author     :root
+                                  :author.translation/lang       :ru
+                                  :author.translation/first-name "Иван"
+                                  :author.translation/last-name  "Иванов"})]
         views        [{:agg/id              1
                        :user/login          "alice"
                        :user/state          :active

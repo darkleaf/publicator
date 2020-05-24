@@ -13,7 +13,7 @@
   (m/map-vals (u/fn->> (m/filter-keys #(= "db" (namespace %))))
               @schema))
 
-(defn allocate [& tx-data]
+(defn build [& tx-data]
   (-> (d/empty-db (datascript-schema))
       (d/db-with [[:db/add 1 :db/ident :root]])
       (d/db-with tx-data)))

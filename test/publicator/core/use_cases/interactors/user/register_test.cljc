@@ -14,7 +14,7 @@
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:final-effect [::register/->form (agg/allocate)]}]
+                      {:final-effect [::register/->form (agg/build)]}]
         continuation (-> register/form
                          (e/continuation)
                          (contract/wrap-contract @contracts/registry `register/form))]
@@ -31,13 +31,13 @@
     (script/test continuation script)))
 
 (t/deftest process-success
-  (let [form         (agg/allocate {:db/ident      :root
-                                    :user/login    "john"
-                                    :user/password "password"})
-        user         (agg/allocate {:db/ident             :root
-                                    :user/login           "john"
-                                    :user/password-digest "digest"
-                                    :user/state           :active})
+  (let [form         (agg/build {:db/ident      :root
+                                 :user/login    "john"
+                                 :user/password "password"})
+        user         (agg/build {:db/ident             :root
+                                 :user/login           "john"
+                                 :user/password-digest "digest"
+                                 :user/state           :active})
         user-id      1
         persisted    (d/db-with user [[:db/add :root :agg/id user-id]])
         script       [{:args [form]}
@@ -58,9 +58,9 @@
     (script/test continuation script)))
 
 (t/deftest process-already-logged-in
-  (let [form         (agg/allocate {:db/ident      :root
-                                    :user/login    "john"
-                                    :user/password "password"})
+  (let [form         (agg/build {:db/ident      :root
+                                 :user/login    "john"
+                                 :user/password "password"})
         script       [{:args [form]}
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
@@ -79,41 +79,41 @@
                                         {:effect   [:session/get]
                                          :coeffect {}}
                                         {:final-effect [::register/->invalid-form invalid]}])
-      (agg/allocate {:db/ident :root})
-      (agg/allocate {:db/ident :root}
-                    {:error/entity :root
-                     :error/type   :required
-                     :error/attr   :user/login}
-                    {:error/entity :root
-                     :error/type   :required
-                     :error/attr   :user/password})
+      (agg/build {:db/ident :root})
+      (agg/build {:db/ident :root}
+                 {:error/entity :root
+                  :error/type   :required
+                  :error/attr   :user/login}
+                 {:error/entity :root
+                  :error/type   :required
+                  :error/attr   :user/password})
 
-      (agg/allocate {:db/ident      :root
-                     :user/login    ""
-                     :user/password ""})
-      (agg/allocate {:db/ident      :root
-                     :user/login    ""
-                     :user/password ""}
-                    {:error/entity :root
-                     :error/type   :predicate
-                     :error/attr   :user/login
-                     :error/value  ""}
-                    {:error/entity :root
-                     :error/type   :predicate
-                     :error/attr   :user/password
-                     :error/value  ""}))))
+      (agg/build {:db/ident      :root
+                  :user/login    ""
+                  :user/password ""})
+      (agg/build {:db/ident      :root
+                  :user/login    ""
+                  :user/password ""}
+                 {:error/entity :root
+                  :error/type   :predicate
+                  :error/attr   :user/login
+                  :error/value  ""}
+                 {:error/entity :root
+                  :error/type   :predicate
+                  :error/attr   :user/password
+                  :error/value  ""}))))
 
 (t/deftest process-existed-login
-  (let [form         (agg/allocate {:db/ident      :root
-                                    :user/login    "john"
-                                    :user/password "password"})
-        invalid      (agg/allocate {:db/ident      :root
-                                    :user/login    "john"
-                                    :user/password "password"}
-                                   {:error/entity :root
-                                    :error/type   ::register/existed-login
-                                    :error/attr   :user/login
-                                    :error/value  "john"})
+  (let [form         (agg/build {:db/ident      :root
+                                 :user/login    "john"
+                                 :user/password "password"})
+        invalid      (agg/build {:db/ident      :root
+                                 :user/login    "john"
+                                 :user/password "password"}
+                                {:error/entity :root
+                                 :error/type   ::register/existed-login
+                                 :error/attr   :user/login
+                                 :error/value  "john"})
         script       [{:args [form]}
                       {:effect   [:session/get]
                        :coeffect {}}
