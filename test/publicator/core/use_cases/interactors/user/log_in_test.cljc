@@ -1,33 +1,33 @@
 (ns publicator.core.use-cases.interactors.user.log-in-test
   (:require
-   [publicator.core.use-cases.interactors.user.log-in :as log-in]
-   [publicator.core.use-cases.services.user-session :as user-session]
-   [publicator.core.use-cases.contracts :as contracts]
-   [publicator.core.domain.aggregate :as agg]
-   [darkleaf.effect.core :as e]
-   [darkleaf.effect.script :as script]
-   [darkleaf.effect.middleware.contract :as contract]
    [clojure.test :as t]
-   [datascript.core :as d]))
+   [darkleaf.effect.core :as e]
+   [darkleaf.effect.middleware.contract :as contract]
+   [darkleaf.effect.script :as script]
+   [datascript.core :as d]
+   [publicator.core.domain.aggregate :as agg]
+   [publicator.core.use-cases.contracts :as contracts]
+   [publicator.core.use-cases.interactors.user.log-in :as user.log-in]
+   [publicator.core.use-cases.services.user-session :as user-session]))
 
 (t/deftest form-success
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:final-effect [::log-in/->form (agg/build)]}]
-        continuation (-> log-in/form
+                      {:final-effect [::user.log-in/->form (agg/build)]}]
+        continuation (-> user.log-in/form
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `log-in/form))]
+                         (contract/wrap-contract @contracts/registry `user.log-in/form))]
     (script/test continuation script)))
 
 (t/deftest form-already-logged-in
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
-                      {:final-effect [::log-in/->already-logged-in]}]
-        continuation (-> log-in/form
+                      {:final-effect [::user.log-in/->already-logged-in]}]
+        continuation (-> user.log-in/form
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `log-in/form))]
+                         (contract/wrap-contract @contracts/registry `user.log-in/form))]
     (script/test continuation script)))
 
 (t/deftest process-success
@@ -51,10 +51,10 @@
                        :coeffect user}
                       {:effect   [:session/swap assoc ::user-session/id user-id]
                        :coeffect {::user-session/id user-id}}
-                      {:final-effect [::log-in/->processed]}]
-        continuation (-> log-in/process
+                      {:final-effect [::user.log-in/->processed]}]
+        continuation (-> user.log-in/process
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `log-in/process))]
+                         (contract/wrap-contract @contracts/registry `user.log-in/process))]
     (script/test continuation script)))
 
 (t/deftest process-already-logged-in
@@ -64,10 +64,10 @@
         script       [{:args [form]}
                       {:effect   [:session/get]
                        :coeffect {::user-session/id 1}}
-                      {:final-effect [::log-in/->already-logged-in]}]
-        continuation (-> log-in/process
+                      {:final-effect [::user.log-in/->already-logged-in]}]
+        continuation (-> user.log-in/process
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `log-in/process))]
+                         (contract/wrap-contract @contracts/registry `user.log-in/process))]
     (script/test continuation script)))
 
 (t/deftest process-invalid-form
@@ -81,8 +81,8 @@
         script       [{:args [form]}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:final-effect [::log-in/->invalid-form with-errors]}]
-        continuation (-> log-in/process
+                      {:final-effect [::user.log-in/->invalid-form with-errors]}]
+        continuation (-> user.log-in/process
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `log-in/process))]
+                         (contract/wrap-contract @contracts/registry `user.log-in/process))]
     (script/test continuation script)))

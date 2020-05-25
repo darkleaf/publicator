@@ -7,7 +7,7 @@
    [datascript.core :as d]
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.use-cases.contracts :as contracts]
-   [publicator.core.use-cases.interactors.user.update :as update]
+   [publicator.core.use-cases.interactors.user.update :as user.update]
    [publicator.core.use-cases.services.user-session :as user-session]))
 
 (t/deftest form-success
@@ -27,10 +27,10 @@
                        :coeffect {::user-session/id user-id}}
                       {:effect   [:persistence.user/get-by-id user-id]
                        :coeffect user}
-                      {:final-effect [::update/->form form]}]
-        continuation (-> update/form
+                      {:final-effect [::user.update/->form form]}]
+        continuation (-> user.update/form
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `update/form))]
+                         (contract/wrap-contract @contracts/registry `user.update/form))]
     (script/test continuation script)))
 
 (t/deftest form-not-authorized
@@ -53,10 +53,10 @@
                         :coeffect {::user-session/id user-id}}
                        {:effect   [:persistence.user/get-by-id user-id]
                         :coeffect user}
-                       {:final-effect [::update/->not-authorized]}]
-        continuation  (-> update/form
+                       {:final-effect [::user.update/->not-authorized]}]
+        continuation  (-> user.update/form
                           (e/continuation)
-                          (contract/wrap-contract @contracts/registry `update/form))]
+                          (contract/wrap-contract @contracts/registry `user.update/form))]
     (script/test continuation script)))
 
 (t/deftest form-user-not-found
@@ -64,10 +64,10 @@
         script       [{:args [user-id]}
                       {:effect   [:persistence.user/get-by-id user-id]
                        :coeffect nil}
-                      {:final-effect [::update/->user-not-found]}]
-        continuation (-> update/form
+                      {:final-effect [::user.update/->user-not-found]}]
+        continuation (-> user.update/form
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `update/form))]
+                         (contract/wrap-contract @contracts/registry `user.update/form))]
     (script/test continuation script)))
 
 (t/deftest process-success
@@ -123,10 +123,10 @@
 
                    {:effect   [:persistence.user/update persisted]
                     :coeffect persisted}
-                   {:final-effect [::update/->processed persisted]}]
-        continuation (-> update/process
+                   {:final-effect [::user.update/->processed persisted]}]
+        continuation (-> user.update/process
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `update/process))]
+                         (contract/wrap-contract @contracts/registry `user.update/process))]
     (script/test continuation script)))
 
 (t/deftest process-invalid-form
@@ -138,8 +138,8 @@
                                         :entity :root
                                         :type   :required})
         script       [{:args [1 form]}
-                      {:final-effect [::update/->invalid-form with-errors]}]
-        continuation (-> update/process
+                      {:final-effect [::user.update/->invalid-form with-errors]}]
+        continuation (-> user.update/process
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `update/process))]
+                         (contract/wrap-contract @contracts/registry `user.update/process))]
     (script/test continuation script)))

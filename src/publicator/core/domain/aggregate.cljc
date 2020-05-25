@@ -10,8 +10,9 @@
                        :error/attr   {:db/index true}}))
 
 (defn- datascript-schema []
-  (m/map-vals (u/fn->> (m/filter-keys #(= "db" (namespace %))))
-              @schema))
+  (->> @schema
+       (m/map-vals (fn [item] (m/filter-keys #(= "db" (namespace %)) item)))
+       (m/filter-vals not-empty)))
 
 (defn build [& tx-data]
   (-> (d/empty-db (datascript-schema))

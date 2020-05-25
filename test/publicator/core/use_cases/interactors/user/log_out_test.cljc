@@ -5,7 +5,7 @@
    [darkleaf.effect.middleware.contract :as contract]
    [darkleaf.effect.script :as script]
    [publicator.core.use-cases.contracts :as contracts]
-   [publicator.core.use-cases.interactors.user.log-out :as log-out]
+   [publicator.core.use-cases.interactors.user.log-out :as user.log-out]
    [publicator.core.use-cases.services.user-session :as user-session]))
 
 (t/deftest process-success
@@ -14,18 +14,18 @@
                        :coeffect {::user-session/id 1}}
                       {:effect   [:session/swap dissoc ::user-session/id]
                        :coeffect {}}
-                      {:final-effect [::log-out/->processed]}]
-        continuation (-> log-out/process
+                      {:final-effect [::user.log-out/->processed]}]
+        continuation (-> user.log-out/process
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `log-out/process))]
+                         (contract/wrap-contract @contracts/registry `user.log-out/process))]
     (script/test continuation script)))
 
 (t/deftest process-already-logged-out
   (let [script       [{:args []}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:final-effect [::log-out/->already-logged-out]}]
-        continuation (-> log-out/process
+                      {:final-effect [::user.log-out/->already-logged-out]}]
+        continuation (-> user.log-out/process
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `log-out/process))]
+                         (contract/wrap-contract @contracts/registry `user.log-out/process))]
     (script/test continuation script)))

@@ -7,7 +7,7 @@
    [datascript.core :as d]
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.use-cases.contracts :as contracts]
-   [publicator.core.use-cases.interactors.user.list :as list]))
+   [publicator.core.use-cases.interactors.user.list :as user.list]))
 
 (t/deftest process-success
   (let [users        [(agg/build {:db/ident             :root
@@ -50,8 +50,8 @@
                        :coeffect {}}
                       {:effect   [:session/get]
                        :coeffect {}}
-                      {:final-effect [::list/->processed views]}]
-        continuation (-> list/process
+                      {:final-effect [::user.list/->processed views]}]
+        continuation (-> user.list/process
                          (e/continuation)
-                         (contract/wrap-contract @contracts/registry `list/process))]
+                         (contract/wrap-contract @contracts/registry `user.list/process))]
     (script/test continuation script)))
