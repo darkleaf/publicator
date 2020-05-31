@@ -9,6 +9,7 @@
 (swap! agg/schema merge
        {:user/login           {:agg/predicate #"\w{3,255}"}
         :user/state           {:agg/predicate states}
+        ;; admin? и author? сделаны отдельными полями для разграничения доступа
         :user/admin?          {:agg/predicate boolean?}
         :user/author?         {:agg/predicate boolean?}
         :user/password-digest {:agg/predicate #".{1,255}"}
