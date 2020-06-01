@@ -1,0 +1,17 @@
+version: '3.7'
+
+x-db: &db
+  image: postgres:12.3
+  environment:
+    - POSTGRES_PASSWORD=password
+
+services:
+  db:
+    <<: *db
+    ports:
+      - "3401:5432"
+
+  test-db:
+    <<: *db
+    ports:
+      - "3402:5432"
