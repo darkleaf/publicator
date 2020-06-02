@@ -5,14 +5,24 @@
    [next.jdbc.sql :as jdbc.sql]
    [next.jdbc.quoted :as jdbc.quoted]
    [next.jdbc.result-set :as jdbc.rs]
-   [publicator.core.domain.aggregate :as agg])
+   [publicator.core.domain.aggregate :as agg]
+   [publicator.utils :as u])
   (:import
    [java.sql Array]))
 
 (extend-protocol jdbc.rs/ReadableColumn
   Array
-  (read-column-by-label [^Array v _]    (vec (.getArray v)))
-  (read-column-by-index [^Array v _ _]  (vec (.getArray v))))
+  (read-column-by-label [^Array v _]    (.getArray v))
+  (read-column-by-index [^Array v _ _]  (.getArray v)))
+
+(defn extract-nested [entities-key keys row]
+  (let [entities (get row entities-key)
+        f        (fn [idx id]
+                   (reduce (fn [acc key]
+                             (assoc acc key (get-in row [key idx])))
+                           {:db/id id}
+                           keys))]
+    (map-indexed f entities)))
 
 (def opts {:table-fn   jdbc.quoted/postgres
            :column-fn  jdbc.quoted/postgres
@@ -34,16 +44,13 @@
                                               :user/login :user/password-digest])
                                 (update :user/state keyword)
                                 (merge {:db/ident :root}))
-        author-translations (map-indexed (fn [idx id]
-                                           {:db/id                     id
-                                            :author.translation/author :root
-                                            :author.translation/lang
-                                            (-> row :author.translation/lang (get idx) keyword)
-                                            :author.translation/first-name
-                                            (-> row :author.translation/first-name (get idx))
-                                            :author.translation/last-name
-                                            (-> row :author.translation/last-name (get idx))})
-                                         (:author.translation row))]
+        author-translations (->> row
+                                 (extract-nested :author.translation
+                                                 #{:author.translation/lang
+                                                   :author.translation/first-name
+                                                   :author.translation/last-name})
+                                 (map (u/fn-> (update :author.translation/lang keyword)
+                                              (assoc :author.translation/author :root))))]
     (-> (agg/build)
         (d/db-with (cons user author-translations)))))
 
