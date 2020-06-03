@@ -52,5 +52,11 @@
   (some-> (jdbc.sql/get-by-id tx "user" id "r:agg/id" opts)
           (serialization/row->agg)))
 
+(defn- user-create [{::keys [tx]} user]
+  (let [row (serialization/agg->row user)
+        row (jdbc.sql/insert! tx "user" row opts)]
+    (serialization/row->agg row)))
+
 (defn handlers []
-  {:persistence.user/get-by-id (-> user-get-by-id (wrap-context-reader))})
+  {:persistence.user/get-by-id (-> user-get-by-id (wrap-context-reader))
+   :persistence.user/create    (-> user-create (wrap-context-reader))})

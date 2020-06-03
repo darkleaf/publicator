@@ -1,7 +1,8 @@
 (ns publicator.core.use-cases.contracts
   (:require
    [darkleaf.effect.middleware.contract :as contract]
-   [datascript.core :as d]))
+   [datascript.core :as d]
+   [publicator.core.domain.aggregate :as agg]))
 
 (defonce registry (atom {}))
 
@@ -10,8 +11,12 @@
                                            :coeffect map?}
         :session/swap                     {:effect   (fn [f & args] (ifn? f))
                                            :coeffect map?}
-        :persistence.user/create          {:effect   (fn [user] (d/db? user))
-                                           :coeffect d/db?}
+        :persistence.user/create          {:effect   (fn [user]
+                                                       (and (d/db? user)
+                                                            (not (agg/include? user :root :agg/id))))
+                                           :coeffect (fn [user]
+                                                       (and (d/db? user)
+                                                            (agg/include? user :root :agg/id)))}
         :persistence.user/exists-by-login {:effect   (fn [login] (string? login))
                                            :coeffect boolean?}
         :persistence.user/get-by-login    {:effect   (fn [login] (string? login))

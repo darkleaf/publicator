@@ -5,10 +5,11 @@
    [darkleaf.effect.core :as e :refer [! effect with-effects]]
    [darkleaf.effect.middleware.context :as context]
    [darkleaf.effect.middleware.contract :as contract]
+   [datascript.core :as d]
+   [publicator.core.domain.aggregate :as agg]
    [publicator.core.use-cases.contracts :as contracts]
    [publicator.persistence.components :as components]
-   [publicator.persistence.handlers :as sut]
-   [publicator.core.domain.aggregate :as agg]))
+   [publicator.persistence.handlers :as sut]))
 
 (defmacro with-system [binding & body]
   {:pre [(vector? binding)
@@ -23,7 +24,7 @@
 
 (defn- test-system []
   (component/system-map
-   :sourceable {:jdbcUrl  "jdbc:postgresql://localhost:3402/postgres"
+   :sourceable {:jdbcUrl  "jdbc:pgsql://localhost:3402/postgres"
                 :user     "postgres"
                 :password "password"}
    :transactable (component/using (components/test-transactable) {:connectable :sourceable})
@@ -68,3 +69,30 @@
                              :author.translation/first-name "Иван"
                              :author.translation/last-name  "Иванов"})]
         (t/is (= user (run ef -1)))))))
+
+(t/deftest user-create
+  (let [user              (agg/build {:db/ident             :root
+                                      :user/state           "active"
+                                      :user/admin?          true
+                                      :user/author?         true
+                                      :user/login           "admin"
+                                      :user/password-digest "digest"}
+                                     {:author.translation/author     :root
+                                      :author.translation/lang       "en"
+                                      :author.translation/first-name "John"
+                                      :author.translation/last-name  "Doe"}
+                                     {:author.translation/author     :root
+                                      :author.translation/lang       "ru"
+                                      :author.translation/first-name "Иван"
+                                      :author.translation/last-name  "Иванов"})
+        ef                (fn [user]
+                            (with-effects
+                              (let [saved     (! (effect :persistence.user/create user))
+                                    id        (agg/val-in saved :root :agg/id)
+                                    refreshed (! (effect :persistence.user/get-by-id id))]
+                                [saved refreshed])))
+        [saved refreshed] (run ef user)]
+    (t/is (= saved refreshed))
+    (t/is (= user
+             (d/db-with saved     [[:db.fn/retractAttribute :root :agg/id]])
+             (d/db-with refreshed [[:db.fn/retractAttribute :root :agg/id]])))))
