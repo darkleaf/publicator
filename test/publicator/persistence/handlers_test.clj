@@ -68,7 +68,7 @@
     (t/testing "fixture"
       (let [user (agg/build {:db/ident             :root
                              :agg/id               -1
-                             :user/state           :active
+                             :user/state           "active"
                              :user/admin?          true
                              :user/author?         true
                              :user/login           "admin"

@@ -31,7 +31,7 @@
       (agg/build {:db/ident                :root
                   :user/login           login
                   :user/password-digest password-digest
-                  :user/state           :active}))))
+                  :user/state           "active"}))))
 
 (defn validate-form [form]
   (with-effects

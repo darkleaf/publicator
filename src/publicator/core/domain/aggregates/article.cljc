@@ -11,5 +11,5 @@
   (-> agg
       (publication/validate)
       (agg/required-validator
-       {:root                                       [:article/image-url]
-        [:publication.translation/state :published] [:article.translation/content]})))
+       {:root                                        [:article/image-url]
+        [:publication.translation/state "published"] [:article.translation/content]})))

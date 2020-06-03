@@ -39,7 +39,7 @@
                                  :agg/id               user-id
                                  :user/login           "john"
                                  :user/password-digest "digest"
-                                 :user/state           :active})
+                                 :user/state           "active"})
         script       [{:args [form]}
                       {:effect   [:session/get]
                        :coeffect {}}

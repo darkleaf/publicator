@@ -37,7 +37,7 @@
         user         (agg/build {:db/ident             :root
                                  :user/login           "john"
                                  :user/password-digest "digest"
-                                 :user/state           :active})
+                                 :user/state           "active"})
         user-id      1
         persisted    (d/db-with user [[:db/add :root :agg/id user-id]])
         script       [{:args [form]}
