@@ -11,12 +11,12 @@
    [datascript.core :as d]))
 
 (defn- get-user [form]
-  (let [{:keys [user/login]} (d/entity form :root)]
+  (let [{:keys [user/login]} (d/pull form '[*] :root)]
     (effect :persistence.user/get-by-login login)))
 
 (defn- correct-password? [user form]
-  (let [{:keys [user/password-digest]} (d/entity user :root)
-        {:keys [user/password]}        (d/entity form :root)]
+  (let [{:keys [user/password-digest]} (d/pull user '[*] :root)
+        {:keys [user/password]}        (d/pull form '[*] :root)]
     (effect :hasher/check password password-digest)))
 
 (defn- auth-validator [form]

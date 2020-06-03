@@ -16,19 +16,22 @@
         :user/password        {:agg/predicate #".{8,255}"}})
 
 (defn active? [user]
-  (boolean
-   (and (some? user)
-        (seq (d/datoms user :eavt :root :user/state "active")))))
+  (-> user
+      (d/datoms :eavt :root :user/state "active")
+      (seq)
+      (boolean)))
 
 (defn admin? [user]
   (-> user
-      (d/entity :root)
-      :user/admin?))
+      (d/datoms :eavt :root :user/admin? true)
+      (seq)
+      (boolean)))
 
 (defn author? [user]
   (-> user
-      (d/entity :root)
-      :user/author?))
+      (d/datoms :eavt :root :user/author? true)
+      (seq)
+      (boolean)))
 
 (defn validate [user]
   (cond-> user
