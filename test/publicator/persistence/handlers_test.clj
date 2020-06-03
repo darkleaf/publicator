@@ -24,9 +24,7 @@
 
 (defn- test-system []
   (component/system-map
-   :sourceable {:jdbcUrl  "jdbc:pgsql://localhost:3402/postgres"
-                :user     "postgres"
-                :password "password"}
+   :sourceable "jdbc:pgsql://localhost:3402/postgres?user=postgres&password=password"
    :transactable (component/using (components/test-transactable) {:connectable :sourceable})
    :migration (component/using (components/migration) [:sourceable])))
 
