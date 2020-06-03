@@ -9,7 +9,8 @@
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.use-cases.contracts :as contracts]
    [publicator.persistence.components :as components]
-   [publicator.persistence.handlers :as sut]))
+   [publicator.persistence.handlers :as sut]
+   [publicator.config :refer [config]]))
 
 (defmacro with-system [binding & body]
   {:pre [(vector? binding)
@@ -23,10 +24,11 @@
            (component/stop-system ~system-name))))))
 
 (defn- test-system []
-  (component/system-map
-   :sourceable "jdbc:pgsql://localhost:3402/postgres?user=postgres&password=password"
-   :transactable (component/using (components/test-transactable) {:connectable :sourceable})
-   :migration (component/using (components/migration) [:sourceable])))
+  (let [cfg (config :test)]
+    (component/system-map
+     :sourceable (:jdbc cfg)
+     :transactable (component/using (components/test-transactable) {:connectable :sourceable})
+     :migration (component/using (components/migration) [:sourceable]))))
 
 (defn- run [ef & args]
   (with-system [system (test-system)]
