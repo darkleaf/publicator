@@ -137,3 +137,24 @@
               [3 :error/value true]]
              (->> (d/seek-datoms agg :eavt 3)
                   (map (juxt :e :a :v)))))))
+
+
+(t/deftest include?
+  (let [agg (agg/build {:db/ident        :root
+                        :include?/attr-1 :val-1
+                        :include?/attr-2 :val-2})]
+    (t/is (= true  (agg/include? agg :root :include?/attr-1 :val-1)))
+    (t/is (= true  (agg/include? agg :root :include?/attr-1)))
+    (t/is (= false (agg/include? agg :root :include?/attr-1 :val-2)))
+    (t/is (= false (agg/include? agg :root :include?/attr-3)))))
+
+
+(swap! agg/schema merge
+       {:val-in/attr-many {:db/cardinality :db.cardinality/many}})
+
+(t/deftest val-in
+  (let [agg (agg/build {:db/ident         :root
+                        :val-in/attr      :val
+                        :val-in/attr-many [:val-1 :val-2]})]
+    (t/is (= :val (agg/val-in agg :root :val-in/attr)))
+    (t/is (= [:val-1 :val-2] (agg/val-in agg :root :val-in/attr-many)))))

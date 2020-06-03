@@ -12,9 +12,7 @@
   (with-effects
     (let [lang    (! (user-session/language))
           control {:control/can-update? (= :pass (! (update/precondition user)))}
-          root    (d/q '[:find (pull ?e [:agg/id :user/login :user/state]) .
-                         :where [?e :db/ident :root]]
-                       user)
+          root    (d/pull user [:agg/id :user/login :user/state] :root)
           trans   (d/q '[:find (pull ?e [:author.translation/first-name
                                          :author.translation/last-name]) .
                          :in $ ?lang

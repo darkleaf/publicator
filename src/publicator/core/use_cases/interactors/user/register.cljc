@@ -15,7 +15,7 @@
    (with-effects)
    (if (agg/has-errors? agg)
      agg)
-   (let [{:keys [user/login]} (d/pull agg '[*] :root)])
+   (let [login (agg/val-in agg :root :user/login)])
    (if (! (effect :persistence.user/exists-by-login login))
      (d/db-with agg [{:error/type   ::existed-login
                       :error/entity :root
@@ -25,10 +25,10 @@
 
 (defn- make-user [form]
   (with-effects
-    (let [{:keys [user/login
-                  user/password]} (d/pull form '[*] :root)
-          password-digest         (! (effect :hasher/derive password))]
-      (agg/build {:db/ident                :root
+    (let [login           (agg/val-in form :root :user/login)
+          password        (agg/val-in form :root :user/password)
+          password-digest (! (effect :hasher/derive password))]
+      (agg/build {:db/ident             :root
                   :user/login           login
                   :user/password-digest password-digest
                   :user/state           "active"}))))

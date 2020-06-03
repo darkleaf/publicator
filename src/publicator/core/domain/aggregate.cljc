@@ -33,6 +33,19 @@
         schema (:schema agg)]
     (d/init-db datoms schema)))
 
+(defn include?
+  ([agg e a]
+   (-> agg (d/datoms :eavt e a  ) (seq) (boolean)))
+  ([agg e a v]
+   (-> agg (d/datoms :eavt e a v) (seq) (boolean))))
+
+(defn val-in [agg e a]
+  (let [vals (->> (d/datoms agg :eavt e a)
+                  (map (fn [[_ _ v]] v)))]
+    (if (d.db/multival? agg a)
+      vals
+      (first vals))))
+
 (defn- apply-predicate [p x]
   (cond
     (nil? p)          true

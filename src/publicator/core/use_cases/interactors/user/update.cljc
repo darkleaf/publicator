@@ -53,8 +53,8 @@
 
 (defn- update-password [user]
   (with-effects
-    (let [{:user/keys [password]} (d/pull user '[*] :root)
-          password-digest         (! (effect :hasher/derive password))]
+    (let [password        (agg/val-in user :root :user/password)
+          password-digest (! (effect :hasher/derive password))]
       (d/db-with user [[:db/add :root :user/password-digest password-digest]
                        [:db/retract :root :user/password password]]))))
 
