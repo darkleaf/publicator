@@ -45,20 +45,6 @@
           [ctx result] (perform handlers continuation [ctx args])]
         result)))
 
-(t/deftest extract-nested
-  (let [expected [{:db/id       1
-                   :entity/attr "a"
-                   :ext/attr    "c"}
-                  {:db/id       2
-                   :entity/attr "b"
-                   :ext/attr    "d"}]
-        actual   (sut/extract-nested :entity #{:entity/attr :ext/attr}
-                                     {:entity      [1 2]
-                                      :entity/attr (into-array ["a" "b"])
-                                      :ext/attr    (into-array ["c" "d"])
-                                      :other       (into-array [1 2])})]
-    (t/is (= expected actual))))
-
 (t/deftest user-get-by-id
   (let [ef   (fn [id]
                (with-effects
@@ -74,11 +60,11 @@
                              :user/login           "admin"
                              :user/password-digest "digest"}
                             {:author.translation/author     :root
-                             :author.translation/lang       :en
+                             :author.translation/lang       "en"
                              :author.translation/first-name "John"
                              :author.translation/last-name  "Doe"}
                             {:author.translation/author     :root
-                             :author.translation/lang       :ru
+                             :author.translation/lang       "ru"
                              :author.translation/first-name "Иван"
                              :author.translation/last-name  "Иванов"})]
         (t/is (= user (run ef -1)))))))
