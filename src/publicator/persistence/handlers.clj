@@ -60,3 +60,6 @@
 (defn handlers []
   {:persistence.user/get-by-id (-> user-get-by-id (wrap-context-reader))
    :persistence.user/create    (-> user-create (wrap-context-reader))})
+
+
+;; локализацию нужно хранить плоско - ru_title, ru_content и т.д.
