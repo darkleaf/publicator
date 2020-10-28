@@ -5,66 +5,68 @@
    [publicator.core.use-cases.services.user-session :as user-session]
    [publicator.core.use-cases.services.form :as form]
    [publicator.core.use-cases.contracts :as contracts]
-   [publicator.utils :as u :refer [<<-]]
-   [darkleaf.effect.core :refer [with-effects ! effect]]
-   [darkleaf.effect.core-analogs :refer [->!]]
+   [publicator.utils :refer [<<-]]
+   [darkleaf.generator.core :refer [generator yield]]
+   [darkleaf.effect.core :refer [effect]]
    [datascript.core :as d]))
 
-(defn- get-user [form]
+(defn- get-user* [form]
   (let [login (agg/val-in form :root :user/login)]
     (effect :persistence.user/get-by-login login)))
 
-(defn- correct-password? [user form]
+(defn- correct-password?* [user form]
   (let [password-digest (agg/val-in user :root :user/password-digest)
         password        (agg/val-in form :root :user/password)]
     (effect :hasher/check password password-digest)))
 
-(defn- auth-validator [form]
+(defn- auth-validator* [form]
   (<<-
-   (with-effects)
+   (generator)
    (if (agg/has-errors? form)
      form)
-   (let [user (! (get-user form))])
+   (let [user (yield (get-user* form))])
    (if (or (nil? user)
            (not (user/active? user))
-           (not (! (correct-password? user form))))
+           (not (yield (correct-password?* user form))))
      (d/db-with form [{:error/type   ::wrong-login-or-password
                        :error/entity :root}]))
    form))
 
-(defn validate-form [form]
-  (with-effects
-    (->! form
-         (agg/validate)
-         (agg/required-validator {:root [:user/login :user/password]})
-         (agg/permitted-attrs-validator #{:user/login :user/password})
-         (auth-validator))))
+(defn validate-form* [form]
+  (generator
+    (-> form
+        (agg/validate)
+        (agg/required-validator {:root [:user/login :user/password]})
+        (agg/permitted-attrs-validator #{:user/login :user/password})
+        (-> auth-validator* yield))))
 
-(defn precondition []
-  (with-effects
-    (if (! (user-session/logged-in?))
+(defn precondition** []
+  (generator
+    (if (yield (user-session/logged-in?*))
       (effect ::->already-logged-in)
       :pass)))
 
-(defn form []
-  (with-effects
-    (! (! (precondition)))
-    (! (effect ::->form (agg/build)))))
+(defn form* []
+  (generator
+    (yield (yield (precondition**)))
+    (yield (effect ::->form (agg/build)))))
 
-(defn process [form]
-  (with-effects
-    (! (! (precondition)))
-    (->! form
-         (agg/remove-errors)
-         (validate-form)
-         (form/check-errors))
-    (let [user (! (get-user form))]
-      (! (user-session/log-in! user))
-      (! (effect ::->processed)))))
+(defn process* [form]
+  (generator
+    (yield (yield (precondition**)))
+    (-> form
+        (agg/remove-errors)
+        (-> validate-form* yield)
+        (-> form/check-errors* yield))
+    (let [user (yield (get-user* form))]
+      (yield (user-session/log-in* user))
+      (yield (effect ::->processed)))))
 
 (swap! contracts/registry merge
-       {`form                 {:args (fn [] true)}
-        `process              {:args (fn [form] (d/db? form))}
+       {`form*                {:args   (fn [] true)
+                               :return nil?}
+        `process*             {:args   (fn [form] (d/db? form))
+                               :return nil?}
         ::->form              {:effect (fn [form] (d/db? form))}
         ::->already-logged-in {:effect (fn [] true)}
         ::->processed         {:effect (fn [] true)}

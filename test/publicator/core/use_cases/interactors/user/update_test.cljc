@@ -1,37 +1,39 @@
 (ns publicator.core.use-cases.interactors.user.update-test
   (:require
    [clojure.test :as t]
-   [darkleaf.effect.core :as e]
-   [darkleaf.effect.middleware.contract :as contract]
-   [darkleaf.effect.script :as script]
+   [darkleaf.effect.core :refer [effect]]
+   [darkleaf.generator.core :as gen]
    [datascript.core :as d]
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.use-cases.contracts :as contracts]
    [publicator.core.use-cases.interactors.user.update :as user.update]
-   [publicator.core.use-cases.services.user-session :as user-session]))
+   [publicator.core.use-cases.services.user-session :as user-session]
+   [publicator.core.use-cases.interactors.test-common :as tc]))
 
 (t/deftest form-success
-  (let [user-id      1
-        user         (agg/build {:db/ident             :root
-                                 :agg/id               user-id
-                                 :user/login           "john"
-                                 :user/password-digest "digest"
-                                 :user/state           "active"})
-        form         (agg/build {:db/ident   :root
-                                 :user/login "john"
-                                 :user/state "active"})
-        script       [{:args [user-id]}
-                      {:effect   [:persistence.user/get-by-id user-id]
-                       :coeffect user}
-                      {:effect   [:session/get]
-                       :coeffect {::user-session/id user-id}}
-                      {:effect   [:persistence.user/get-by-id user-id]
-                       :coeffect user}
-                      {:final-effect [::user.update/->form form]}]
-        continuation (-> user.update/form
-                         (e/continuation)
-                         (contract/wrap-contract @contracts/registry `user.update/form))]
-    (script/test continuation script)))
+  (let [user-id 1
+        user    (agg/build {:db/ident             :root
+                            :agg/id               user-id
+                            :user/login           "john"
+                            :user/password-digest "digest"
+                            :user/state           "active"})
+        form    (agg/build {:db/ident   :root
+                            :user/login "john"
+                            :user/state "active"})
+
+        f*  (tc/wrap #'user.update/form*)
+        ctx {:session {::user-session/id user-id}}
+        gen (f* ctx user-id)]
+    (t/is (= (effect :persistence.user/get-by-id user-id)
+             (gen/value gen)))
+    (gen/next gen user)
+    (t/is (= (effect :persistence.user/get-by-id user-id)
+             (gen/value gen)))
+    (gen/next gen user)
+    (t/is (= (effect ::user.update/->form form)
+             (gen/value gen)))
+    (gen/return gen)
+    (t/is (gen/done? gen))
+    (t/is (= [ctx nil] (gen/value gen)))))
 
 (t/deftest form-not-authorized
   (let [user-id       1
@@ -46,29 +48,36 @@
                                   :user/login           "other-john"
                                   :user/password-digest "digest"
                                   :user/state           "active"})
-        script        [{:args [other-user-id]}
-                       {:effect   [:persistence.user/get-by-id other-user-id]
-                        :coeffect other-user}
-                       {:effect   [:session/get]
-                        :coeffect {::user-session/id user-id}}
-                       {:effect   [:persistence.user/get-by-id user-id]
-                        :coeffect user}
-                       {:final-effect [::user.update/->not-authorized]}]
-        continuation  (-> user.update/form
-                          (e/continuation)
-                          (contract/wrap-contract @contracts/registry `user.update/form))]
-    (script/test continuation script)))
+
+        f*  (tc/wrap #'user.update/form*)
+        ctx {:session {::user-session/id user-id}}
+        gen (f* ctx other-user-id)]
+    (t/is (= (effect :persistence.user/get-by-id other-user-id)
+             (gen/value gen)))
+    (gen/next gen other-user)
+    (t/is (= (effect :persistence.user/get-by-id user-id)
+             (gen/value gen)))
+    (gen/next gen user)
+    (t/is (= (effect ::user.update/->not-authorized)
+             (gen/value gen)))
+    (gen/return gen)
+    (t/is (gen/done? gen))
+    (t/is (= [ctx nil] (gen/value gen)))))
 
 (t/deftest form-user-not-found
-  (let [user-id      1
-        script       [{:args [user-id]}
-                      {:effect   [:persistence.user/get-by-id user-id]
-                       :coeffect nil}
-                      {:final-effect [::user.update/->user-not-found]}]
-        continuation (-> user.update/form
-                         (e/continuation)
-                         (contract/wrap-contract @contracts/registry `user.update/form))]
-    (script/test continuation script)))
+  (let [user-id 1
+
+        f*  (tc/wrap #'user.update/form*)
+        ctx {}
+        gen (f* ctx user-id)]
+    (t/is (= (effect :persistence.user/get-by-id user-id)
+             (gen/value gen)))
+    (gen/next gen nil)
+    (t/is (= (effect ::user.update/->user-not-found)
+             (gen/value gen)))
+    (gen/return gen)
+    (t/is (gen/done? gen))
+    (t/is (= [ctx nil] (gen/value gen)))))
 
 (t/deftest process-success
   (let [user-id   1
@@ -104,30 +113,30 @@
                               :author.translation/lang       "ru"
                               :author.translation/first-name "Иван"
                               :author.translation/last-name  "Иванов"})
-        script    [{:args [user-id form]}
-                   {:effect   [:persistence.user/get-by-id user-id]
-                    :coeffect user}
 
-                   {:effect   [:session/get]
-                    :coeffect {::user-session/id user-id}}
-                   {:effect   [:persistence.user/get-by-id user-id]
-                    :coeffect user}
-
-                   {:effect   [:session/get]
-                    :coeffect {::user-session/id user-id}}
-                   {:effect   [:persistence.user/get-by-id user-id]
-                    :coeffect user}
-
-                   {:effect   [:hasher/derive "new password"]
-                    :coeffect "new digest"}
-
-                   {:effect   [:persistence.user/update persisted]
-                    :coeffect persisted}
-                   {:final-effect [::user.update/->processed persisted]}]
-        continuation (-> user.update/process
-                         (e/continuation)
-                         (contract/wrap-contract @contracts/registry `user.update/process))]
-    (script/test continuation script)))
+        f*  (tc/wrap #'user.update/process*)
+        ctx {:session {::user-session/id user-id}}
+        gen (f* ctx user-id form)]
+    (t/is (= (effect :persistence.user/get-by-id user-id)
+             (gen/value gen)))
+    (gen/next gen user)
+    (t/is (= (effect :persistence.user/get-by-id user-id)
+             (gen/value gen)))
+    (gen/next gen user)
+    (t/is (= (effect :persistence.user/get-by-id user-id)
+             (gen/value gen)))
+    (gen/next gen user)
+    (t/is (= (effect :hasher/derive "new password")
+             (gen/value gen)))
+    (gen/next gen "new digest")
+    (t/is (= (effect :persistence.user/update persisted)
+             (gen/value gen)))
+    (gen/next gen persisted)
+    (t/is (= (effect ::user.update/->processed persisted)
+             (gen/value gen)))
+    (gen/return gen)
+    (t/is (gen/done? gen))
+    (t/is (= [ctx nil] (gen/value gen)))))
 
 (t/deftest process-invalid-form
   (let [form         (agg/build {:db/ident :root})
@@ -137,9 +146,12 @@
                                 #:error{:attr   :user/state
                                         :entity :root
                                         :type   :required})
-        script       [{:args [1 form]}
-                      {:final-effect [::user.update/->invalid-form with-errors]}]
-        continuation (-> user.update/process
-                         (e/continuation)
-                         (contract/wrap-contract @contracts/registry `user.update/process))]
-    (script/test continuation script)))
+
+        f*  (tc/wrap #'user.update/process*)
+        ctx {:session {::user-session/id 1}}
+        gen (f* ctx 1 form)]
+    (t/is (= (effect ::user.update/->invalid-form with-errors)
+             (gen/value gen)))
+    (gen/return gen)
+    (t/is (gen/done? gen))
+    (t/is (= [ctx nil] (gen/value gen)))))

@@ -1,7 +1,7 @@
 (ns publicator.core.use-cases.interactors.user.update
   (:require
-   [darkleaf.effect.core :refer [with-effects ! effect]]
-   [darkleaf.effect.core-analogs :refer [->!]]
+   [darkleaf.effect.core :refer [effect]]
+   [darkleaf.generator.core :refer [generator yield]]
    [datascript.core :as d]
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.author :as author]
@@ -9,10 +9,10 @@
    [publicator.core.use-cases.contracts :as contracts]
    [publicator.core.use-cases.services.form :as form]
    [publicator.core.use-cases.services.user-session :as user-session]
-   [publicator.utils :as u :refer [<<-]]))
+   [publicator.utils :refer [<<-]]))
 
-(defn ->readable-attr? []
-  (with-effects
+(defn ->readable-attr?* []
+  (generator
     #{:user/login
       :user/state
       :user/admin?
@@ -23,9 +23,9 @@
       :author.translation/first-name
       :author.translation/last-name}))
 
-(defn ->updatable-attr? []
-  (with-effects
-    (let [current-user (! (user-session/user))]
+(defn ->updatable-attr?* []
+  (generator
+    (let [current-user (yield (user-session/user*))]
       (cond-> #{:user/password
                 :user/author?
                 :author.translation/author
@@ -34,34 +34,34 @@
                 :author.translation/last-name}
         (user/admin? current-user) (conj :user/state :user/admin?)))))
 
-(defn validate-form [form]
-  (with-effects
+(defn validate-form* [form]
+  (generator
     (cond-> form
       :always             (agg/validate)
       :always             (agg/required-validator {:root [:user/login :user/state]})
-      :always             (agg/permitted-attrs-validator (! (->readable-attr?)))
+      :always             (agg/permitted-attrs-validator (yield (->readable-attr?*)))
       (user/author? form) (author/validate))))
 
-(defn- find-user [id]
-  (with-effects
-    (if-some [user (! (effect :persistence.user/get-by-id id))]
+(defn- find-user* [id]
+  (generator
+    (if-some [user (yield (effect :persistence.user/get-by-id id))]
       user
-      (! (effect ::->user-not-found)))))
+      (yield (effect ::->user-not-found)))))
 
-(defn- update-user [user]
+(defn- update-user* [user]
   (effect :persistence.user/update user))
 
-(defn- update-password [user]
-  (with-effects
+(defn- update-password* [user]
+  (generator
     (let [password        (agg/val-in user :root :user/password)
-          password-digest (! (effect :hasher/derive password))]
+          password-digest (yield (effect :hasher/derive password))]
       (d/db-with user [[:db/add :root :user/password-digest password-digest]
                        [:db/retract :root :user/password password]]))))
 
-(defn precondition [user]
+(defn precondition** [user]
   (<<-
-   (with-effects)
-   (let [current-user   (! (user-session/user))
+   (generator)
+   (let [current-user   (yield (user-session/user*))
          not-authorized (effect ::->not-authorized)])
    (if (nil? user) not-authorized)
    (if (nil? current-user) not-authorized)
@@ -69,35 +69,37 @@
    (if (user/admin? current-user) :pass)
    not-authorized))
 
-(defn form [id]
+(defn form* [id]
   (<<-
-   (with-effects)
-   (let [user (! (find-user id))])
-   (do (! (! (precondition user))))
-   (let [form (agg/filter-datoms user (! (->readable-attr?)))])
-   (! (effect ::->form form))))
+   (generator)
+   (let [user (yield (find-user* id))])
+   (do (yield (yield (precondition** user))))
+   (let [form (agg/filter-datoms user (yield (->readable-attr?*)))])
+   (yield (effect ::->form form))))
 
-(defn process [id form]
+(defn process* [id form]
   (<<-
-   (with-effects)
-   (do (->! form
-            (agg/remove-errors)
-            (validate-form)
-            (form/check-errors)))
-   (let [user (! (find-user id))])
-   (do (! (! (precondition user))))
-   (let [changes (form/changes user form (! (->updatable-attr?)))
-         user    (->! user
-                      (d/db-with changes)
-                      (update-password)
-                      (user/validate)
-                      (agg/check-errors)
-                      (update-user))])
-   (! (effect ::->processed user))))
+   (generator)
+   (do (-> form
+           (agg/remove-errors)
+           (-> validate-form* yield)
+           (-> form/check-errors* yield)))
+   (let [user (yield (find-user* id))])
+   (do (yield (yield (precondition** user))))
+   (let [changes (form/changes user form (yield (->updatable-attr?*)))
+         user    (-> user
+                     (d/db-with changes)
+                     (-> update-password* yield)
+                     (user/validate)
+                     (agg/check-errors)
+                     (-> update-user* yield))])
+   (yield (effect ::->processed user))))
 
 (swap! contracts/registry merge
-       {`form              {:args (fn [id] (pos-int? id))}
-        `process           {:args (fn [id form] (and (pos-int? id) (d/db? form)))}
+       {`form*             {:args   (fn [id] (pos-int? id))
+                            :return nil?}
+        `process*          {:args   (fn [id form] (and (pos-int? id) (d/db? form)))
+                            :return nil?}
         ::->form           {:effect (fn [form] (d/db? form))}
         ::->processed      {:effect (fn [user] (d/db? user))}
         ::->not-authorized {:effect (fn [] true)}

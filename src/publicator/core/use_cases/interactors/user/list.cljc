@@ -1,17 +1,17 @@
 (ns publicator.core.use-cases.interactors.user.list
   (:require
-   [darkleaf.effect.core :refer [with-effects effect !]]
-   [darkleaf.effect.core-analogs :as ecore]
+   [darkleaf.effect.core :refer [effect]]
+   [darkleaf.generator.core :as gen :refer [generator yield]]
    [datascript.core :as d]
    [publicator.core.use-cases.contracts :as contracts]
    [publicator.core.use-cases.interactors.user.update :as update]
    [publicator.core.use-cases.services.user-session :as user-session]
    [publicator.utils :refer [<<-]]))
 
-(defn- user->view [user]
-  (with-effects
-    (let [lang    (! (user-session/language))
-          control {:control/can-update? (= :pass (! (update/precondition user)))}
+(defn- user->view* [user]
+  (generator
+    (let [lang    (yield (user-session/language*))
+          control {:control/can-update? (= :pass (yield (update/precondition** user)))}
           root    (d/pull user [:agg/id :user/login :user/state] :root)
           trans   (d/q '[:find (pull ?e [:author.translation/first-name
                                          :author.translation/last-name]) .
@@ -22,17 +22,18 @@
                        user lang)]
       (merge root trans control))))
 
-(defn precondition []
+(defn precondition** []
   :pass)
 
-(defn process []
+(defn process* []
   (<<-
-   (with-effects)
-   (do (! (! (precondition))))
-   (let [users (! (effect :persistence.user/asc-by-login))
-         views (! (ecore/mapv! user->view users))])
-   (! (effect ::->processed views))))
+   (generator)
+   (do (yield (yield (precondition**))))
+   (let [users (yield (effect :persistence.user/asc-by-login))
+         views (yield (gen/mapv* user->view* users))])
+   (yield (effect ::->processed views))))
 
 (swap! contracts/registry merge
-       {`process      {:args (fn [] true)}
+       {`process*     {:args   (fn [] true)
+                       :return nil?}
         ::->processed {:effect (fn [views] (every? map? views))}})

@@ -1,17 +1,15 @@
 (ns publicator.core.use-cases.contracts
   (:require
    [darkleaf.effect.middleware.contract :as contract]
+   [darkleaf.effect.middleware.state :as state]
    [datascript.core :as d]
    [publicator.core.domain.aggregate :as agg]))
 
 (defonce registry (atom {}))
 
 (swap! registry merge
-       {:session/get                      {:effect   (fn [] true)
-                                           :coeffect map?}
-        :session/swap                     {:effect   (fn [f & args] (ifn? f))
-                                           :coeffect map?}
-        :persistence.user/create          {:effect   (fn [user]
+       state/contract
+       {:persistence.user/create          {:effect   (fn [user]
                                                        (and (d/db? user)
                                                             (not (agg/include? user :root :agg/id))))
                                            :coeffect (fn [user]
