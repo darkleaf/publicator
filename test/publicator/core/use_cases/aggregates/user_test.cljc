@@ -7,7 +7,7 @@
 
 (t/deftest has-no-errors
   (let [agg (-> (agg/build {:db/ident             :root
-                            :user/state           "active"
+                            :user/state           :active
                             :user/login           "john"
                             :user/password        "some password"
                             :user/password-digest "some digest"})

@@ -38,7 +38,7 @@
                             :agg/id               user-id
                             :user/login           "john"
                             :user/password-digest "digest"
-                            :user/state           "active"})
+                            :user/state           :active})
 
         f*  (tc/wrap #'user.log-in/process*)
         ctx {}

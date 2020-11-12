@@ -15,10 +15,10 @@
                             :agg/id               user-id
                             :user/login           "john"
                             :user/password-digest "digest"
-                            :user/state           "active"})
+                            :user/state           :active})
         form    (agg/build {:db/ident   :root
                             :user/login "john"
-                            :user/state "active"})
+                            :user/state :active})
 
         f*  (tc/wrap #'user.update/form*)
         ctx {:session {::user-session/id user-id}}
@@ -41,13 +41,13 @@
                                   :agg/id               user-id
                                   :user/login           "john"
                                   :user/password-digest "digest"
-                                  :user/state           "active"})
+                                  :user/state           :active})
         other-user-id 2
         other-user    (agg/build {:db/ident             :root
                                   :agg/id               other-user-id
                                   :user/login           "other-john"
                                   :user/password-digest "digest"
-                                  :user/state           "active"})
+                                  :user/state           :active})
 
         f*  (tc/wrap #'user.update/form*)
         ctx {:session {::user-session/id user-id}}
@@ -84,33 +84,33 @@
         form      (agg/build {:db/ident      :root
                               :user/login    "john"
                               :user/password "new password"
-                              :user/state    "active"
+                              :user/state    :active
                               :user/author?  true}
                              {:author.translation/author     :root
-                              :author.translation/lang       "en"
+                              :author.translation/lang       :en
                               :author.translation/first-name "John"
                               :author.translation/last-name  "Doe"}
                              {:author.translation/author     :root
-                              :author.translation/lang       "ru"
+                              :author.translation/lang       :ru
                               :author.translation/first-name "Иван"
                               :author.translation/last-name  "Иванов"})
         user      (agg/build {:db/ident             :root
                               :agg/id               user-id
                               :user/login           "john"
                               :user/password-digest "digest"
-                              :user/state           "active"})
+                              :user/state           :active})
         persisted (agg/build {:db/ident             :root
                               :agg/id               user-id
                               :user/login           "john"
                               :user/password-digest "new digest"
-                              :user/state           "active"
+                              :user/state           :active
                               :user/author?         true}
                              {:author.translation/author     :root
-                              :author.translation/lang       "en"
+                              :author.translation/lang       :en
                               :author.translation/first-name "John"
                               :author.translation/last-name  "Doe"}
                              {:author.translation/author     :root
-                              :author.translation/lang       "ru"
+                              :author.translation/lang       :ru
                               :author.translation/first-name "Иван"
                               :author.translation/last-name  "Иванов"})
 
