@@ -39,12 +39,8 @@
   ([agg e a v]
    (-> agg (d/datoms :eavt e a v) (seq) (boolean))))
 
-(defn val-in [agg e a]
-  (let [vals (->> (d/datoms agg :eavt e a)
-                  (map (fn [[_ _ v]] v)))]
-    (if (d.db/multival? agg a)
-      vals
-      (first vals))))
+(defn root [agg]
+  (d/entity agg :root))
 
 (defn- apply-predicate [p x]
   (cond

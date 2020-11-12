@@ -53,7 +53,7 @@
 
 (defn- update-password* [user]
   (generator
-    (let [password        (agg/val-in user :root :user/password)
+    (let [password        (-> user agg/root :user/password)
           password-digest (yield (effect :hasher/derive password))]
       (d/db-with user [[:db/add :root :user/password-digest password-digest]
                        [:db/retract :root :user/password password]]))))

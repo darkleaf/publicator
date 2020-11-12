@@ -13,7 +13,7 @@
   (generator
     (if (agg/has-errors? agg)
       agg
-      (let [login (agg/val-in agg :root :user/login)]
+      (let [login (-> agg agg/root :user/login)]
         (if (yield (effect :persistence.user/exists-by-login login))
           (d/db-with agg [{:error/type   ::existed-login
                            :error/entity :root
@@ -23,9 +23,8 @@
 
 (defn- make-user* [form]
   (generator
-    (let [login           (agg/val-in form :root :user/login)
-          password        (agg/val-in form :root :user/password)
-          password-digest (yield (effect :hasher/derive password))]
+    (let [{:user/keys [login password]} (agg/root form)
+          password-digest               (yield (effect :hasher/derive password))]
       (agg/build {:db/ident             :root
                   :user/login           login
                   :user/password-digest password-digest

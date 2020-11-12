@@ -11,12 +11,12 @@
    [datascript.core :as d]))
 
 (defn- get-user* [form]
-  (let [login (agg/val-in form :root :user/login)]
+  (let [login (-> form agg/root :user/login)]
     (effect :persistence.user/get-by-login login)))
 
 (defn- correct-password?* [user form]
-  (let [password-digest (agg/val-in user :root :user/password-digest)
-        password        (agg/val-in form :root :user/password)]
+  (let [password        (-> form agg/root :user/password)
+        password-digest (-> user agg/root :user/password-digest)]
     (effect :hasher/check password password-digest)))
 
 (defn- auth-validator* [form]
