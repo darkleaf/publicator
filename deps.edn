@@ -8,15 +8,15 @@
         ;; config
         aero                              {:mvn/version "1.1.6"}
         ;; web
-        metosin/reitit-core               {:mvn/version "0.5.1"}
-        metosin/reitit-ring               {:mvn/version "0.5.1"}
+        metosin/reitit-core               {:mvn/version "0.5.10"}
+        metosin/reitit-ring               {:mvn/version "0.5.10"}
         ;; persistence
         seancorfield/next.jdbc            {:mvn/version "1.0.445"}
         ;; он работает только с примитивными массивами
         ;; org.postgresql/postgresql         {:mvn/version "42.2.12"}
-        com.impossibl.pgjdbc-ng/pgjdbc-ng {:mvn/version "0.8.4"}
+        com.impossibl.pgjdbc-ng/pgjdbc-ng {:mvn/version "0.8.6"}
         com.mchange/c3p0                  {:mvn/version "0.9.5.5"}
-        org.flywaydb/flyway-core          {:mvn/version "6.4.2"}
+        org.flywaydb/flyway-core          {:mvn/version "7.2.0"}
         ;; logger
         org.slf4j/slf4j-simple            {:mvn/version "1.7.30"}}
 
