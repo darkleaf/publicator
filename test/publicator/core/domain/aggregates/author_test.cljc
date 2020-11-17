@@ -13,6 +13,9 @@
                            {:author.translation/author     :root
                             :author.translation/lang       :ru
                             :author.translation/first-name "Иван"
-                            :author.translation/last-name  "Иванов"})
+                            :author.translation/last-name  "Иванов"}
+                           {:author.achivement/author      :root
+                            :author.achivement/kind        :star
+                            :author.achivement/assigner-id 42})
                 (author/validate))]
     (t/is (agg/has-no-errors? agg))))
