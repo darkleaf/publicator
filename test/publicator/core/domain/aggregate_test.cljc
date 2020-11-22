@@ -105,25 +105,6 @@
              (->> (d/seek-datoms agg :eavt 5)
                   (map (juxt :e :a :v)))))))
 
-
-(swap! agg/schema merge
-       {:count-validator-test.nested/root {:db/valueType :db.type/ref}})
-
-(t/deftest count-validator
-  (let [agg (-> (agg/build {:count-validator-test.nested/root :root
-                            :count-validator-test.nested/attr 1}
-                           {:count-validator-test.nested/root :root
-                            :count-validator-test.nested/attr 1})
-                (agg/count-validator :count-validator-test.nested/attr 3))]
-    (t/is (= [[4 :error/actual-count 2]
-              [4 :error/attr :count-validator-test.nested/attr]
-              [4 :error/entity 1]
-              [4 :error/expected-count 3]
-              [4 :error/type :count]]
-             (->> (d/seek-datoms agg :eavt 4)
-                  (map (juxt :e :a :v)))))))
-
-
 (t/deftest permitted-attrs-validator
   (let [agg (-> (agg/build {:db/ident                                 :root
                             :permitted-attrs-validator-test/permitted true

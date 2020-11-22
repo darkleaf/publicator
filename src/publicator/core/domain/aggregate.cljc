@@ -119,17 +119,6 @@
                    :error/attr   a})]
     (d/db-with agg tx-data)))
 
-(defn count-validator [agg attr expected-count]
-  (let [actual-count (->> (d/datoms agg :aevt attr)
-                          (count))]
-    (if (= expected-count actual-count)
-      agg
-      (d/db-with agg [{:error/type           :count
-                       :error/entity         :root
-                       :error/attr           attr
-                       :error/actual-count   actual-count
-                       :error/expected-count expected-count}]))))
-
 (defn permitted-attrs-validator [agg permitted-attr?]
   (let [pred   (comp (some-fn #(#{"db" "error"} (namespace %))
                               permitted-attr?)
