@@ -17,8 +17,8 @@
                                          :author.translation/last-name]) .
                          :in $ ?lang
                          :where
-                         [?e :author.translation/author :root]
-                         [?e :author.translation/lang ?lang]]
+                         [?e :translation/root :root]
+                         [?e :translation/lang ?lang]]
                        user lang)]
       (merge root trans control))))
 

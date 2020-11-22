@@ -7,6 +7,7 @@
 ; https://github.com/clj-commons/ordered/issues/43
 
 (def langs #{:en :ru})
+(def default-lang :en)
 
 ;; перевод у агрегата может быть только один
 ;; у перевода могут быть и зависимые сущности с переводом, вроде элементов заказа,

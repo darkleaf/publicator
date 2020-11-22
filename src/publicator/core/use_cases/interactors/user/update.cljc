@@ -18,8 +18,8 @@
       :user/admin?
       :user/author?
       :user/password
-      :author.translation/author
-      :author.translation/lang
+      :translation/root
+      :translation/lang
       :author.translation/first-name
       :author.translation/last-name}))
 
@@ -28,8 +28,8 @@
     (let [current-user (yield (user-session/user*))]
       (cond-> #{:user/password
                 :user/author?
-                :author.translation/author
-                :author.translation/lang
+                :translation/root
+                :translation/lang
                 :author.translation/first-name
                 :author.translation/last-name}
         (user/admin? current-user) (conj :user/state :user/admin?)))))

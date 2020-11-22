@@ -86,12 +86,12 @@
                               :user/password "new password"
                               :user/state    :active
                               :user/author?  true}
-                             {:author.translation/author     :root
-                              :author.translation/lang       :en
+                             {:translation/root              :root
+                              :translation/lang              :en
                               :author.translation/first-name "John"
                               :author.translation/last-name  "Doe"}
-                             {:author.translation/author     :root
-                              :author.translation/lang       :ru
+                             {:translation/root              :root
+                              :translation/lang              :ru
                               :author.translation/first-name "Иван"
                               :author.translation/last-name  "Иванов"})
         user      (agg/build {:db/ident             :root
@@ -105,12 +105,12 @@
                               :user/password-digest "new digest"
                               :user/state           :active
                               :user/author?         true}
-                             {:author.translation/author     :root
-                              :author.translation/lang       :en
+                             {:translation/root              :root
+                              :translation/lang              :en
                               :author.translation/first-name "John"
                               :author.translation/last-name  "Doe"}
-                             {:author.translation/author     :root
-                              :author.translation/lang       :ru
+                             {:translation/root              :root
+                              :translation/lang              :ru
                               :author.translation/first-name "Иван"
                               :author.translation/last-name  "Иванов"})
 

@@ -1,11 +1,11 @@
 (ns publicator.core.use-cases.services.user-session
   (:require
-   [publicator.core.domain.languages :as langs]
-   [darkleaf.generator.core :refer [generator yield]]
    [darkleaf.effect.core :refer [effect]]
    [darkleaf.effect.middleware.state :as state]
+   [darkleaf.generator.core :refer [generator yield]]
    [datascript.core :as d]
-   [medley.core :as m]))
+   [medley.core :as m]
+   [publicator.core.domain.aggregates.translation :as translation]))
 
 (defn user-id* []
   (generator
@@ -32,4 +32,4 @@
       (yield (effect :persistence.user/get-by-id id)))))
 
 (defn language* []
-  (effect ::state/gets get-in [:session ::lang] (first langs/languages)))
+  (effect ::state/gets get-in [:session ::lang] translation/default-lang))
