@@ -19,7 +19,7 @@
                            :agg/uniq      true
                            :agg/predicate langs}})
 
-(defn validator [agg]
+(defn validate [agg]
   (agg/required-validator agg {:translation/_root [:translation/lang]}))
 
 (defn full-translation-validator [agg]

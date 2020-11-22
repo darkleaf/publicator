@@ -12,8 +12,8 @@
                             :publication/author-id  1
                             :publication/related-id #{2 3}
                             :article/image-url      "http://cats.com/cat.jpg"}
-                           {:publication.translation/publication  :root
-                            :publication.translation/lang         :ru
+                           {:translation/root                     :root
+                            :translation/lang                     :ru
                             :publication.translation/state        :published
                             :publication.translation/title        "some title"
                             :publication.translation/summary      "some summary"
@@ -31,8 +31,8 @@
                             :publication/related-id #{2 3}
                             :gallery/image-url      #{"http://cats.com/cat.jpg"
                                                       "http://cats.com/cute.jpg"}}
-                           {:publication.translation/publication  :root
-                            :publication.translation/lang         :ru
+                           {:translation/root                     :root
+                            :translation/lang                     :ru
                             :publication.translation/state        :published
                             :publication.translation/title        "some title"
                             :publication.translation/summary      "some summary"

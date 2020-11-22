@@ -1,7 +1,7 @@
 (ns publicator.core.domain.aggregates.publication
   (:require
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.domain.languages :as langs]))
+   [publicator.core.domain.aggregates.translation :as translation]))
 
 (def states #{:active :archived})
 (def translation-states #{:draft :published})
@@ -13,10 +13,6 @@
         :publication/author-id                {:agg/predicate pos-int?}
         :publication/related-id               {:db/cardinality :db.cardinality/many
                                                :agg/predicate  pos-int?}
-        :publication.translation/publication  {:db/valueType :db.type/ref}
-        :publication.translation/lang         {:db/index      true
-                                               :agg/predicate langs/languages
-                                               :agg/uniq      true}
         :publication.translation/state        {:db/index      true
                                                :agg/predicate translation-states}
         :publication.translation/title        {:agg/predicate #".{1,255}"}
@@ -37,16 +33,15 @@
 
 (defn validate [agg]
   (cond-> agg
-    :always
-    (agg/validate)
+    :always (agg/validate)
+    :always (translation/validate)
     :always
     (agg/required-validator
      {:root                                       [:publication/state
                                                    :publication/type
                                                    :publication/author-id]
-      :publication.translation/_publication       [:publication.translation/title
-                                                   :publication.translation/state
-                                                   :publication.translation/lang]
+      :translation/_root                          [:publication.translation/title
+                                                   :publication.translation/state]
       [:publication.translation/state :published] [:publication.translation/published-at
                                                    :publication.translation/summary]})
     (article? agg)
