@@ -59,30 +59,9 @@
                    :error/value  v})]
     (d/db-with agg tx-data)))
 
-(defn uniq-validator [agg]
-  (let [errors-for-attr (fn [a]
-                          (->> (d/datoms agg :aevt a)
-                               (reduce (fn [{:keys [seen], :as acc} [e _ v]]
-                                         (if (seen v)
-                                           (update acc :errors conj {:error/type   :uniq
-                                                                     :error/entity e
-                                                                     :error/attr   a
-                                                                     :error/value  v})
-                                           (update acc :seen conj v)))
-                                       {:seen #{}, :errors []})
-                               :errors))
-        uniq-attrs      (reduce-kv (fn [acc attr desc]
-                                     (if (:agg/uniq desc)
-                                       (conj acc attr)
-                                       acc))
-                                   #{} @schema)
-        tx-data         (mapcat errors-for-attr uniq-attrs)]
-    (d/db-with agg tx-data)))
-
 (defn validate [agg]
   (-> agg
-      (predicate-validator)
-      (uniq-validator)))
+      (predicate-validator)))
 
 (defn has-errors? [agg]
   (boolean (seq (d/datoms agg :aevt :error/entity))))

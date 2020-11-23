@@ -16,8 +16,7 @@
 
 (swap! agg/schema merge
        {:translation/root {:db/valueType :db.type/ref}
-        :translation/lang {:db/index      true
-                           :agg/uniq      true
+        :translation/lang {:db/unique     :db.unique/identity
                            :agg/predicate langs}})
 
 (defn validate [agg]

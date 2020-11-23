@@ -37,31 +37,6 @@
 
 
 (swap! agg/schema merge
-       {:uniq-validator-test/attr {:db/cardinality :db.cardinality/many
-                                   :agg/uniq       true}})
-
-(t/deftest uniq-validator
-  (let [agg (-> (agg/build {:uniq-validator-test/attr  1
-                            :uniq-validator-test/other 1}
-                           {:uniq-validator-test/attr  [2 3]
-                            :uniq-validator-test/other 1}
-                           {:uniq-validator-test/attr  [1 3]
-                            :uniq-validator-test/other 1})
-                (agg/uniq-validator))]
-    (t/is (= [[5 :error/attr :uniq-validator-test/attr]
-              [5 :error/entity 4]
-              [5 :error/type :uniq]
-              [5 :error/value 1]
-
-              [6 :error/attr :uniq-validator-test/attr]
-              [6 :error/entity 4]
-              [6 :error/type :uniq]
-              [6 :error/value 3]]
-             (->> (d/seek-datoms agg :eavt 5)
-                  (map (juxt :e :a :v)))))))
-
-
-(swap! agg/schema merge
        {:required-attrs-validator-test.nested/root   {:db/valueType :db.type/ref}
         :required-attrs-validator-test.nested/status {:db/index true}})
 
