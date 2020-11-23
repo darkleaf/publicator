@@ -34,7 +34,7 @@
   (generator
     (-> form
         (agg/validate)
-        (agg/required-validator {:root [:user/login :user/password]})
+        (agg/required-attrs-validator {:root [:user/login :user/password]})
         (agg/permitted-attrs-validator #{:user/login :user/password})
         (-> login-validator* yield))))
 

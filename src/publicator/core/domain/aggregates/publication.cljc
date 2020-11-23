@@ -36,7 +36,7 @@
     :always (agg/validate)
     :always (translation/validate)
     :always
-    (agg/required-validator
+    (agg/required-attrs-validator
      {:root                                       [:publication/state
                                                    :publication/type
                                                    :publication/author-id]
@@ -45,8 +45,8 @@
       [:publication.translation/state :published] [:publication.translation/published-at
                                                    :publication.translation/summary]})
     (article? agg)
-    (agg/required-validator
+    (agg/required-attrs-validator
      {:root                                       [:article/image-url]
       [:publication.translation/state :published] [:article.translation/content]})
     (gallery? agg)
-    (agg/required-validator {:root [:gallery/image-url]})))
+    (agg/required-attrs-validator {:root [:gallery/image-url]})))

@@ -109,7 +109,7 @@
     :ident                  (->> (d/datoms agg :avet :db/ident tag)
                                  (map :e))))
 
-(defn required-validator [agg desc]
+(defn required-attrs-validator [agg desc]
   (let [tx-data (for [[tag attrs] desc
                       e           (entities-by-tag agg tag)
                       a           attrs

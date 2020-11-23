@@ -17,7 +17,7 @@
       (agg/validate)
       (translation/validate)
       (translation/full-translation-validator)
-      (agg/required-validator
+      (agg/required-attrs-validator
        {:translation/_root         [:author.translation/first-name
                                     :author.translation/last-name]
         :author.achivement/_author [:author.achivement/kind

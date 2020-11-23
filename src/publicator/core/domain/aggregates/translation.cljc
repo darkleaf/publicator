@@ -21,7 +21,7 @@
                            :agg/predicate langs}})
 
 (defn validate [agg]
-  (agg/required-validator agg {:translation/_root [:translation/lang]}))
+  (agg/required-attrs-validator agg {:translation/_root [:translation/lang]}))
 
 (defn full-translation-validator [agg]
   (let [actual-langs (->> agg

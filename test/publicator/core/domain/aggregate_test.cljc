@@ -62,44 +62,45 @@
 
 
 (swap! agg/schema merge
-       {:required-validator-test.nested/root   {:db/valueType :db.type/ref}
-        :required-validator-test.nested/status {:db/index true}})
+       {:required-attrs-validator-test.nested/root   {:db/valueType :db.type/ref}
+        :required-attrs-validator-test.nested/status {:db/index true}})
 
-(t/deftest required-validator
-  (let [agg (-> (agg/build {:db/ident                  :root
-                            :required-validator-test/a :ok}
-                           {:db/id                               2
-                            :required-validator-test/c           :ok
-                            :required-validator-test.nested/root :root}
-                           {:db/id                               3
-                            :required-validator-test/d           :ok
-                            :required-validator-test.nested/root :root}
-                           {:db/id                                 4
-                            :required-validator-test/c             :ok
-                            :required-validator-test/d             :ok
-                            :required-validator-test.nested/root   :root
-                            :required-validator-test.nested/status :ready})
-                (agg/required-validator {:root
-                                         [:required-validator-test/a :required-validator-test/b]
+(t/deftest required-attrs-validator
+  (let [agg (-> (agg/build {:db/ident                        :root
+                            :required-attrs-validator-test/a :ok}
+                           {:db/id                                     2
+                            :required-attrs-validator-test/c           :ok
+                            :required-attrs-validator-test.nested/root :root}
+                           {:db/id                                     3
+                            :required-attrs-validator-test/d           :ok
+                            :required-attrs-validator-test.nested/root :root}
+                           {:db/id                                       4
+                            :required-attrs-validator-test/c             :ok
+                            :required-attrs-validator-test/d             :ok
+                            :required-attrs-validator-test.nested/root   :root
+                            :required-attrs-validator-test.nested/status :ready})
+                (agg/required-attrs-validator
+                 {:root
+                  [:required-attrs-validator-test/a :required-attrs-validator-test/b]
 
-                                         :required-validator-test.nested/_root
-                                         [:required-validator-test/c :required-validator-test/d]
+                  :required-attrs-validator-test.nested/_root
+                  [:required-attrs-validator-test/c :required-attrs-validator-test/d]
 
-                                         [:required-validator-test.nested/status :ready]
-                                         [:required-validator-test/e]}))]
-    (t/is (= [[5 :error/attr :required-validator-test/b]
+                  [:required-attrs-validator-test.nested/status :ready]
+                  [:required-attrs-validator-test/e]}))]
+    (t/is (= [[5 :error/attr :required-attrs-validator-test/b]
               [5 :error/entity 1]
               [5 :error/type :required]
 
-              [6 :error/attr :required-validator-test/d]
+              [6 :error/attr :required-attrs-validator-test/d]
               [6 :error/entity 2]
               [6 :error/type :required]
 
-              [7 :error/attr :required-validator-test/c]
+              [7 :error/attr :required-attrs-validator-test/c]
               [7 :error/entity 3]
               [7 :error/type :required]
 
-              [8 :error/attr :required-validator-test/e]
+              [8 :error/attr :required-attrs-validator-test/e]
               [8 :error/entity 4]
               [8 :error/type :required]]
              (->> (d/seek-datoms agg :eavt 5)

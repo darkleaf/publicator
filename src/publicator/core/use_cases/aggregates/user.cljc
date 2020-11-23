@@ -27,5 +27,6 @@
 (defn validate [user]
   (cond-> user
     :always        (agg/validate)
-    :always        (agg/required-validator {:root #{:user/login :user/state :user/password-digest}})
+    :always        (agg/required-attrs-validator
+                    {:root #{:user/login :user/state :user/password-digest}})
     (author? user) (author/validate)))

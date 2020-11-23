@@ -38,7 +38,7 @@
   (generator
     (cond-> form
       :always             (agg/validate)
-      :always             (agg/required-validator {:root [:user/login :user/state]})
+      :always             (agg/required-attrs-validator {:root [:user/login :user/state]})
       :always             (agg/permitted-attrs-validator (yield (->readable-attr?*)))
       (user/author? form) (author/validate))))
 
