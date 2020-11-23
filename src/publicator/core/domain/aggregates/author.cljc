@@ -13,6 +13,8 @@
         :author.achivement/assigner-id {:agg/predicate pos-int?}})
 
 ; TODO: под ачивки нужно сделать юзкейс
+; в форму добавлять ключи вроде :author.achivement/can-remove?
+; ну и валидировать, что текущий пользователь может удалять ачивку
 
 (defn validate [agg]
   (-> agg
