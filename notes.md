@@ -8,30 +8,45 @@
 По ходу нужно `data/diff` использовать.
 
 # Сделать subject, в котором поля автора и пользователя
-наче больно сложно получается
+иначе больно сложно получается
 и делать не роли, а флаги
 
-# хранить вложенные модели в транспонированном виде
+
+# React.createElement
+можно попробовать написать копих этой функции и посмотреть, вдруг closure compiler ее заинлайнет
+
+# Persistence
+
+## хранить вложенные модели в транспонированном виде
 `"publication.translation/title" string[]`
 для полнотекста исползьовать string[] -> tsvector и автовычисляемые колонки
-массив дат можно так-же преобразовать в диапозон дат и проиндексировать
+массив чисел, дат не не получится индексировать, т.к. нужна операция вроде
+`{1,5,7,10} @@ (-inf, 1] = true`, `{1,5,7,10} @@ (7, 10) = false`.
+может быть и не так сложно сделать такой оператор `array && range` и поддержку GIN.
 
+Смысла от подобного преобразования мало:
 ```
 create or replace function intarray2int4range(arr int[]) returns int4range as $$
   select int4range(min(val), max(val) + 1) from unnest(arr) as val;
 $$ language sql immutable;
 ```
 
+## два поля - фигня
 
-# React.createElement
-можно попробовать написать копих этой функции и посмотреть, вдруг closure compiler ее заинлайнет
+нужен кастомный тип вроде
+
+```
+create type int_ev as (
+  e int[],
+  v int[]
+);
+```
+
+индексируется он так `CREATE INDEX ON t USING gin( ((f).v) );`
+
+## фильтрация внутри
 
 
-# store keywords
-лучше не хранить значения в виде keyword, а использовать строки, проблемы конвертацией в jdbc
-
-
-# фильтрация внутри
 ```sql
 select *
 from "user"
@@ -39,3 +54,5 @@ join lateral unnest("e:author.translation/last-name") with ordinality as e(e, id
 join lateral unnest("v:author.translation/last-name") with ordinality as v(v, idx)
   on e.idx = v.idx;
 ```
+
+оно вроде медленно работает
