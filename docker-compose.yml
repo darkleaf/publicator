@@ -1,7 +1,7 @@
 version: '3.7'
 
 x-db: &db
-  image: postgres:12.3
+  image: postgres:13
   environment:
     - POSTGRES_PASSWORD=password
 
