@@ -1,7 +1,6 @@
 (ns publicator.persistence.serialization
   (:require
    [datascript.core :as d]
-   [datascript.db :as d.db]
    [medley.core :as m]
    [publicator.core.domain.aggregate :as agg]
    [publicator.utils :refer [<<-]]))
@@ -12,8 +11,9 @@
      {:kind :translation
       :lang (keyword lang)
       :attr (keyword attr)})
-   (if-some [[_ attr] (re-matches #"\A#(.+)" field)]
+   (if-some [[_ tag attr] (re-matches #"\A(.+?)#(.+)" field)]
      {:kind :nested
+      :tag  (keyword tag)
       :attr (keyword attr)})
    {:kind :root
     :attr (keyword field)}))
@@ -24,8 +24,8 @@
 (defn- translation-attr->field [lang attr]
   (str (symbol lang) "$" (symbol attr)))
 
-(defn- nested-attr->field [attr]
-  (str "#" (symbol attr)))
+(defn- nested-attr->field [tag attr]
+  (str (symbol tag) "#" (symbol attr)))
 
 (defn agg->row [agg]
   (let [root         (->> (d/pull agg '[*] :root)
@@ -50,28 +50,32 @@
                                  (not [?e :translation/root :root])]
                                vec)
                           (reduce (fn [acc [a es vs]]
-                                    (assoc acc (nested-attr->field a) [es vs]))
+                                    (assoc acc
+                                           (nested-attr->field :es a) es
+                                           (nested-attr->field :vs a) vs))
                                   {}))]
     (merge root translations nested)))
 
 (defn row->agg [row]
-  (let [agg      (agg/build)
-        pair->tx (fn [[field data]]
-                   (let [{:keys [kind attr lang]} (parse-field field)]
-                     (case kind
-                       :root        [[:db/add :root attr data]]
-                       :translation (<<-
-                                     (let [id-field (translation-attr->field lang :db/id)
-                                           id       (get row id-field)])
-                                     (if (= :db/id attr)
-                                       [[:db/add id :translation/lang lang]
-                                        [:db/add id :translation/root :root]])
-                                     (if (d.db/multival? agg attr)
-                                       (for [v data]
-                                         [:db/add id attr v]))
-                                     [[:db/add id attr data]])
-                       :nested      (map (fn [e v]
-                                           [:db/add e attr v])
-                                         (first data) (second data)))))
-        tx       (mapcat pair->tx row)]
-    (d/db-with agg tx)))
+  (let [items            (for [[field data] row]
+                           (assoc (parse-field field) :data data))
+        {:keys [root
+                translation
+                nested]} (group-by :kind items)
+        root-tx          (for [{:keys [attr data]} root]
+                           [:db/add :root attr data])
+        translation-tx   (for [[lang items] (group-by :lang translation)]
+                           (reduce (fn [acc {:keys [attr data]}]
+                                     (assoc acc attr data))
+                                   {:translation/lang lang
+                                    :translation/root :root}
+                                   items))
+        nested-tx        (for [[attr items] (group-by :attr nested)
+                               :let         [{:keys [es vs]} (->> items
+                                                                  (m/index-by :tag)
+                                                                  (m/map-vals :data))]
+                               [e v]        (map vector es vs)]
+                           [:db/add e attr v])
+        tx-data          (concat root-tx translation-tx nested-tx)
+        agg              (agg/build)]
+    (d/db-with agg tx-data)))

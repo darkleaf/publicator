@@ -34,8 +34,11 @@
              "en$db/id"                2
              "en$st.translation/title" "title"
              "en$st.translation/tags"  [:tag-1 :tag-2]
-             "#st.nested/root"          [[3 4] [1 1]]
-             "#st.nested/attr-1"        [[3 4] ["str-1" "str-2"]]
-             "#st.nested/attr-2"        [[3 4] [1 2]]}]
+             "es#st.nested/root"       [3 4]
+             "vs#st.nested/root"       [1 1]
+             "es#st.nested/attr-1"     [3 4]
+             "vs#st.nested/attr-1"     ["str-1" "str-2"]
+             "es#st.nested/attr-2"     [3 4]
+             "vs#st.nested/attr-2"     [1 2]}]
     (t/is (= row (sut/agg->row agg)))
     (t/is (= agg (sut/row->agg row)))))
