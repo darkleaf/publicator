@@ -65,7 +65,7 @@
                 translation
                 nested]} (group-by :kind items)
         root-tx          (for [{:keys [attr data]} root]
-                           [:db/add :root attr data])
+                           {:db/ident :root attr data})
         translation-tx   (for [[lang items] (group-by :lang translation)]
                            (reduce (fn [acc {:keys [attr data]}]
                                      (assoc acc attr data))

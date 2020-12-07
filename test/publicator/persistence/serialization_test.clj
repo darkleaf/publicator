@@ -7,7 +7,9 @@
    [publicator.persistence.serialization :as sut]))
 
 (swap! agg/schema merge
-       {:st/state             {:agg/predicate keyword?}
+       {:st/state             {:agg/predicate #{:ok :wrong}}
+        :st/tags              {:agg/predicate  keyword?
+                               :db/cardinality :db.cardinality/many}
         :st.translation/title {:agg/predicate string?}
         :st.translation/tags  {:db/cardinality :db.cardinality/many}
         :st.nested/root       {:db/valueType :db.type/ref}
@@ -16,7 +18,8 @@
 
 (t/deftest ok
   (let [agg (-> (agg/build {:db/ident :root
-                            :st/state :ok}
+                            :st/state :ok
+                            :st/tags  #{:a :b}}
                            {:translation/root     :root
                             :translation/lang     :en
                             :st.translation/title "title"
@@ -31,6 +34,7 @@
                 (translation/validate)
                 (agg/check-errors))
         row {"st/state"                :ok
+             "st/tags"                 [:a :b]
              "en$db/id"                2
              "en$st.translation/title" "title"
              "en$st.translation/tags"  [:tag-1 :tag-2]
