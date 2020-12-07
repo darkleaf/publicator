@@ -1,9 +1,10 @@
 (ns publicator.core.domain.aggregates.publication-test
   (:require
-   [publicator.core.domain.aggregate :as agg]
-   [publicator.core.domain.aggregates.publication :as publication]
+   [cljc.java-time.offset-date-time :as time.offset-date-time]
+   [clojure.test :as t]
    [datascript.core :as d]
-   [clojure.test :as t]))
+   [publicator.core.domain.aggregate :as agg]
+   [publicator.core.domain.aggregates.publication :as publication]))
 
 (t/deftest article-has-no-errors
   (let [agg (-> (agg/build {:db/ident               :root
@@ -17,7 +18,7 @@
                             :publication.translation/state        :published
                             :publication.translation/title        "some title"
                             :publication.translation/summary      "some summary"
-                            :publication.translation/published-at #inst "2019-01-01"
+                            :publication.translation/published-at (time.offset-date-time/now)
                             :publication.translation/tag          #{"animal" "cat"}
                             :article.translation/content          "some content"})
                 (publication/validate))]
@@ -37,6 +38,6 @@
                             :publication.translation/title        "some title"
                             :publication.translation/summary      "some summary"
                             :publication.translation/tag          #{"animal" "cat"}
-                            :publication.translation/published-at #inst "2019-01-01"})
+                            :publication.translation/published-at (time.offset-date-time/now)})
                 (publication/validate))]
     (t/is (agg/has-no-errors? agg))))

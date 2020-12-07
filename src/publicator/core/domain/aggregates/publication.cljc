@@ -1,5 +1,6 @@
 (ns publicator.core.domain.aggregates.publication
   (:require
+   [cljc.java-time.extn.predicates :as time.predicates]
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.translation :as translation]))
 
@@ -17,7 +18,7 @@
                                                :agg/predicate translation-states}
         :publication.translation/title        {:agg/predicate #".{1,255}"}
         :publication.translation/summary      {:agg/predicate #".{1,255}"}
-        :publication.translation/published-at {:agg/predicate inst?}
+        :publication.translation/published-at {:agg/predicate time.predicates/offset-date-time?}
         :publication.translation/tag          {:db/cardinality :db.cardinality/many
                                                :agg/predicate  #".{1,255}"}
         :article/image-url                    {:agg/predicate #".{1,255}"}
