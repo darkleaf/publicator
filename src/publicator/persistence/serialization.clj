@@ -7,16 +7,18 @@
 
 (defn- parse-field [field]
   (<<-
-   (if-some [[_ lang attr] (re-matches #"\A(.+?)\$(.+)" field)]
+   (if-some [[_ lang attr] (re-matches #"\A(\w\w)\$(.+)" field)]
      {:kind :translation
       :lang (keyword lang)
       :attr (keyword attr)})
-   (if-some [[_ tag attr] (re-matches #"\A(.+?)#(.+)" field)]
+   (if-some [[_ tag attr] (re-matches #"\A(es|vs)#(.+)" field)]
      {:kind :nested
       :tag  (keyword tag)
       :attr (keyword attr)})
-   {:kind :root
-    :attr (keyword field)}))
+   (if (re-matches #"[^\$#]+" field)
+     {:kind :root
+      :attr (keyword field)})
+   (throw (ex-info "Unexpected field format" {:field field}))))
 
 (defn- root-attr->field [attr]
   (str (symbol attr)))
