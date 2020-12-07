@@ -11,7 +11,7 @@
         metosin/reitit-core        {:mvn/version "0.5.10"}
         metosin/reitit-ring        {:mvn/version "0.5.10"}
         ;; persistence
-        seancorfield/next.jdbc     {:mvn/version "1.0.445"}
+        seancorfield/next.jdbc     {:mvn/version "1.1.613"}
         org.postgresql/postgresql  {:mvn/version "42.2.18"}
         com.mchange/c3p0           {:mvn/version "0.9.5.5"}
         org.flywaydb/flyway-core   {:mvn/version "7.2.0"}
