@@ -5,7 +5,7 @@
    [datascript.core :as d]
    [datascript.db :as d.db]))
 
-(defonce schema (atom {:agg/id       {:agg/predicate pos-int?}
+(defonce schema (atom {:agg/id       {:agg/predicate int?}
                        :error/entity {:db/valueType :db.type/ref}
                        :error/attr   {:db/index true}}))
 

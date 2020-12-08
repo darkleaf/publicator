@@ -10,7 +10,7 @@
         :author.translation/last-name  {:agg/predicate #".{1,255}"}
         :author.achivement/root        {:db/valueType :db.type/ref}
         :author.achivement/kind        {:agg/predicate achivement-types}
-        :author.achivement/assigner-id {:agg/predicate pos-int?}})
+        :author.achivement/assigner-id {:agg/predicate int?}})
 
 ; TODO: под ачивки нужно сделать юзкейс
 ; в форму добавлять ключи вроде :author.achivement/can-remove?
