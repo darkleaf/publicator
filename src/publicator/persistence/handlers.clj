@@ -17,9 +17,14 @@
           row (jdbc.sql/insert! tx "user" row opts)]
       (serialization/row->agg row)))
 
+(defn- publication-get-by-id [tx id]
+  (some-> (jdbc.sql/get-by-id tx "publication" id "agg/id" {})
+          (serialization/row->agg)))
+
 (defn handlers [tx]
-  {:persistence.user/get-by-id  (partial user-get-by-id tx)
-   #_#_:persistence.user/create (partial user-create tx)})
+  {:persistence.user/get-by-id        (partial user-get-by-id tx)
+   #_#_:persistence.user/create       (partial user-create tx)
+   :persistence.publication/get-by-id (partial publication-get-by-id tx)})
 
 (defmacro with-handlers [[handlers transactable] & body]
   `(jdbc/with-transaction [tx# ~transactable]

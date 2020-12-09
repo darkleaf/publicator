@@ -11,14 +11,14 @@
 (swap! agg/schema merge
        {:publication/state                    {:db/index true :agg/predicate states}
         :publication/type                     {:agg/predicate types}
-        :publication/author-id                {:agg/predicate pos-int?}
+        :publication/author-id                {:agg/predicate int?}
         :publication/related-id               {:db/cardinality :db.cardinality/many
-                                               :agg/predicate  pos-int?}
+                                               :agg/predicate  int?}
         :publication.translation/state        {:db/index      true
                                                :agg/predicate translation-states}
         :publication.translation/title        {:agg/predicate #".{1,255}"}
         :publication.translation/summary      {:agg/predicate #".{1,255}"}
-        :publication.translation/published-at {:agg/predicate time.predicates/offset-date-time?}
+        :publication.translation/published-at {:agg/predicate time.predicates/instant?}
         :publication.translation/tag          {:db/cardinality :db.cardinality/many
                                                :agg/predicate  #".{1,255}"}
         :article/image-url                    {:agg/predicate #".{1,255}"}

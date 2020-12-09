@@ -1,6 +1,6 @@
 (ns publicator.core.domain.aggregates.publication-test
   (:require
-   [cljc.java-time.offset-date-time :as time.offset-date-time]
+   [cljc.java-time.instant :as time.instant]
    [clojure.test :as t]
    [datascript.core :as d]
    [publicator.core.domain.aggregate :as agg]
@@ -18,7 +18,7 @@
                             :publication.translation/state        :published
                             :publication.translation/title        "some title"
                             :publication.translation/summary      "some summary"
-                            :publication.translation/published-at (time.offset-date-time/now)
+                            :publication.translation/published-at (time.instant/now)
                             :publication.translation/tag          #{"animal" "cat"}
                             :article.translation/content          "some content"})
                 (publication/validate))]
@@ -38,6 +38,6 @@
                             :publication.translation/title        "some title"
                             :publication.translation/summary      "some summary"
                             :publication.translation/tag          #{"animal" "cat"}
-                            :publication.translation/published-at (time.offset-date-time/now)})
+                            :publication.translation/published-at (time.instant/now)})
                 (publication/validate))]
     (t/is (agg/has-no-errors? agg))))
