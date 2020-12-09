@@ -4,8 +4,9 @@
    [next.jdbc :as jdbc]
    [next.jdbc.sql :as jdbc.sql]
    [publicator.core.domain.aggregate :as agg]
+   [publicator.persistence.jdbc-options :as jdbc-options]
    [publicator.persistence.serialization :as serialization]
-   [publicator.persistence.settings :as settings]))
+   [publicator.persistence.types]))
 
 (defn- user-get-by-id [tx id]
   (some-> (jdbc.sql/get-by-id tx "user" id "agg/id" {})
@@ -22,6 +23,6 @@
 
 (defmacro with-handlers [[handlers transactable] & body]
   `(jdbc/with-transaction [tx# ~transactable]
-     (let [tx#       (jdbc/with-options tx# settings/opts)
+     (let [tx#       (jdbc/with-options tx# jdbc-options/opts)
            ~handlers (handlers tx#)]
        ~@body)))
