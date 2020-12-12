@@ -80,7 +80,7 @@
                                            (nested-attr->field :es attr)
                                            es
                                            (nested-attr->field :vs attr)
-                                           (map (partial write-datom-value attr) vs)))
+                                           (mapv (partial write-datom-value attr) vs)))
                                   {}))]
     (merge root translations nested)))
 
