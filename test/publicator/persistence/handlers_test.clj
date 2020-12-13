@@ -82,6 +82,15 @@
     (t/testing "existed"
       (t/is (true? (test-system/run f* "admin"))))))
 
+(t/deftest user-get-by-login
+  (let [f* (fn [login]
+             (generator
+               (yield (effect :persistence.user/get-by-login login))))]
+    (t/testing "not existed"
+      (t/is (nil? (test-system/run f* "not-existed"))))
+    (t/testing "existed"
+      (t/is (some? (test-system/run f* "admin"))))))
+
 (t/deftest publication-get-by-id
   (let [f* (fn [id]
              (generator
