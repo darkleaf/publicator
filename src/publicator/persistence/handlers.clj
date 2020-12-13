@@ -29,6 +29,13 @@
                                  {:limit 1})
           first serialization/row->agg))
 
+(defn- user-update [tx user]
+  (-> (jdbc.sql/update! tx "user"
+                        (serialization/agg->row user)
+                        {"agg/id" (agg/id user)}
+                        {:suffix "returning *"})
+      (serialization/row->agg)))
+
 (defn- publication-get-by-id [tx id]
   (some-> (jdbc.sql/get-by-id tx "publication" id "agg/id" {})
           (serialization/row->agg)))
@@ -38,6 +45,7 @@
    :persistence.user/create           (partial user-create tx)
    :persistence.user/exists-by-login  (partial user-exists-by-login tx)
    :persistence.user/get-by-login     (partial user-get-by-login tx)
+   :persistence.user/update           (partial user-update tx)
    :persistence.publication/get-by-id (partial publication-get-by-id tx)})
 
 (defmacro with-handlers [[handlers transactable] & body]

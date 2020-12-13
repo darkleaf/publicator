@@ -42,6 +42,12 @@
 (defn root [agg]
   (d/entity agg :root))
 
+(defn id [agg]
+  (d/q '[:find ?id .
+         :where
+         [:root :agg/id ?id]]
+       agg))
+
 (defn- apply-predicate [p x]
   (cond
     (nil? p)          true

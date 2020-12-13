@@ -64,7 +64,7 @@
         f*                (fn [user]
                             (generator
                               (let [saved     (yield (effect :persistence.user/create user))
-                                    id        (-> saved agg/root :agg/id)
+                                    id        (agg/id saved)
                                     refreshed (yield (effect :persistence.user/get-by-id id))]
                                 [saved refreshed])))
         [saved refreshed] (test-system/run f* user)]
@@ -90,6 +90,17 @@
       (t/is (nil? (test-system/run f* "not-existed"))))
     (t/testing "existed"
       (t/is (some? (test-system/run f* "admin"))))))
+
+(t/deftest user-update
+  (let [f* (fn []
+             (generator
+               (let [user      (yield (effect :persistence.user/get-by-id -1))
+                     user      (d/db-with user [{:translation/lang              :ru
+                                                 :author.translation/first-name "Василий"}])
+                     updated   (yield (effect :persistence.user/update user))
+                     refreshed (yield (effect :persistence.user/get-by-id -1))]
+                 (t/is (= user updated refreshed)))))]
+    (test-system/run f*)))
 
 (t/deftest publication-get-by-id
   (let [f* (fn [id]
