@@ -73,6 +73,15 @@
              (d/db-with saved     [[:db.fn/retractAttribute :root :agg/id]])
              (d/db-with refreshed [[:db.fn/retractAttribute :root :agg/id]])))))
 
+(t/deftest user-exists-by-login
+  (let [f* (fn [login]
+             (generator
+               (yield (effect :persistence.user/exists-by-login login))))]
+    (t/testing "not existed"
+      (t/is (false? (test-system/run f* "not-existed"))))
+    (t/testing "existed"
+      (t/is (true? (test-system/run f* "admin"))))))
+
 (t/deftest publication-get-by-id
   (let [f* (fn [id]
              (generator

@@ -2,7 +2,7 @@
         org.clojure/clojurescript     {:mvn/version "1.10.597"}
         datascript                    {:mvn/version "1.0.2"}
         darkleaf/effect               {:git/url "https://github.com/darkleaf/effect.git"
-                                       :sha     "de2ceb426702b0928420ca36ab927f741d3f306d"}
+                                       :sha     "a4932326090e2a4ebf8ac0741b8e76c98fb88a7d"}
         medley                        {:mvn/version "1.3.0"}
         cljc.java-time/cljc.java-time {:mvn/version "0.1.11"}
         com.stuartsierra/component    {:mvn/version "1.0.0"}
