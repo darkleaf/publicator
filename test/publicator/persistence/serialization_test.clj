@@ -8,10 +8,11 @@
 
 (swap! agg/schema merge
        {:st/state             {:agg/predicate #{:ok :wrong}}
-        :st/tags              {:agg/predicate  keyword?
+        :st/tags              {:agg/predicate  #{:a :b :c}
                                :db/cardinality :db.cardinality/many}
         :st.translation/title {:agg/predicate string?}
-        :st.translation/tags  {:db/cardinality :db.cardinality/many}
+        :st.translation/tags  {:agg/predicate  string?
+                               :db/cardinality :db.cardinality/many}
         :st.nested/root       {:db/valueType :db.type/ref}
         :st.nested/attr-1     {:agg/predicate string?}
         :st.nested/attr-2     {:agg/predicate int?}})
@@ -23,7 +24,7 @@
                            {:translation/root     :root
                             :translation/lang     :en
                             :st.translation/title "title"
-                            :st.translation/tags  #{:tag-1 :tag-2}}
+                            :st.translation/tags  #{"tag-1" "tag-2"}}
                            {:st.nested/root   :root
                             :st.nested/attr-1 "str-1"
                             :st.nested/attr-2 1}
@@ -37,7 +38,7 @@
              "st/tags"                 [:a :b]
              "en$db/id"                2
              "en$st.translation/title" "title"
-             "en$st.translation/tags"  [:tag-1 :tag-2]
+             "en$st.translation/tags"  ["tag-1" "tag-2"]
              "es#st.nested/root"       [3 4]
              "vs#st.nested/root"       [1 1]
              "es#st.nested/attr-1"     [3 4]
