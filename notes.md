@@ -17,6 +17,9 @@
 
 # Persistence
 
+
+https://info.crunchydata.com/blog/how-your-postgresql-data-model-affects-storage
+
 ## хранить вложенные модели в транспонированном виде
 `"publication.translation/title" string[]`
 для полнотекста исползьовать string[] -> tsvector и автовычисляемые колонки
