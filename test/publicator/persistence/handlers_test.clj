@@ -102,6 +102,29 @@
                  (t/is (= user updated refreshed)))))]
     (test-system/run f*)))
 
+(t/deftest user-asc-by-login
+  (let [alice (-> (agg/build {:db/ident             :root
+                              :user/state           :active
+                              :user/login           "alice"
+                              :user/password-digest "abc"})
+                  (user/validate)
+                  (agg/check-errors))
+        bob   (-> (agg/build {:db/ident             :root
+                              :user/state           :active
+                              :user/login           "bob"
+                              :user/password-digest "abc"})
+                  (user/validate)
+                  (agg/check-errors))
+        f*    (fn []
+                (generator
+                  (yield (effect :persistence.user/create bob))
+                  (yield (effect :persistence.user/create alice))
+                  (let [logins (-> (yield (effect :persistence.user/asc-by-login))
+                                   (map #(-> % agg/root :user/login)))]
+                    (t/is (= ["alice" "bob"] logins)))))]
+    (test-system/run f*)))
+
+
 (t/deftest publication-get-by-id
   (let [f* (fn [id]
              (generator
