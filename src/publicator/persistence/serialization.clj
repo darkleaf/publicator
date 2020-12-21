@@ -5,28 +5,6 @@
    [publicator.core.domain.aggregate :as agg]
    [publicator.utils :refer [<<-]]))
 
-(defn- read-datom-value [attr value]
-  (let [transform (get-in @agg/schema [attr :persistence.value/read] identity)]
-    (transform value)))
-
-(defn- write-datom-value [attr value]
-  (let [transform (get-in @agg/schema [attr :persistence.value/write] identity)]
-    (transform value)))
-
-(defn- multival? [attr]
-  (= :db.cardinality/many
-     (get-in @agg/schema [attr :db/cardinality])))
-
-(defn- read-value [attr value]
-  (if (multival? attr)
-    (map (partial read-datom-value attr) value)
-    (read-datom-value attr value)))
-
-(defn- write-value [attr value]
-  (if (multival? attr)
-    (map (partial write-datom-value attr) value)
-    (write-datom-value attr value)))
-
 (defn- parse-field [field]
   (<<-
    (if-some [[_ lang attr] (re-matches #"\A(\w\w)\$(.+)" field)]
@@ -54,7 +32,6 @@
 (defn agg->row [agg]
   (let [root         (->> (d/pull agg '[*] :root)
                           (m/remove-keys #(= "db" (namespace %)))
-                          (m/map-kv-vals write-value)
                           (m/map-keys root-attr->field))
         translations (->> agg
                           (d/q '[:find ?lang (pull ?t [*])
@@ -64,7 +41,6 @@
                           (map (fn [[lang attrs]]
                                  (->> attrs
                                       (m/remove-keys #(= "translation" (namespace %)))
-                                      (m/map-kv-vals write-value)
                                       (m/map-keys (partial translation-attr->field lang)))))
                           (reduce merge))
         nested       (->> agg
@@ -75,12 +51,12 @@
                                  (not [?e :db/ident :root])
                                  (not [?e :translation/root :root])]
                                vec)
-                          (reduce (fn [acc [attr es vs]]
+                          (reduce (fn [acc [a es vs]]
                                     (assoc acc
-                                           (nested-attr->field :es attr)
+                                           (nested-attr->field :es a)
                                            es
-                                           (nested-attr->field :vs attr)
-                                           (mapv (partial write-datom-value attr) vs)))
+                                           (nested-attr->field :vs a)
+                                           vs))
                                   {}))]
     (merge root translations nested)))
 
@@ -91,11 +67,10 @@
                 translation
                 nested]} (group-by :kind items)
         root-tx          (for [{:keys [attr data]} root]
-                           {:db/ident :root
-                            attr      (read-value attr data)})
+                           {:db/ident :root attr data})
         translation-tx   (for [[lang items] (group-by :lang translation)]
                            (reduce (fn [acc {:keys [attr data]}]
-                                     (assoc acc attr (read-value attr data)))
+                                     (assoc acc attr data))
                                    {:translation/lang lang
                                     :translation/root :root}
                                    items))
@@ -104,7 +79,7 @@
                                                                   (m/index-by :tag)
                                                                   (m/map-vals :data))]
                                [e v]        (map vector es vs)]
-                           [:db/add e attr (read-datom-value attr v)])
+                           [:db/add e attr v])
         tx-data          (concat root-tx translation-tx nested-tx)
         agg              (agg/build)]
     (d/db-with agg tx-data)))
