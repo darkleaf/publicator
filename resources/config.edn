@@ -1,5 +1,2 @@
-{:jdbc
- {:jdbcUrl
-  #or [#env JDBC_URL
-       #profile {:test "jdbc:postgresql://localhost:3402/postgres?user=postgres&password=password"
-                 :dev  "jdbc:postgresql://localhost:3401/postgres?user=postgres&password=password"}]}}
+{:hikari-cp #profile {:test {:jdbc-url "jdbc:postgresql://localhost:3402/postgres?user=postgres&password=password"}
+                      :dev  {:jdbc-url "jdbc:postgresql://localhost:3401/postgres?user=postgres&password=password"}}}

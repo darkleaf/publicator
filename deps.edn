@@ -13,7 +13,7 @@
         ;; persistence
         seancorfield/next.jdbc        {:mvn/version "1.1.613"}
         org.postgresql/postgresql     {:mvn/version "42.2.18"}
-        com.mchange/c3p0              {:mvn/version "0.9.5.5"}
+        hikari-cp                     {:mvn/version "2.13.0"}
         org.flywaydb/flyway-core      {:mvn/version "7.2.0"}
         ;; logger
         org.slf4j/slf4j-simple        {:mvn/version "1.7.30"}}

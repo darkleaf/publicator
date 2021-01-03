@@ -1,45 +1,36 @@
 (ns publicator.persistence.components
   (:require
-   [next.jdbc :as jdbc]
-   [next.jdbc.protocols :as jdbc.p]
-   [com.stuartsierra.component :as component])
+   [com.stuartsierra.component :as component]
+   [hikari-cp.core :as hikari-cp])
   (:import
+   [javax.sql DataSource]
    [org.flywaydb.core Flyway]
-   [com.mchange.v2.c3p0 ComboPooledDataSource]))
+   [org.jdbi.v3.core Jdbi]
+   [org.jdbi.v3.postgres PostgresPlugin]))
 
-(defrecord C3P0 [c3p0 jdbc-url user password]
+(defprotocol DataSourceProvider
+  (get-datasource ^DataSource [this]))
+
+(defrecord HikariCP [datasource options]
+  DataSourceProvider
+  (get-datasource [_] datasource)
+
   component/Lifecycle
   (start [this]
-    (assoc this :c3p0
-           (doto (ComboPooledDataSource.)
-             (.setJdbcUrl jdbc-url)
-             (.setUser user)
-             (.setPassword password))))
+    (assoc this :datasource (hikari-cp/make-datasource options)))
   (stop [this]
-    (.close c3p0)
-    this)
+    (hikari-cp/close-datasource datasource)
+    (assoc this :datasource nil)))
 
-  jdbc.p/Sourceable
-  (get-datasource [_]
-    (jdbc.p/get-datasource c3p0)))
+(defn hikari-cp [options]
+  (->HikariCP nil options))
 
-(defn c3p0 [jdbc-url user password]
-  (->C3P0 nil jdbc-url user password))
-
-(defrecord TestTransactable [connectable]
-  jdbc.p/Transactable
-  (-transact [_ body-fn opts]
-    (jdbc.p/-transact connectable body-fn (assoc opts :rollback-only true))))
-
-(defn test-transactable []
-  (->TestTransactable nil))
-
-(defrecord Migration [sourceable]
+(defrecord Migration [datasource-provider]
   component/Lifecycle
   (start [this]
     (.. Flyway
         (configure)
-        (dataSource (jdbc.p/get-datasource sourceable))
+        (dataSource (get-datasource datasource-provider))
         (load)
         (migrate))
     this)
@@ -47,3 +38,18 @@
 
 (defn migration []
   (->Migration nil))
+
+(defprotocol JdbiProvider
+  (get-jdbi ^Jdbi [this]))
+
+(defrecord JdbiComponent [jdbi datasource-provider]
+  JdbiProvider
+  (get-jdbi [_] jdbi)
+
+  component/Lifecycle
+  (start [this]
+    (assoc this :jdbi (.. Jdbi
+                          (create (get-datasource datasource-provider))
+                          (installPlugin (PostgresPlugin.)))))
+  (stop [this]
+    (assoc this :jdbi nil)))
