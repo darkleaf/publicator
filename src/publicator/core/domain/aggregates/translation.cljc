@@ -2,12 +2,8 @@
   (:require [publicator.core.domain.aggregate :as agg]
             [datascript.core :as d]))
 
-; вообще, хочется тут иметь `(ordered-set :en :ru)`,
-; чтобы был порядок как при объявлении, но нет версии под cljs
-; https://github.com/clj-commons/ordered/issues/43
-
-(def langs #{:en :ru})
-(def default-lang :en)
+(def langs [:en :ru])
+(def default-lang (first langs))
 
 ;; перевод у агрегата может быть только один
 ;; у перевода могут быть и зависимые сущности с переводом, вроде элементов заказа,

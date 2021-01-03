@@ -4,9 +4,9 @@
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.translation :as translation]))
 
-(def states #{:active :archived})
-(def translation-states #{:draft :published})
-(def types #{:article :gallery})
+(def states [:active :archived])
+(def translation-states [:draft :published])
+(def types [:article :gallery])
 
 (swap! agg/schema merge
        {:publication/state                    {:db/index true :agg/predicate states}

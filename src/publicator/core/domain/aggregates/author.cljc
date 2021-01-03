@@ -3,7 +3,7 @@
    [publicator.core.domain.aggregate :as agg]
    [publicator.core.domain.aggregates.translation :as translation]))
 
-(def achivement-types #{:legend :star :old-timer})
+(def achivement-types [:legend :star :old-timer])
 
 (swap! agg/schema merge
        {:author.translation/first-name {:agg/predicate #".{1,255}"}

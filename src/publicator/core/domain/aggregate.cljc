@@ -51,6 +51,7 @@
 (defn- apply-predicate [p x]
   (cond
     (nil? p)          true
+    (vector? p)       (some #{x} p)
     (ifn? p)          (p x)
     (and (u/regexp? p)
          (string? x)) (re-matches p x)))

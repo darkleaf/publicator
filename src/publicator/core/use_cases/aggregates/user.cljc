@@ -4,7 +4,7 @@
    [publicator.core.domain.aggregates.author :as author]
    [datascript.core :as d]))
 
-(def states #{:active :archived})
+(def states [:active :archived])
 
 (swap! agg/schema merge
        {:user/login           {:agg/predicate #"\w{3,255}"}
