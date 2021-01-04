@@ -5,14 +5,13 @@
    [datascript.core :as d]
    [clojure.test :as t]))
 
-(t/deftest full-translation-validator-test
-  (let [agg (-> (agg/build {:translation/root :root
-                            :translation/lang :en})
-                (agg/validate)
-                (translation/full-translation-validator))]
-    (t/is (= [[3 :error/actual-langs #{:en}]
-              [3 :error/entity 1]
-              [3 :error/expected-langs translation/langs]
-              [3 :error/type :full-translation]]
-             (->> (d/seek-datoms agg :eavt 3)
-                  (map (juxt :e :a :v)))))))
+(t/deftest validate-test
+  (let [build (agg/->build translation/schema)
+        agg   (-> (build [{:translation/root :root
+                           :translation/lang :en}])
+                  (agg/abstract-validate)
+                  (translation/validate :full-translation true))]
+    (t/is (= [(d/datom 3 :error/entity 1)
+              (d/datom 3 :error/missed-langs [:ru])
+              (d/datom 3 :error/type :full-translation)]
+             (d/seek-datoms agg :eavt 3)))))

@@ -4,103 +4,105 @@
    [datascript.core :as d]
    [clojure.test :as t]))
 
-(swap! agg/schema merge
-       {:build-test/many {:db/cardinality :db.cardinality/many}})
-
 (t/deftest build
-  (let [agg (agg/build)]
+  (let [schema {:test/attr {:db/cardinality :db.cardinality/many}}
+        build  (agg/->build schema)
+        agg    (build)]
     (t/is (some? agg))
-    (t/is (-> agg :schema (contains? :build-test/many)))
+    (t/is (-> agg :schema (contains? :test/attr)))
     (t/is (= 1 (d/q '[:find ?e . :where [?e :db/ident :root]]
                     agg)))))
 
-
 (t/deftest remove-errors
-  (let [agg (-> (agg/build {:error/entity :root}))]
+  (let [build (agg/->build)
+        agg   (build [{:error/entity :root}])]
     (t/is (-> agg agg/has-errors?))
     (t/is (-> agg agg/remove-errors agg/has-no-errors?))))
 
-
-(swap! agg/schema merge
-       {:predicate-validator-test/attr {:agg/predicate #{:ok}}})
-
 (t/deftest predicate-validator
-  (let [agg (-> (agg/build [:db/add 2 :predicate-validator-test/attr :wrong]
-                           [:db/add 3 :predicate-validator-test/attr :ok])
-                (agg/predicate-validator))]
-    (t/is (= [[4 :error/attr :predicate-validator-test/attr]
-              [4 :error/entity 2]
-              [4 :error/type :predicate]
-              [4 :error/value :wrong]]
-             (->> (d/seek-datoms agg :eavt 4)
-                  (map (juxt :e :a :v)))))))
+  (let [schema {:test/attr {:agg/predicate #{:ok}}}
+        build  (agg/->build schema)
+        agg    (-> (build [[:db/add 2 :test/attr :wrong]
+                           [:db/add 3 :test/attr :ok]])
+                   (agg/abstract-validate))]
+    (t/is (= [(d/datom 4 :error/attr :test/attr)
+              (d/datom 4 :error/entity 2)
+              (d/datom 4 :error/type :predicate)
+              (d/datom 4 :error/value :wrong)]
+             (d/seek-datoms agg :eavt 4)))))
 
-
-(swap! agg/schema merge
-       {:required-attrs-validator-test.nested/root   {:db/valueType :db.type/ref}
-        :required-attrs-validator-test.nested/status {:db/index true}})
+(t/deftest predicate-validator-idempotence
+  (let [schema {:test/attr {:agg/predicate #{:ok}}}
+        build  (agg/->build schema)
+        agg    (-> (build [[:db/add 2 :test/attr :wrong]
+                           [:db/add 3 :test/attr :ok]])
+                   (agg/abstract-validate)
+                   (agg/abstract-validate))]
+    (t/is (= [(d/datom 4 :error/attr :test/attr)
+              (d/datom 4 :error/entity 2)
+              (d/datom 4 :error/type :predicate)
+              (d/datom 4 :error/value :wrong)]
+             (d/seek-datoms agg :eavt 4)))))
 
 (t/deftest required-attrs-validator
-  (let [agg (-> (agg/build {:db/ident                        :root
-                            :required-attrs-validator-test/a :ok}
-                           {:db/id                                     2
-                            :required-attrs-validator-test/c           :ok
-                            :required-attrs-validator-test.nested/root :root}
-                           {:db/id                                     3
-                            :required-attrs-validator-test/d           :ok
-                            :required-attrs-validator-test.nested/root :root}
-                           {:db/id                                       4
-                            :required-attrs-validator-test/c             :ok
-                            :required-attrs-validator-test/d             :ok
-                            :required-attrs-validator-test.nested/root   :root
-                            :required-attrs-validator-test.nested/status :ready})
-                (agg/required-attrs-validator
-                 {:root
-                  [:required-attrs-validator-test/a :required-attrs-validator-test/b]
+  (let [schema {:test/root   {:db/valueType :db.type/ref}
+                :test/status {:db/index true}}
+        build  (agg/->build schema)
+        agg    (-> (build [{:db/ident :root
+                            :test/a   :test-value}
+                           {:db/id     2
+                            :test/root :root
+                            :test/c    :test-value}
+                           {:db/id     3
+                            :test/root :root
+                            :test/d    :test-value}
+                           {:db/id       4
+                            :test/root   :root
+                            :test/c      :test-value
+                            :test/d      :test-value
+                            :test/status :ready}])
+                   (agg/abstract-validate)
+                   (agg/required-attrs-validator {:root                 #{:test/a :test/b}
+                                                  :test/_root           #{:test/c :test/d}
+                                                  [:test/status :ready] #{:test/e}}))]
+    (t/is (= [(d/datom 5 :error/attr :test/b)
+              (d/datom 5 :error/entity 1)
+              (d/datom 5 :error/type :required)
 
-                  :required-attrs-validator-test.nested/_root
-                  [:required-attrs-validator-test/c :required-attrs-validator-test/d]
+              (d/datom 6 :error/attr :test/d)
+              (d/datom 6 :error/entity 2)
+              (d/datom 6 :error/type :required)
 
-                  [:required-attrs-validator-test.nested/status :ready]
-                  [:required-attrs-validator-test/e]}))]
-    (t/is (= [[5 :error/attr :required-attrs-validator-test/b]
-              [5 :error/entity 1]
-              [5 :error/type :required]
+              (d/datom 7 :error/attr :test/c)
+              (d/datom 7 :error/entity 3)
+              (d/datom 7 :error/type :required)
 
-              [6 :error/attr :required-attrs-validator-test/d]
-              [6 :error/entity 2]
-              [6 :error/type :required]
-
-              [7 :error/attr :required-attrs-validator-test/c]
-              [7 :error/entity 3]
-              [7 :error/type :required]
-
-              [8 :error/attr :required-attrs-validator-test/e]
-              [8 :error/entity 4]
-              [8 :error/type :required]]
-             (->> (d/seek-datoms agg :eavt 5)
-                  (map (juxt :e :a :v)))))))
+              (d/datom 8 :error/attr :test/e)
+              (d/datom 8 :error/entity 4)
+              (d/datom 8 :error/type :required)]
+             (d/seek-datoms agg :eavt 5)))))
 
 (t/deftest permitted-attrs-validator
-  (let [agg (-> (agg/build {:db/ident                                 :root
-                            :permitted-attrs-validator-test/permitted true
-                            :permitted-attrs-validator-test/rejected  true}
-                           {:error/type   :some-error
-                            :error/entity :root})
-                (agg/permitted-attrs-validator #{:permitted-attrs-validator-test/permitted}))]
-    (t/is (= [[3 :error/attr :permitted-attrs-validator-test/rejected]
-              [3 :error/entity 1]
-              [3 :error/type :rejected]
-              [3 :error/value true]]
-             (->> (d/seek-datoms agg :eavt 3)
-                  (map (juxt :e :a :v)))))))
-
+  (let [build (agg/->build)
+        agg   (-> (build [{:db/ident       :root
+                           :test/permitted :test-value
+                           :test/rejected  :test-value}
+                          {:error/type   :test-error
+                           :error/entity :root}])
+                (agg/abstract-validate)
+                (agg/permitted-attrs-validator #{:test/permitted}))]
+    (t/is (= [(d/datom 3 :error/attr :test/rejected)
+              (d/datom 3 :error/entity 1)
+              (d/datom 3 :error/type :rejected)
+              (d/datom 3 :error/value :test-value)]
+             (d/seek-datoms agg :eavt 3)))))
 
 (t/deftest include?
-  (let [agg (agg/build {:db/ident        :root
-                        :include?/attr-1 :val-1
-                        :include?/attr-2 :val-2})]
-    (t/is (= true  (agg/include? agg :root :include?/attr-1 :val-1)))
-    (t/is (= true  (agg/include? agg :root :include?/attr-1)))
-    (t/is (= false (agg/include? agg :root :include?/attr-1 :val-2)))
-    (t/is (= false (agg/include? agg :root :include?/attr-3)))))
+  (let [build (agg/->build)
+        agg   (build [{:db/ident    :root
+                       :test/attr-1 :value-1
+                       :test/attr-2 :value-2}])]
+    (t/is (= true  (agg/include? agg :root :test/attr-1 :value-1)))
+    (t/is (= true  (agg/include? agg :root :test/attr-1)))
+    (t/is (= false (agg/include? agg :root :test/attr-1 :value-2)))
+    (t/is (= false (agg/include? agg :root :test/attr-3)))))

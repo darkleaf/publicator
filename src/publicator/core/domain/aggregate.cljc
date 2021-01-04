@@ -1,23 +1,10 @@
 (ns publicator.core.domain.aggregate
   (:require
-   [publicator.utils :as u]
-   [medley.core :as m]
+   [cljc.java-time.extn.predicates :as time.predicates]
    [datascript.core :as d]
-   [datascript.db :as d.db]))
-
-(defonce schema (atom {:agg/id       {:agg/predicate int?}
-                       :error/entity {:db/valueType :db.type/ref}
-                       :error/attr   {:db/index true}}))
-
-(defn- datascript-schema []
-  (->> @schema
-       (m/map-vals (fn [item] (m/filter-keys #(= "db" (namespace %)) item)))
-       (m/filter-vals not-empty)))
-
-(defn build [& tx-data]
-  (-> (d/empty-db (datascript-schema))
-      (d/db-with [[:db/add 1 :db/ident :root]])
-      (d/db-with tx-data)))
+   [datascript.db :as d.db]
+   [medley.core :as m]
+   [publicator.utils :as u]))
 
 (defn remove-errors [agg]
   (->> (d/datoms agg :aevt :error/entity)
@@ -48,39 +35,45 @@
          [:root :agg/id ?id]]
        agg))
 
-(defn- apply-predicate [p x]
+(def ^:private symbol-predicates
+  {'int?          int?
+   'string?       string?
+   'boolean?      boolean?
+   'time/instant? time.predicates/instant?})
+
+;; Агрегат должен быть сериализуемым, в том числе и его схема,
+;; поэтому функции использовать нельзя.
+(defn- apply-predicate
+  [p x]
   (cond
     (nil? p)          true
+    (set? p)          (p x)
     (vector? p)       (some #{x} p)
-    (ifn? p)          (p x)
+    (symbol? p)       ((u/getx symbol-predicates p) x)
     (and (u/regexp? p)
-         (string? x)) (re-matches p x)))
+         (string? x)) (re-matches p x)
+    :else             (throw (ex-info "Predicate of unsupported type" {:predicate p :value x}))))
 
-(defn predicate-validator [agg]
-  (let [tx-data (for [[e a v] (d/datoms agg :aevt)
-                      :let    [pred (get-in @schema [a :agg/predicate])]
-                      :when   (not (apply-predicate pred v))]
-                  {:error/type   :predicate
-                   :error/entity e
-                   :error/attr   a
-                   :error/value  v})]
+;; Предикаты сериализуемы, но не обязательно сравнимы. Например регулярки несравнимы.
+;; Поэтому предикат не упоминается в ошибке, но его можно получить из схемы.
+(defn- predicate-validator [agg]
+  (let [validatable (d/q '[:find ?e ?a ?v
+                           :where
+                           [?e ?a ?v]
+                           (not [?e :error/entity])
+                           (not-join [?e ?a ?v]
+                             [?err :error/entity ?e]
+                             [?err :error/attr ?a]
+                             [?err :error/value ?v])]
+                         agg)
+        tx-data     (for [[e a v] validatable
+                          :let    [p (get-in agg [:schema a :agg/predicate])]
+                          :when   (not (apply-predicate p v))]
+                      {:error/type   :predicate
+                       :error/entity e
+                       :error/attr   a
+                       :error/value  v})]
     (d/db-with agg tx-data)))
-
-(defn validate [agg]
-  (-> agg
-      (predicate-validator)))
-
-(defn has-errors? [agg]
-  (boolean (seq (d/datoms agg :aevt :error/entity))))
-
-(defn has-no-errors? [agg]
-  (not (has-errors? agg)))
-
-(defn check-errors [agg]
-  (if (has-errors? agg)
-    (throw (ex-info "Invalid aggregate"
-                    {:agg agg}))
-    agg))
 
 (defn- entities-by-tag [agg tag]
   "the tag is an ident, ref, reveresed ref or attr-value pair"
@@ -117,3 +110,35 @@
                             :error/attr   a
                             :error/value  v})))]
     (d/db-with agg errors)))
+
+(defn has-errors? [agg]
+  (boolean (seq (d/datoms agg :aevt :error/entity))))
+
+(defn has-no-errors? [agg]
+  (not (has-errors? agg)))
+
+(defn check-errors [agg]
+  (if (has-errors? agg)
+    (throw (ex-info "Invalid aggregate"
+                    {:agg agg}))
+    agg))
+
+(def ^:private abstract-schema
+  '{:agg/id       {:agg/predicate int?}
+    :error/entity {:db/valueType :db.type/ref}
+    :error/attr   {:db/index true}})
+
+(defn ->build
+  ([] (->build {}))
+  ([schema]
+   (let [schema (merge schema abstract-schema)]
+     (fn build
+       ([] (build []))
+       ([tx-data]
+        (-> (d/empty-db schema)
+            (d/db-with [[:db/add 1 :db/ident :root]])
+            (d/db-with tx-data)))))))
+
+(defn abstract-validate [agg]
+  (-> agg
+      (predicate-validator)))

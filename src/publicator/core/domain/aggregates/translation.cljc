@@ -10,24 +10,27 @@
 ;; при этом для них не нужно указывать `:translation/lang`
 ;; т.е. `:translation/lang` может быть только у сущностей второго уровня
 
-(swap! agg/schema merge
-       {:translation/root {:db/valueType :db.type/ref}
-        :translation/lang {:db/unique     :db.unique/identity
-                           :agg/predicate langs}})
+(def schema
+  {:translation/root {:db/valueType :db.type/ref}
+   :translation/lang {:db/unique     :db.unique/identity
+                      :agg/predicate langs}})
 
-(defn validate [agg]
-  (agg/required-attrs-validator agg {:translation/_root [:translation/lang]}))
-
-(defn full-translation-validator [agg]
-  (let [actual-langs (->> agg
-                          (d/q '[:find [?lang ...]
-                                 :where
-                                 [?e :translation/root :root]
-                                 [?e :translation/lang ?lang]])
-                          (set))]
-    (if (= langs actual-langs)
+(defn- full-translation-validator [agg]
+  (let [missed-langs (d/q '[:find [?expected ...]
+                            :in $ [?expected ...]
+                            :where
+                            (not
+                             [?e :translation/root :root]
+                             [?e :translation/lang ?lang]
+                             [(= ?lang ?expected)])]
+                          agg langs)]
+    (if (empty? missed-langs)
       agg
-      (d/db-with agg [{:error/type           :full-translation
-                       :error/entity         :root
-                       :error/actual-langs   actual-langs
-                       :error/expected-langs langs}]))))
+      (d/db-with agg [{:error/type         :full-translation
+                       :error/entity       :root
+                       :error/missed-langs missed-langs}]))))
+
+(defn validate [agg & {:keys [full-translation]}]
+  (cond-> agg
+    true             (agg/required-attrs-validator {:translation/_root [:translation/lang]})
+    full-translation (full-translation-validator)))

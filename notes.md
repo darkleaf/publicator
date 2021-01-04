@@ -15,6 +15,40 @@
 # React.createElement
 можно попробовать написать копих этой функции и посмотреть, вдруг closure compiler ее заинлайнет
 
+
+# Enum
+
+Вообще енам - это `#{:a :b :c}`. Есть только одна проблема - порядок.
+И нет под cljc библиотеки ordered-set, чтобы элементы хранились в порядке добавления.
+По этому прощце использовать векторы, чтобы хранить порядок.
+И у меня есть функция apply-predicate
+
+# OOP
+
+Я хотел делать что-то вроде классов: `(agg/build :publication)`, где `:publication` это класс.
+Но это требует хранения мутабельного состояния и создает проблемы с загрузкой.
+Нужно как-то загружать реализацию условного мультиметода, а неймспейс `publicator.core.domain.aggregates.publication` не будет использоваться напряму, нужно его явно require, и будет неймспейс с кучей require.
+
+можно выйти из ситуации:
+
+```clojure
+(ns publicator.core.domain.aggregates.publication
+ (:require [publication.core.domain.aggregate :as agg]))
+
+(def kind ::kind) ;; class, klass, type, etc
+#_(def kind (reify Object
+              (toString [_] "publication's kind"))) ;; так-то и просто Object подошел бы
+
+(defmethod agg/build kind ...)
+(defmethod agg/validate kind ...)
+
+(ns other ...)
+
+(agg/build publication/kind) ;; так снимается проблема с загрузкой реализаций
+```
+
+Но почему нужно писать `(agg/build publication/kind)`, а не `(publication/build)` не очень понятно.
+
 # Persistence
 
 
