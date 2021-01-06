@@ -20,7 +20,8 @@
 
  :paths ["src" "resources"]
 
- :aliases {:dev       {:extra-paths ["dev" "test"]}
+ :aliases {:dev       {:extra-paths ["dev" "test"]
+                       :extra-deps  {criterium/criterium {:mvn/version "0.4.6"}}}
            :cljs-test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.7.0"}}
                        :main-opts  ["-m" "cljs-test-runner.main"]}
            :clj-test  {:extra-deps {com.cognitect/test-runner
