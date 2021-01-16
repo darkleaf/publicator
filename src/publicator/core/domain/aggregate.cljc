@@ -33,13 +33,14 @@
 (defn has-no-errors? [agg]
   (not (has-errors? agg)))
 
-(defmulti validate-by (fn [agg validator] (:validator/type validator)))
+(defmulti errors-tx (fn [agg validator] (:validator/type validator)))
 
 (defn validate [agg validators]
-  (->> validators
-       (d/q '[:find [(pull ?e [*]) ...]
-              :where [?e :validator/type _]])
-       (reduce validate-by agg)))
+  (let [tx-data (for [validator (d/q '[:find [(pull ?e [*]) ...]
+                                       :where [?e :validator/type _]]
+                                     validators)]
+                  [:db.fn/call errors-tx validator])]
+    (d/db-with agg tx-data)))
 
 (defn validate! [agg validators]
   (let [agg (validate agg validators)]
@@ -47,7 +48,6 @@
       (throw (ex-info "Invalid aggregate" {:agg agg :validators validators}))
       agg)))
 
-;; она вызывается не через :db.fn/call, т.к. вызывается всегда одна
 (defn remove-errors [agg]
   (let [tx-data (for [id (d/q '[:find [?e ...]
                                 :where [?e :error/entity _]]
@@ -55,31 +55,31 @@
                   [:db.fn/retractEntity id])]
     (d/db-with agg tx-data)))
 
-(defn- retract-by-attribute [validators attribute]
+(defn- retract-by-attribute-tx [validators attribute]
   (for [id (d/q '[:find [?e ...]
                   :in $ ?attribute
-                  :where [?e :attribute ?attribute]]
+                  :where [?e :validator/attribute ?attribute]]
                 validators attribute)]
     [:db.fn/retractEntity id]))
 
 (defn- retract-mixin [validators]
   (-> validators
       (d/db-with [{:db/ident :retract/by-attribute
-                   :db/fn retract-by-attribute}])))
+                   :db/fn retract-by-attribute-tx}])))
 
 ;; predicate validator
 
-(defn- predicate-upsert [_agg attribute predicate]
-  [{:predicate/ident attribute
-    :validator/type  :predicate
-    :attribute       attribute
-    :predicate       predicate}])
+(defn- predicate-upsert-tx [_agg attribute predicate]
+  [{:validator/type      :predicate
+    :validator/attribute attribute
+    :predicate/ident     attribute
+    :predicate/test      predicate}])
 
 (defn- predicate-validator-mixin [validators]
   (-> validators
       (vary-schema assoc :predicate/ident {:db/unique :db.unique/identity})
       (d/db-with [{:db/ident :predicate/upsert
-                   :db/fn    predicate-upsert}
+                   :db/fn    predicate-upsert-tx}
                   #_{:db/ident :predicate/retract}])))
 
 ;; todo: protocol
@@ -94,43 +94,56 @@
 
 ;; Регулярки и функции несравнимы.
 ;; Поэтому предикат не упоминается в ошибке, но его можно получить из валидаторов.
-(defmethod validate-by :predicate [agg {:keys [attribute predicate]}]
-  (let [tx-data (for [[e a v] (d/datoms agg :aevt attribute)
-                      :when   (not (apply-predicate predicate v))]
-                  {:error/type      :predicate
-                   :error/entity    e
-                   :error/attribute a
-                   :error/value     v})]
-    (d/db-with agg tx-data)))
+(defmethod errors-tx :predicate [agg {:keys [validator/attribute predicate/test]}]
+  (for [[e a v] (d/datoms agg :aevt attribute)
+        :when   (not (apply-predicate test v))]
+    {:error/type      :predicate
+     :error/entity    e
+     :error/attribute a
+     :error/value     v}))
 
 ;; required validator
 
-(defn- required-upsert [_agg attribute entities-rule]
-  [{:required/ident attribute
-    :validator/type :required
-    :attribute      attribute
-    :entities-rule  entities-rule}])
+(defn- required-upsert-tx [_agg attribute rule]
+  [{:validator/type      :required
+    :validator/attribute attribute
+    :required/ident      attribute
+    :required/rule       rule}])
 
 (defn- required-validator-mixin [validators]
   (-> validators
       (vary-schema assoc :required/ident {:db/unique :db.unique/identity})
       (d/db-with [{:db/ident :required/upsert
-                   :db/fn    required-upsert}])))
+                   :db/fn    required-upsert-tx}])))
 
-(defmethod validate-by :required [agg {:keys [attribute entities-rule]}]
-  (let [entities (d/q '[:find [?e ...]
-                        :in $ % ?a
-                        :where
-                        (entity ?e)
-                        [(missing? $ ?e ?a)]]
-                      agg entities-rule attribute)
-        tx-data  (for [e entities]
-                   {:error/type      :required
-                    :error/entity    e
-                    :error/attribute attribute})]
-    (d/db-with agg tx-data)))
+(defmethod errors-tx :required [agg {:keys [validator/attribute required/rule]}]
+  (for [e (d/q '[:find [?e ...]
+                 :in $ % ?a
+                 :where
+                 (entity ?e)
+                 [(missing? $ ?e ?a)]]
+               agg rule attribute)]
+    {:error/type      :required
+     :error/entity    e
+     :error/attribute attribute}))
 
 ;; main
+
+(def root-entity-rule
+  '[[(entity ?e)
+     [?e :db/ident :root]]])
+
+(defn root [agg]
+  (d/entity agg :root))
+
+(defn id [agg]
+  (d/q '[:find ?id .
+         :where [:root :agg/id ?id]]
+       agg))
+
+
+;; тут идея в том, что кому нужно могут и функцию сделать, например поставить текущую дату
+;; или вообще это будет генератор*
 
 (def proto-agg
   (-> (d/empty-db {:error/entity {:db/valueType :db.type/ref}})
@@ -142,14 +155,3 @@
       (required-validator-mixin)
       (retract-mixin)
       (d/db-with [[:predicate/upsert :agg/id int?]])))
-
-(def root-entity  '[[(entity ?e)
-                     [?e :db/ident :root]]])
-
-(defn root [agg]
-  (d/entity agg :root))
-
-(defn id [agg]
-  (d/q '[:find ?id .
-         :where [:root :agg/id ?id]]
-       agg))

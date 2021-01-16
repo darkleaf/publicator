@@ -34,7 +34,7 @@
 
 (t/deftest required-validator
   (let [validators (-> agg/proto-validators
-                       (d/db-with [[:required/upsert :test/a agg/root-entity]]))]
+                       (d/db-with [[:required/upsert :test/a agg/root-entity-rule]]))]
     (t/testing "main"
       (let [agg (-> agg/proto-agg
                     (d/db-with [{:db/id  2
@@ -45,17 +45,18 @@
                   (d/datom 3 :error/type :required)]
                  (d/seek-datoms agg :eavt 3)))))
     (t/testing "upsert"
-      (let [not-root-entities '[[(entity ?e)
-                                 [?e _ _]
-                                 (not [?e :db/ident :root])]]
-            validators        (d/db-with validators
-                                         [[:required/upsert :test/a not-root-entities]])
-            agg               (-> agg/proto-agg
-                                  (d/db-with [{:db/ident :root
-                                               :test/a   :value}
-                                              {:db/id      2
-                                               :test/not-a 42}])
-                                  (agg/validate validators))]
+      (let [not-root-entity-rule '[[(entity ?e)
+                                    [?e _ _]
+                                    (not [?e :db/ident :root])]]
+
+            validators (d/db-with validators
+                                  [[:required/upsert :test/a not-root-entity-rule]])
+            agg        (-> agg/proto-agg
+                           (d/db-with [{:db/ident :root
+                                        :test/a   :value}
+                                       {:db/id      2
+                                        :test/not-a 42}])
+                           (agg/validate validators))]
         (t/is (= [(d/datom 3 :error/attribute :test/a)
                   (d/datom 3 :error/entity 2)
                   (d/datom 3 :error/type :required)]
@@ -65,5 +66,5 @@
   (t/is (= agg/proto-validators
            (-> agg/proto-validators
                (d/db-with [[:predicate/upsert :test/a #{:ok}]
-                           [:required/upsert  :test/a agg/root-entity]
+                           [:required/upsert  :test/a agg/root-entity-rule]
                            [:retract/by-attribute :test/a]])))))
