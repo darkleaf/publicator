@@ -1,36 +1,42 @@
 (ns publicator.core.domain.aggregates.translation
-  (:require [publicator.core.domain.aggregate :as agg]
-            [datascript.core :as d]))
+  (:require
+   [publicator.core.domain.aggregate :as agg]
+   [datascript.core :as d]))
 
 (def langs [:en :ru])
 (def default-lang (first langs))
 
-;; перевод у агрегата может быть только один
-;; у перевода могут быть и зависимые сущности с переводом, вроде элементов заказа,
-;; при этом для них не нужно указывать `:translation/lang`
-;; т.е. `:translation/lang` может быть только у сущностей второго уровня
+(defn agg-mixin [agg]
+  (-> agg
+      (agg/vary-schema merge
+                       {:translation/entity {:db/valueType :db.type/ref}
+                        :translation/lang   {:db/unique     :db.unique/identity}})))
 
-(def schema
-  {:translation/root {:db/valueType :db.type/ref}
-   :translation/lang {:db/unique     :db.unique/identity
-                      :agg/predicate langs}})
+(defn- transaction-full-upsert-tx [_agg]
+  [{:db/ident            :translation/full
+    :validator/type      :translation/full
+    :validator/attribute :translation/lang}])
 
-(defn- full-translation-validator [agg]
-  (let [missed-langs (d/q '[:find [?expected ...]
-                            :in $ [?expected ...]
+(defmethod agg/errors-tx :translation/full [agg _validator]
+  (let [missed-langs (d/q '[:find ?e (aggregate ?set ?lang)
+                            :in $ ?set [?lang ...]
                             :where
-                            (not
-                             [?e :translation/root :root]
-                             [?e :translation/lang ?lang]
-                             [(= ?lang ?expected)])]
-                          agg langs)]
-    (if (empty? missed-langs)
-      agg
-      (d/db-with agg [{:error/type         :full-translation
-                       :error/entity       :root
-                       :error/missed-langs missed-langs}]))))
+                            [?t :translation/entity ?e]
+                            (not-join [?lang]
+                              [?t :translation/lang ?lang])]
+                          agg set langs)]
+    (for [[e langs] missed-langs]
+      {:error/type              :translation/full
+       :error/entity            e
+       :translation.full/missed langs})))
 
-(defn validate [agg & {:keys [full-translation]}]
-  (cond-> agg
-    true             (agg/required-attrs-validator {:translation/_root [:translation/lang]})
-    full-translation (full-translation-validator)))
+(def entity-rule
+  '[[(entity ?e)
+     [?e :translation/entity _]]])
+
+(defn validators-mixin [validators]
+  (-> validators
+      (d/db-with [{:db/ident :translation.full/upsert
+                   :db/fn    transaction-full-upsert-tx}
+                  [:predicate/upsert :translation/lang langs]
+                  [:required/upsert :translation/lang entity-rule]])))
