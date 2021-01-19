@@ -90,7 +90,7 @@
     (vector? p)   (some #{x} p)
     (set? p)      (p x)
     (fn? p)       (p x)
-    (m/regexp? p) (re-matches p x)))
+    (m/regexp? p) (and (string? x) (re-matches p x))))
 
 ;; Регулярки и функции несравнимы.
 ;; Поэтому предикат не упоминается в ошибке, но его можно получить из валидаторов.
@@ -150,7 +150,7 @@
       (d/db-with [[:db/add 1 :db/ident :root]])))
 
 (def proto-validators
-  (-> (d/empty-db {:attribute       {:db/index true}})
+  (-> (d/empty-db {:attribute {:db/index true}})
       (predicate-validator-mixin)
       (required-validator-mixin)
       (retract-mixin)

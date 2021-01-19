@@ -2,50 +2,66 @@
   (:require
    [cljc.java-time.extn.predicates :as time.predicates]
    [publicator.core.domain.aggregate :as agg]
-   [publicator.core.domain.aggregates.translation :as translation]))
+   [publicator.core.domain.aggregates.translation :as translation]
+   [datascript.core :as d]))
 
-(def schema
-  (merge translation/schema
-         '{:publication/state                    {:db/index      true
-                                                  :agg/predicate [:active :archived]}
-           :publication/type                     {:agg/predicate [:article :gallery]}
-           :publication/author-id                {:agg/predicate int?}
-           :publication/related-id               {:db/cardinality :db.cardinality/many
-                                                  :agg/predicate  int?}
-           :publication.translation/state        {:db/index      true
-                                                  :agg/predicate [:draft :published]}
-           :publication.translation/title        {:agg/predicate #".{1,255}"}
-           :publication.translation/summary      {:agg/predicate #".{1,255}"}
-           :publication.translation/published-at {:agg/predicate time/instant?}
-           :publication.translation/tag          {:db/cardinality :db.cardinality/many
-                                                  :agg/predicate  #".{1,255}"}
-           :article/image-url                    {:agg/predicate #".{1,255}"}
-           :article.translation/content          {:agg/predicate #".{1,}"}
-           :gallery/image-url                    {:db/cardinality :db.cardinality/many
-                                                  :agg/predicate  #".{1,255}"}}))
+(def proto-agg
+  (-> agg/proto-agg
+      (translation/agg-mixin)
+      (agg/vary-schema
+       merge {:publication/state             {:db/index true}
+              :publication/related-id        {:db/cardinality :db.cardinality/many}
+              :publication.translation/state {:db/index true}
+              :publication.translation/tag   {:db/cardinality :db.cardinality/many}
+              :gallery/image-url             {:db/cardinality :db.cardinality/many}})))
 
-(def build (agg/->build schema))
+(def translation-entity-rule
+  '[[(entity ?e)
+     [?e :translation/entity :root]]])
 
-(defn article? [agg]
-  (agg/include? agg :root :publication/type :article))
+(def published-translation-entity-rule
+  '[[(entity ?e)
+     [?e :translation/entity :root]
+     [?e :publication.translation/state :published]]])
 
-(defn gallery? [agg]
-  (agg/include? agg :root :publication/type :gallery))
+(def publication-validators
+  (-> agg/proto-validators
+      (translation/validators-mixin)
+      (d/db-with [[:predicate/upsert :publication/state [:active :archived]]
+                  [:required/upsert  :publication/state agg/root-entity-rule]
 
-(defn validate [agg]
-  (cond-> agg
-    true (agg/abstract-validate)
-    true (translation/validate)
-    true (agg/required-attrs-validator
-          {:root                                       #{:publication/state
-                                                         :publication/type
-                                                         :publication/author-id}
-           :translation/_root                          #{:publication.translation/title
-                                                         :publication.translation/state}
-           [:publication.translation/state :published] #{:publication.translation/published-at
-                                                         :publication.translation/summary}})
+                  [:predicate/upsert :publication/author-id int?]
+                  [:required/upsert  :publication/author-id agg/root-entity-rule]
 
-    (article? agg) (agg/required-attrs-validator
-                    {:root                                       [:article/image-url]
-                     [:publication.translation/state :published] [:article.translation/content]})
-    (gallery? agg) (agg/required-attrs-validator {:root [:gallery/image-url]})))
+                  [:predicate/upsert :publication/related-id int?]
+
+                  [:predicate/upsert :publication.translation/state [:draft :published]]
+                  [:required/upsert  :publication.translation/state translation-entity-rule]
+
+                  [:predicate/upsert :publication.translation/title #".{1,255}"]
+                  [:required/upsert  :publication.translation/title translation-entity-rule]
+
+                  [:predicate/upsert :publication.translation/summary #".{1,255}"]
+                  [:required/upsert  :publication.translation/summary
+                   published-translation-entity-rule]
+
+                  [:predicate/upsert :publication.translation/published-at
+                   time.predicates/instant?]
+                  [:required/upsert  :publication.translation/published-at
+                   published-translation-entity-rule]
+
+                  [:predicate/upsert :publication.translation/tag #".{1,255}"]])))
+
+(def article-validators
+  (-> publication-validators
+      (d/db-with [[:predicate/upsert :article/image-url #".{1,255}"]
+                  [:required/upsert  :article/image-url agg/root-entity-rule]
+
+                  [:predicate/upsert :article.translation/content #".{1,}"]
+                  [:required/upsert  :article.translation/content
+                   published-translation-entity-rule]])))
+
+(def gallery-validators
+  (-> publication-validators
+      (d/db-with [[:predicate/upsert :gallery/image-url #".{1,255}"]
+                  [:required/upsert  :gallery/image-url agg/root-entity-rule]])))
