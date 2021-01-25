@@ -1,31 +1,13 @@
 (ns publicator.core.domain.aggregate
   (:require
    [datascript.core :as d]
-   [medley.core :as m]
-   [publicator.utils :as u]))
+   [medley.core :as m]))
 
-;; utils
+(defonce schema-of-aggregate (atom {:error/entity {:db/valueType :db.type/ref}}))
 
-(defn with-schema [db new-schema]
-  (-> (d/empty-db new-schema)
-      (with-meta (meta db))
-      (d/db-with (d/datoms db :eavt))))
+(defonce schema-of-validators (atom {:validator/attribute {:db/index true}
+                                     #_#_:validator/type  {:db/index true}}))
 
-(defn vary-schema [db f & args]
-  (with-schema db (apply f (d/schema db) args)))
-
-;; filtered db is read-only
-;; наверное отсюда нужно вытащить db, а то больно сложная логика у фукнции
-(defn filter-datoms [agg allowed-attr?]
-  (let [pred   (comp (some-fn #(= "db" (namespace %))
-                              allowed-attr?)
-                     :a)
-        datoms (->> (d/datoms agg :eavt)
-                    (filter pred))
-        schema (d/schema agg)]
-    (d/init-db datoms schema)))
-
-;; errors
 
 (defn has-errors? [agg]
   (-> agg (d/datoms :aevt :error/entity) (seq) (boolean)))
@@ -36,11 +18,11 @@
 (defmulti errors-tx (fn [agg validator] (:validator/type validator)))
 
 (defn validate [agg validators]
-  (let [tx-data (for [validator (d/q '[:find [(pull ?e [*]) ...]
-                                       :where [?e :validator/type _]]
-                                     validators)]
-                  [:db.fn/call errors-tx validator])]
-    (d/db-with agg tx-data)))
+  (->> (for [validator (d/q '[:find [(pull ?e [*]) ...]
+                              :where [?e :validator/type _]]
+                            validators)]
+         [:db.fn/call errors-tx validator])
+       (d/db-with agg)))
 
 (defn validate! [agg validators]
   (let [agg (validate agg validators)]
@@ -49,38 +31,31 @@
       agg)))
 
 (defn remove-errors [agg]
-  (let [tx-data (for [id (d/q '[:find [?e ...]
-                                :where [?e :error/entity _]]
-                              agg)]
-                  [:db.fn/retractEntity id])]
-    (d/db-with agg tx-data)))
+  (->> (for [id (d/q '[:find [?e ...]
+                       :where [?e :error/entity _]]
+                     agg)]
+         [:db.fn/retractEntity id])
+       (d/db-with agg)))
 
-(defn- retract-by-attribute-tx [validators attribute]
-  (for [id (d/q '[:find [?e ...]
-                  :in $ ?attribute
-                  :where [?e :validator/attribute ?attribute]]
-                validators attribute)]
-    [:db.fn/retractEntity id]))
 
-(defn- retract-mixin [validators]
-  (-> validators
-      (d/db-with [{:db/ident :retract/by-attribute
-                   :db/fn retract-by-attribute-tx}])))
+(defn retract-validators-by-attribute [validators attribute]
+  (->> (for [id (d/q '[:find [?e ...]
+                       :in $ ?attribute
+                       :where [?e :validator/attribute ?attribute]]
+                     validators attribute)]
+         [:db.fn/retractEntity id])
+       (d/db-with validators)))
 
-;; predicate validator
 
-(defn- predicate-upsert-tx [_agg attribute predicate]
-  [{:validator/type      :predicate
-    :validator/attribute attribute
-    :predicate/ident     attribute
-    :predicate/test      predicate}])
+(swap! schema-of-validators assoc
+       :predicate/ident {:db/unique :db.unique/identity})
 
-(defn- predicate-validator-mixin [validators]
-  (-> validators
-      (vary-schema assoc :predicate/ident {:db/unique :db.unique/identity})
-      (d/db-with [{:db/ident :predicate/upsert
-                   :db/fn    predicate-upsert-tx}
-                  #_{:db/ident :predicate/retract}])))
+(defn upsert-predicate-validator [agg attribute predicate]
+  (->> [{:validator/type      :predicate
+         :validator/attribute attribute
+         :predicate/ident     attribute
+         :predicate/test      predicate}]
+       (d/db-with agg)))
 
 ;; todo: protocol
 (defn- apply-predicate
@@ -102,19 +77,16 @@
      :error/attribute a
      :error/value     v}))
 
-;; required validator
 
-(defn- required-upsert-tx [_agg attribute rule]
-  [{:validator/type      :required
-    :validator/attribute attribute
-    :required/ident      attribute
-    :required/rule       rule}])
+(swap! schema-of-validators assoc
+       :required/ident {:db/unique :db.unique/identity})
 
-(defn- required-validator-mixin [validators]
-  (-> validators
-      (vary-schema assoc :required/ident {:db/unique :db.unique/identity})
-      (d/db-with [{:db/ident :required/upsert
-                   :db/fn    required-upsert-tx}])))
+(defn upsert-required-validator [agg attribute rule]
+  (->> [{:validator/type      :required
+         :validator/attribute attribute
+         :required/ident      attribute
+         :required/rule       rule}]
+       (d/db-with agg)))
 
 (defmethod errors-tx :required [agg {:keys [validator/attribute required/rule]}]
   (for [e (d/q '[:find [?e ...]
@@ -127,7 +99,6 @@
      :error/entity    e
      :error/attribute attribute}))
 
-;; main
 
 (def root-entity-rule
   '[[(entity ?e)
@@ -141,17 +112,10 @@
          :where [:root :agg/id ?id]]
        agg))
 
-
-;; тут идея в том, что кому нужно могут и функцию сделать, например поставить текущую дату
-;; или вообще это будет генератор*
-
-(def proto-agg
-  (-> (d/empty-db {:error/entity {:db/valueType :db.type/ref}})
+(defn new-aggregate []
+  (-> (d/empty-db @schema-of-aggregate)
       (d/db-with [[:db/add 1 :db/ident :root]])))
 
-(def proto-validators
-  (-> (d/empty-db {:attribute {:db/index true}})
-      (predicate-validator-mixin)
-      (required-validator-mixin)
-      (retract-mixin)
-      (d/db-with [[:predicate/upsert :agg/id int?]])))
+(defn new-validators []
+  (-> (d/empty-db @schema-of-validators)
+      (upsert-predicate-validator :agg/id int?)))
