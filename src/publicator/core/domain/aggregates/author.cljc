@@ -4,11 +4,8 @@
    [publicator.core.domain.aggregates.translation :as translation]
    [datascript.core :as d]))
 
-(def proto-agg
-  (-> agg/proto-agg
-      (translation/agg-mixin)
-      (agg/vary-schema
-       merge {:author.achivement/root {:db/valueType :db.type/ref}})))
+(swap! agg/schema-of-aggregate merge
+       {:author.achivement/root {:db/valueType :db.type/ref}})
 
 (def translation-entity-rule
   '[[(entity ?e)
@@ -18,22 +15,23 @@
   '[[(entity ?e)
      [?e :author.achivement/root :root]]])
 
-(def validators
-  (-> agg/proto-validators
-      (translation/validators-mixin)
-      (d/db-with [[:translation.full/upsert agg/root-entity-rule]
-                  [:predicate/upsert :author.translation/first-name #".{1,255}"]
-                  [:required/upsert  :author.translation/first-name translation-entity-rule]
+;; автор - это примесь к юзеру
+(defn upsert-validators [user-validators]
+  (-> user-validators
+      (translation/upsert-validators)
+      (translation/upsert-transaction-full-validator agg/root-entity-rule)
+      (agg/upsert-predicate-validator :author.translation/first-name #".{1,255}")
+      (agg/upsert-required-validator  :author.translation/first-name translation-entity-rule)
 
-                  [:predicate/upsert :author.translation/last-name #".{1,255}"]
-                  [:required/upsert  :author.translation/last-name translation-entity-rule]
+      (agg/upsert-predicate-validator :author.translation/last-name #".{1,255}")
+      (agg/upsert-required-validator  :author.translation/last-name translation-entity-rule)
 
-                  [:predicate/upsert :author.achivement/kind [:legend :star :old-timer]]
-                  [:required/upsert  :author.achivement/kind achivement-entity-rule]
+      (agg/upsert-predicate-validator :author.achivement/kind [:legend :star :old-timer])
+      (agg/upsert-required-validator  :author.achivement/kind achivement-entity-rule)
 
-                  [:predicate/upsert :author.achivement/assigner-id int?]
-                  [:required/upsert  :author.achivement/assigner-id achivement-entity-rule]])))
+      (agg/upsert-predicate-validator :author.achivement/assigner-id int?)
+      (agg/upsert-required-validator  :author.achivement/assigner-id achivement-entity-rule)))
 
-; TODO: под ачивки нужно сделать юзкейс
-; в форму добавлять ключи вроде :author.achivement/can-remove?
-; ну и валидировать, что текущий пользователь может удалять ачивку
+;; TODO: под ачивки нужно сделать юзкейс
+;; в форму добавлять ключи вроде :author.achivement/can-remove?
+;; ну и валидировать, что текущий пользователь может удалять ачивку

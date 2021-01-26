@@ -6,17 +6,19 @@
    [clojure.test :as t]))
 
 (t/deftest has-no-errors
-  (let [agg (-> author/proto-agg
-                (d/db-with [{:translation/entity            :root
-                             :translation/lang              :en
-                             :author.translation/first-name "John"
-                             :author.translation/last-name  "Doe"}
-                            {:translation/entity            :root
-                             :translation/lang              :ru
-                             :author.translation/first-name "Иван"
-                             :author.translation/last-name  "Иванов"}
-                            {:author.achivement/root        :root
-                             :author.achivement/kind        :star
-                             :author.achivement/assigner-id 42}])
-                (agg/validate author/validators))]
+  (let [validators (-> (agg/new-validators)
+                       (author/upsert-validators))
+        agg        (-> (agg/new-aggregate)
+                       (d/db-with [{:translation/entity            :root
+                                    :translation/lang              :en
+                                    :author.translation/first-name "John"
+                                    :author.translation/last-name  "Doe"}
+                                   {:translation/entity            :root
+                                    :translation/lang              :ru
+                                    :author.translation/first-name "Иван"
+                                    :author.translation/last-name  "Иванов"}
+                                   {:author.achivement/root        :root
+                                    :author.achivement/kind        :star
+                                    :author.achivement/assigner-id 42}])
+                       (agg/validate validators))]
     (t/is (agg/has-no-errors? agg))))

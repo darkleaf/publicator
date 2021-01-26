@@ -4,30 +4,23 @@
    [publicator.core.domain.aggregates.author :as author]
    [datascript.core :as d]))
 
-(def schema
-  (merge author/schema
-         '{:user/login           {:agg/predicate #"\w{3,255}"}
-           :user/state           {:agg/predicate [:active :archived]}
-           ;; admin? и author? сделаны отдельными полями для разграничения доступа по полям
-           :user/admin?          {:agg/predicate boolean?}
-           :user/author?         {:agg/predicate boolean?}
-           :user/password-digest {:agg/predicate #".{1,255}"}
-           :user/password        {:agg/predicate #".{8,255}"}}))
+(defn new-validators [user]
+  (-> (agg/new-validators)
+      (agg/upsert-predicate-validator :user/login #"\w{3,255}")
+      (agg/upsert-required-validator  :user/login agg/root-entity-rule)
 
-(def build (agg/->build schema))
+      (agg/upsert-predicate-validator :user/state [:active :archived])
+      (agg/upsert-required-validator  :user/state agg/root-entity-rule)
 
-(defn active? [user]
-  (agg/include? user :root :user/state :active))
+      (agg/upsert-predicate-validator :user/password-digest #".{1,255}")
+      (agg/upsert-required-validator  :user/password-digest agg/root-entity-rule)
 
-(defn admin? [user]
-  (agg/include? user :root :user/admin? true))
+      ;; admin? и author? сделаны отдельными полями
+      ;; для разграничения доступа по полям
+      (agg/upsert-predicate-validator :user/admin? boolean?)
+      (agg/upsert-predicate-validator :user/author? boolean?)
+
+      (cond-> (author? user) (author/upsert-validators))))
 
 (defn author? [user]
-  (agg/include? user :root :user/author? true))
-
-(defn validate [user]
-  (cond-> user
-    :always        (agg/abstract-validate)
-    :always        (agg/required-attrs-validator
-                    {:root #{:user/login :user/state :user/password-digest}})
-    (author? user) (author/validate)))
+  (-> user agg/root (get :user/author? false)))
