@@ -5,17 +5,18 @@
    [darkleaf.generator.core :as gen]
    [datascript.core :as d]
    [publicator.core.domain.aggregate :as agg]
+   [publicator.core.use-cases.aggregates.user :as user]
+   [publicator.core.use-cases.interactors.test-common :as tc]
    [publicator.core.use-cases.interactors.user.update :as user.update]
-   [publicator.core.use-cases.services.user-session :as user-session]
-   [publicator.core.use-cases.interactors.test-common :as tc]))
+   [publicator.core.use-cases.services.user-session :as user-session]))
 
 (t/deftest form-success
   (let [user-id 1
-        user    (agg/build {:db/ident             :root
-                            :agg/id               user-id
-                            :user/login           "john"
-                            :user/password-digest "digest"
-                            :user/state           :active})
+        user    (user/build {:db/ident             :root
+                             :agg/id               user-id
+                             :user/login           "john"
+                             :user/password-digest "digest"
+                             :user/state           :active})
         form    (agg/build {:db/ident   :root
                             :user/login "john"
                             :user/state :active})

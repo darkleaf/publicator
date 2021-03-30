@@ -34,11 +34,20 @@
                 :author.translation/last-name}
         (user/admin? current-user) (conj :user/state :user/admin?)))))
 
+
+;; вынести в файл
+(def form-schema (merge user/schema
+                        {:user/password {:agg/predicate #".{8,255}"}}))
+
+
 (defn validate-form* [form]
   (generator
     (cond-> form
-      :always             (agg/validate)
+      :always             (agg/abstract-validate)
       :always             (agg/required-attrs-validator {:root [:user/login :user/state]})
+
+
+      ;; похоже этот валидатор нафиг не нужен, т.к. тоже самое проверяется в form/changes
       :always             (agg/permitted-attrs-validator (yield (->readable-attr?*)))
       (user/author? form) (author/validate))))
 
